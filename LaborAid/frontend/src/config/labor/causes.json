@@ -1,0 +1,26 @@
+[
+  {
+    "id": "wage_arrears",
+    "label": "拖欠工资",
+    "description": "用人单位未按时足额支付劳动报酬",
+    "default_documents": ["仲裁申请书", "证据清单"]
+  },
+  {
+    "id": "illegal_termination",
+    "label": "违法解除劳动合同",
+    "description": "认为用人单位解除或终止劳动合同违法",
+    "default_documents": ["仲裁申请书", "证据清单"]
+  },
+  {
+    "id": "overtime_pay",
+    "label": "加班费",
+    "description": "主张加班但未获加班工资或计算基数有争议",
+    "default_documents": ["仲裁申请书", "证据清单"]
+  },
+  {
+    "id": "no_written_contract",
+    "label": "未签订书面劳动合同",
+    "description": "主张未签书面合同并要求二倍工资等",
+    "default_documents": ["仲裁申请书", "证据清单"]
+  }
+]

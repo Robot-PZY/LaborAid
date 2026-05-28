@@ -1,0 +1,442 @@
+{
+  "categories": [
+    {
+      "id": "wage_clue",
+      "label": "欠薪线索反映",
+      "description": "国务院督办平台，适合工程建设领域及其他领域欠薪"
+    },
+    {
+      "id": "labor_inspection",
+      "label": "劳动监察投诉",
+      "description": "向属地人社劳动监察机构投诉用人单位违法行为"
+    },
+    {
+      "id": "arbitration",
+      "label": "劳动仲裁申请",
+      "description": "向劳动争议仲裁委员会申请立案（各地入口不同）"
+    },
+    {
+      "id": "legal_aid",
+      "label": "法律援助 / 咨询",
+      "description": "12348 法律咨询、法律援助申请指引"
+    },
+    {
+      "id": "women_federation",
+      "label": "妇联维权咨询",
+      "description": "全国妇联 — 女职工权益保护咨询与反映（全国入口，不限省份）"
+    },
+    {
+      "id": "union_hotline",
+      "label": "工会职工维权",
+      "description": "中华全国总工会 · 职工维权热线 12351"
+    }
+  ],
+  "national": {
+    "wage_clue": {
+      "label": "全国根治欠薪线索反映",
+      "url": "https://www.gov.cn/fuwu/2021-12/25/content_5664490.htm",
+      "hint": "微信或支付宝搜索「国务院客户端」小程序 → 首页「欠薪线索反映」；或搜索「全国根治欠薪线索反映平台」小程序。需实名，可上传欠条、考勤等证据。"
+    },
+    "mohrss_service": {
+      "label": "全国人社政务服务平台",
+      "url": "https://zwfw.mohrss.gov.cn/",
+      "phone": "12333",
+      "hint": "人社部统一政务服务入口，可查找各地劳动仲裁、社保、就业等事项"
+    },
+    "legal_12348": {
+      "label": "中国法律服务网（12348）",
+      "url": "https://www.12348.gov.cn/",
+      "phone": "12348",
+      "hint": "免费法律咨询；经济困难可申请法律援助（以当地法援中心审核为准）"
+    },
+    "npc_laws": {
+      "label": "国家法律法规数据库",
+      "url": "https://flk.npc.gov.cn/",
+      "hint": "查询法律、行政法规、司法解释原文"
+    },
+    "women_federation": {
+      "label": "全国妇联",
+      "url": "https://www.women.org.cn/",
+      "hint": "女职工权益保护相关咨询与反映（可配合劳动监察、仲裁使用）"
+    },
+    "union_hotline": {
+      "label": "工会职工维权",
+      "url": "https://www.acftu.org/",
+      "phone": "12351",
+      "hint": "可向用人单位工会或上级工会寻求帮助"
+    }
+  },
+  "by_province": {
+    "北京市": {
+      "labor_inspection": {
+        "label": "北京市劳动保障监察举报",
+        "url": "https://rsj.beijing.gov.cn/",
+        "phone": "12333",
+        "hint": "进入北京市人社局官网 → 搜索「劳动保障监察」或「举报投诉」；也可拨打 12333 转接"
+      },
+      "arbitration": {
+        "label": "北京市劳动人事争议仲裁",
+        "url": "https://fuwu.rsj.beijing.gov.cn/zhrs/",
+        "phone": "12333",
+        "hint": "可通过「北京通」或人社局官网查找仲裁申请、预约入口"
+      },
+      "legal_aid": {
+        "label": "北京市法律援助",
+        "url": "https://www.12348.gov.cn/#/publicies/lag/legalAid",
+        "phone": "12348",
+        "hint": "12348 网选择「北京」→ 法律援助申请；或到区司法局法援中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "北京市人力资源和社会保障局",
+        "url": "https://rsj.beijing.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "上海市": {
+      "labor_inspection": {
+        "label": "上海市劳动保障监察",
+        "url": "https://rsj.sh.gov.cn/",
+        "phone": "12333",
+        "hint": "上海市人社局官网 → 政务公开 / 办事服务 → 劳动保障监察举报"
+      },
+      "arbitration": {
+        "label": "上海市劳动人事争议仲裁",
+        "url": "https://www.12333.gov.cn/",
+        "phone": "12333",
+        "hint": "上海「一网通办」搜索「劳动人事争议仲裁申请」；或咨询 12333"
+      },
+      "legal_aid": {
+        "label": "上海市法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "12348 选择上海属地；或到区法律援助中心申请"
+      },
+      "hrss_portal": {
+        "label": "上海市人力资源和社会保障局",
+        "url": "https://rsj.sh.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "广东省": {
+      "labor_inspection": {
+        "label": "广东省劳动保障监察举报",
+        "url": "https://hrss.gd.gov.cn/zwgk/zdlyxxgk/ldgx/",
+        "phone": "12333",
+        "hint": "广东省人社厅「劳动关系」栏目；或「广东人社」APP / 小程序 → 劳动保障监察"
+      },
+      "arbitration": {
+        "label": "广东省劳动人事争议调解仲裁",
+        "url": "https://hrss.gd.gov.cn/zwgk/zdlyxxgk/ldgx/",
+        "phone": "12333",
+        "hint": "省级指引页面；具体立案向用人单位所在地或劳动合同履行地仲裁委申请"
+      },
+      "legal_aid": {
+        "label": "广东省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "12348 选择广东省及具体地市；或到区县司法局法援中心"
+      },
+      "hrss_portal": {
+        "label": "广东省人力资源和社会保障厅",
+        "url": "https://hrss.gd.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "浙江省": {
+      "labor_inspection": {
+        "label": "浙江省劳动保障监察",
+        "url": "https://rlsbt.zj.gov.cn/",
+        "phone": "12333",
+        "hint": "浙江省人社厅官网 → 搜索「监察举报」；「浙里办」APP 可办相关事项"
+      },
+      "arbitration": {
+        "label": "浙江省劳动人事争议仲裁",
+        "url": "https://rlsbt.zj.gov.cn/",
+        "phone": "12333",
+        "hint": "「浙里办」搜索「劳动人事争议仲裁申请」"
+      },
+      "legal_aid": {
+        "label": "浙江省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "浙江省人力资源和社会保障厅",
+        "url": "https://rlsbt.zj.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "四川省": {
+      "labor_inspection": {
+        "label": "四川省劳动保障监察",
+        "url": "https://rst.sc.gov.cn/",
+        "phone": "12333",
+        "hint": "四川省人社厅官网 → 劳动保障监察；「天府通办」可搜索相关事项"
+      },
+      "arbitration": {
+        "label": "四川省劳动人事争议仲裁",
+        "url": "https://rst.sc.gov.cn/",
+        "phone": "12333",
+        "hint": "向用人单位所在地县级仲裁委申请；可通过「天府通办」查询"
+      },
+      "legal_aid": {
+        "label": "四川省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "四川省人力资源和社会保障厅",
+        "url": "https://rst.sc.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "江苏省": {
+      "labor_inspection": {
+        "label": "江苏省劳动保障监察",
+        "url": "https://jshrss.jiangsu.gov.cn/",
+        "phone": "12333",
+        "hint": "江苏省人社厅官网；「江苏智慧人社」APP 可办监察投诉"
+      },
+      "arbitration": {
+        "label": "江苏省劳动人事争议仲裁",
+        "url": "https://jshrss.jiangsu.gov.cn/",
+        "phone": "12333",
+        "hint": "「江苏政务服务网」搜索劳动仲裁申请"
+      },
+      "legal_aid": {
+        "label": "江苏省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "江苏省人力资源和社会保障厅",
+        "url": "https://jshrss.jiangsu.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "山东省": {
+      "labor_inspection": {
+        "label": "山东省劳动保障监察",
+        "url": "http://hrss.shandong.gov.cn/",
+        "phone": "12333",
+        "hint": "山东省人社厅官网 → 劳动保障监察举报"
+      },
+      "arbitration": {
+        "label": "山东省劳动人事争议仲裁",
+        "url": "http://hrss.shandong.gov.cn/",
+        "phone": "12333"
+      },
+      "legal_aid": {
+        "label": "山东省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "山东省人力资源和社会保障厅",
+        "url": "http://hrss.shandong.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "河南省": {
+      "labor_inspection": {
+        "label": "河南省劳动保障监察",
+        "url": "https://hrss.henan.gov.cn/",
+        "phone": "12333",
+        "hint": "河南省人社厅官网；「豫事办」APP 可搜索监察投诉"
+      },
+      "arbitration": {
+        "label": "河南省劳动人事争议仲裁",
+        "url": "https://hrss.henan.gov.cn/",
+        "phone": "12333"
+      },
+      "legal_aid": {
+        "label": "河南省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "河南省人力资源和社会保障厅",
+        "url": "https://hrss.henan.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "湖北省": {
+      "labor_inspection": {
+        "label": "湖北省劳动保障监察",
+        "url": "https://rst.hubei.gov.cn/",
+        "phone": "12333"
+      },
+      "arbitration": {
+        "label": "湖北省劳动人事争议仲裁",
+        "url": "https://rst.hubei.gov.cn/",
+        "phone": "12333",
+        "hint": "「鄂汇办」搜索劳动人事争议仲裁"
+      },
+      "legal_aid": {
+        "label": "湖北省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "湖北省人力资源和社会保障厅",
+        "url": "https://rst.hubei.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "湖南省": {
+      "labor_inspection": {
+        "label": "湖南省劳动保障监察",
+        "url": "https://rst.hunan.gov.cn/",
+        "phone": "12333"
+      },
+      "arbitration": {
+        "label": "湖南省劳动人事争议仲裁",
+        "url": "https://rst.hunan.gov.cn/",
+        "phone": "12333",
+        "hint": "「湘易办」搜索仲裁申请"
+      },
+      "legal_aid": {
+        "label": "湖南省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "湖南省人力资源和社会保障厅",
+        "url": "https://rst.hunan.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "福建省": {
+      "labor_inspection": {
+        "label": "福建省劳动保障监察",
+        "url": "https://rst.fujian.gov.cn/",
+        "phone": "12333"
+      },
+      "arbitration": {
+        "label": "福建省劳动人事争议仲裁",
+        "url": "https://rst.fujian.gov.cn/",
+        "phone": "12333",
+        "hint": "「闽政通」APP 可办相关事项"
+      },
+      "legal_aid": {
+        "label": "福建省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "福建省人力资源和社会保障厅",
+        "url": "https://rst.fujian.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "重庆市": {
+      "labor_inspection": {
+        "label": "重庆市劳动保障监察",
+        "url": "https://rlsbj.cq.gov.cn/",
+        "phone": "12333"
+      },
+      "arbitration": {
+        "label": "重庆市劳动人事争议仲裁",
+        "url": "https://rlsbj.cq.gov.cn/",
+        "phone": "12333",
+        "hint": "「渝快办」搜索劳动仲裁"
+      },
+      "legal_aid": {
+        "label": "重庆市法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "重庆市人力资源和社会保障局",
+        "url": "https://rlsbj.cq.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "陕西省": {
+      "labor_inspection": {
+        "label": "陕西省劳动保障监察",
+        "url": "https://rst.shaanxi.gov.cn/",
+        "phone": "12333"
+      },
+      "arbitration": {
+        "label": "陕西省劳动人事争议仲裁",
+        "url": "https://rst.shaanxi.gov.cn/",
+        "phone": "12333"
+      },
+      "legal_aid": {
+        "label": "陕西省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "陕西省人力资源和社会保障厅",
+        "url": "https://rst.shaanxi.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "天津市": {
+      "labor_inspection": {
+        "label": "天津市劳动保障监察",
+        "url": "https://hrss.tj.gov.cn/",
+        "phone": "12333"
+      },
+      "arbitration": {
+        "label": "天津市劳动人事争议仲裁",
+        "url": "https://hrss.tj.gov.cn/",
+        "phone": "12333"
+      },
+      "legal_aid": {
+        "label": "天津市法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "天津市人力资源和社会保障局",
+        "url": "https://hrss.tj.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "安徽省": {
+      "labor_inspection": {
+        "label": "安徽省劳动保障监察",
+        "url": "https://hrss.ah.gov.cn/",
+        "phone": "12333",
+        "hint": "「皖事通」APP 可搜索劳动保障监察"
+      },
+      "arbitration": {
+        "label": "安徽省劳动人事争议仲裁",
+        "url": "https://hrss.ah.gov.cn/",
+        "phone": "12333"
+      },
+      "legal_aid": {
+        "label": "安徽省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348"
+      },
+      "hrss_portal": {
+        "label": "安徽省人力资源和社会保障厅",
+        "url": "https://hrss.ah.gov.cn/",
+        "phone": "12333"
+      }
+    }
+  },
+  "fallback": {
+    "labor_inspection": {
+      "label": "全国人社政务服务平台",
+      "url": "https://zwfw.mohrss.gov.cn/",
+      "phone": "12333",
+      "hint": "选择所在省市区，查找劳动保障监察举报事项"
+    },
+    "arbitration": {
+      "label": "全国人社政务服务平台 · 劳动仲裁",
+      "url": "https://zwfw.mohrss.gov.cn/",
+      "phone": "12333",
+      "hint": "劳动仲裁由县级仲裁委受理，请通过平台查找属地入口或拨打 12333"
+    },
+    "legal_aid": {
+      "label": "中国法律服务网（12348）",
+      "url": "https://www.12348.gov.cn/",
+      "phone": "12348"
+    }
+  }
+}

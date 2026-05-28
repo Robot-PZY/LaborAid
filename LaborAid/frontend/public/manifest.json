@@ -1,0 +1,18 @@
+{
+  "name": "劳权智助 LaborAid",
+  "short_name": "劳权智助",
+  "description": "劳动者维权智能法律服务助手",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a2332",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

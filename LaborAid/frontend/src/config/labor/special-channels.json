@@ -1,0 +1,736 @@
+{
+  "disclaimer": "本站提供的信息与链接仅供参考，不构成法律意见。举报、立案、法援申请等请以政府部门官方平台及当地最新规定为准。",
+  "hub_intro": "针对不同用工群体提供专属维权路径、官方渠道与材料准备指引，体现劳动者友好与公益导向。",
+  "report_links": {
+    "default": {
+      "label": "全国人力资源和社会保障政务服务平台",
+      "url": "https://www.mohrss.gov.cn/",
+      "phone": "12333",
+      "hint": "请通过网站查找「劳动保障监察举报投诉」或当地办事入口"
+    },
+    "by_province": {
+      "北京市": {
+        "label": "北京市人力资源和社会保障局",
+        "url": "https://rsj.beijing.gov.cn/",
+        "phone": "12333"
+      },
+      "上海市": {
+        "label": "上海市人力资源和社会保障局",
+        "url": "https://rsj.sh.gov.cn/",
+        "phone": "12333"
+      },
+      "广东省": {
+        "label": "广东省人力资源和社会保障厅",
+        "url": "https://hrss.gd.gov.cn/",
+        "phone": "12333"
+      },
+      "浙江省": {
+        "label": "浙江省人力资源和社会保障厅",
+        "url": "https://rlsbt.zj.gov.cn/",
+        "phone": "12333"
+      },
+      "四川省": {
+        "label": "四川省人力资源和社会保障厅",
+        "url": "https://rst.sc.gov.cn/",
+        "phone": "12333"
+      }
+    }
+  },
+  "channels": {
+    "migrant-worker": {
+      "id": "migrant-worker",
+      "title": "农民工维权专区",
+      "subtitle": "欠薪维权 · 快速指路",
+      "audience": "适用于在建筑、制造、餐饮等行业务工，遭遇拖欠工资、未签合同等情形的农民工兄弟姊妹。",
+      "highlights": [
+        "按欠薪情形分步指引，不再泛泛罗列",
+        "欠薪举报电话与 12333 汇总",
+        "证据清单可勾选，联动整理证据与生成文书",
+        "监察投诉后可衔接仲裁申请"
+      ],
+      "scenarios": [
+        {
+          "id": "wage_boss",
+          "title": "包工头 / 小老板欠薪",
+          "summary": "个人或班组长拖欠工资，手里有欠条、微信催要记录，但不确定该告谁。",
+          "path_hint": "先固定欠薪事实 → 查清用人单位 → 向劳动监察投诉 → 必要时申请仲裁",
+          "who_to_sue": "有正式用人单位的，一般告用人单位；仅个人包工头、无用工主体的，可先打 12348 咨询能否直接起诉或追加总包单位。",
+          "evidence_checklist": [
+            "工资条、欠条或结算单",
+            "银行流水 / 微信转账记录",
+            "微信、短信催要工资记录",
+            "考勤记录或工友证明",
+            "劳动合同或用工协议（如有）"
+          ],
+          "steps": [
+            {
+              "title": "查清用人单位",
+              "detail": "核实总包、分包单位名称与经营状态，确定被申请人",
+              "action": "internal",
+              "route": "/enterprise",
+              "link_label": "查询企业"
+            },
+            {
+              "title": "整理欠薪证据",
+              "detail": "上传欠条、流水、聊天记录至证据整理，便于后续投诉与仲裁",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "向劳动监察投诉",
+              "detail": "用人单位仍存续、事实较清楚时，监察可责令支付",
+              "action": "report",
+              "link_label": "一键举报欠薪"
+            },
+            {
+              "title": "生成劳动仲裁申请书",
+              "detail": "监察未解决或需确认劳动关系时，在一年时效内申请仲裁",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人系农民工，在【工地/单位名称】从事【工种】工作。自【起始日期】起，用人单位/包工头【姓名】拖欠工资共计【金额】元。已有欠条/工资结算单、银行流水及微信催要记录。请求裁决：1. 支付拖欠工资【金额】元；2. 承担本案仲裁费用。"
+            }
+          ],
+          "law_searches": ["保障农民工工资支付条例 工资支付", "劳动法 工资"]
+        },
+        {
+          "id": "subcontract",
+          "title": "分包转包，不知告谁",
+          "summary": "工地多层分包，只认识工头，不清楚总包、劳务公司或实际用人单位是谁。",
+          "path_hint": "先查企业链条 → 固定在各层级工作的证据 → 向监察反映 → 仲裁时将相关主体列为被申请人",
+          "who_to_sue": "可同时列总包单位、劳务分包、实际用工单位；具体以当地仲裁委受理意见为准。",
+          "evidence_checklist": [
+            "工地名称、项目牌照片",
+            "工牌、入场证、安全帽编号",
+            "与工头/带班微信工作群记录",
+            "工资发放记录（谁转的钱）",
+            "工友联名证明"
+          ],
+          "steps": [
+            {
+              "title": "查询总包与分包企业",
+              "detail": "通过企业名称或统一社会信用代码核实工商信息",
+              "action": "internal",
+              "route": "/enterprise",
+              "link_label": "查询企业"
+            },
+            {
+              "title": "检索分包责任规定",
+              "detail": "了解总包对农民工工资的清偿责任",
+              "action": "search",
+              "search_query": "保障农民工工资支付条例 分包 总包",
+              "link_label": "检索法规"
+            },
+            {
+              "title": "整理入场与用工证据",
+              "detail": "工牌、考勤、群聊等证明你在该项目提供劳动",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "向监察投诉并申请仲裁",
+              "detail": "说明多层分包结构，请求责令支付或追加责任主体",
+              "action": "docgen",
+              "doc_type": "labor_supervision",
+              "link_label": "生成监察投诉书",
+              "prefill": "本人在【项目名称】工地务工，该项目存在层层分包。实际带班人为【姓名】，拖欠工资【金额】元。经查询，总包单位为【名称】，劳务分包为【名称】。请求劳动监察部门责令支付农民工工资。"
+            }
+          ],
+          "law_searches": ["保障农民工工资支付条例 分包", "建筑法 劳务分包"]
+        },
+        {
+          "id": "project_stop",
+          "title": "工地停工讨薪",
+          "summary": "项目停工或烂尾，老板跑路，担心过了时效要不回工资。",
+          "path_hint": "立即固定证据并投诉 → 关注政府专项处置 → 符合条件可申请法律援助",
+          "evidence_checklist": [
+            "停工前最后考勤记录",
+            "未结工资结算单或欠条",
+            "项目停工通知或现场照片",
+            "已收到的部分工资流水"
+          ],
+          "steps": [
+            {
+              "title": "拨打欠薪热线",
+              "detail": "全国统一 12333，也可咨询 12348",
+              "action": "phone",
+              "phones": ["12333", "12348"]
+            },
+            {
+              "title": "国务院欠薪线索反映",
+              "detail": "国务院督办平台，工程建设领域欠薪优先推荐",
+              "action": "report",
+              "platform_category": "wage_clue",
+              "link_label": "国务院欠薪线索"
+            },
+            {
+              "title": "紧急整理证据",
+              "detail": "停工前尽快保存考勤、欠条、项目信息",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "向劳动监察举报",
+              "detail": "属地人社部门对群体性欠薪常有专项通道",
+              "action": "report",
+              "platform_category": "labor_inspection",
+              "link_label": "属地监察投诉"
+            },
+            {
+              "title": "申请法律援助",
+              "detail": "经济困难可申请免费律师代理（以当地法援中心审核为准）",
+              "action": "report",
+              "platform_category": "legal_aid",
+              "link_label": "12348 法援咨询"
+            }
+          ],
+          "law_searches": ["保障农民工工资支付条例 拖欠", "劳动争议调解仲裁法 时效"]
+        },
+        {
+          "id": "after_inspection",
+          "title": "监察受理后仍不支付",
+          "summary": "已向劳动监察投诉，用人单位仍不支付或仅支付部分，需要走仲裁。",
+          "path_hint": "保存监察回执 → 补充证据 → 在仲裁时效内提交申请",
+          "evidence_checklist": [
+            "监察投诉回执或受理通知",
+            "监察调查笔录（如有）",
+            "用人单位仍欠付的差额证明",
+            "劳动关系证明"
+          ],
+          "steps": [
+            {
+              "title": "核对仲裁时效",
+              "detail": "一般应自知道权利被侵害之日起一年内申请仲裁",
+              "action": "search",
+              "search_query": "劳动争议 仲裁时效 一年",
+              "link_label": "检索时效规定"
+            },
+            {
+              "title": "补充证据材料",
+              "detail": "将监察材料与欠薪证据一并整理",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "列明监察过程、仍欠金额及请求事项",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人已向【XX劳动监察大队】投诉用人单位拖欠工资，用人单位仍拒绝支付/仅支付部分。现申请劳动仲裁，请求裁决支付剩余工资【金额】元及相应法律责任。"
+            }
+          ],
+          "law_searches": ["劳动争议调解仲裁法", "劳动法 工资支付"]
+        }
+      ],
+      "rights_summary": [
+        "用人单位应及时足额支付劳动报酬",
+        "可依法向劳动监察部门投诉或申请劳动仲裁",
+        "符合条件的可申请法律援助",
+        "保留工资条、考勤、欠条、聊天记录等证据"
+      ],
+      "quick_actions": [
+        {
+          "id": "fast_track",
+          "title": "快速立案通道",
+          "description": "了解劳动仲裁与监察投诉的适用情形，跳转属地官方办事入口",
+          "action": "external",
+          "url": "https://www.mohrss.gov.cn/"
+        },
+        {
+          "id": "hotlines",
+          "title": "欠薪举报电话汇总",
+          "description": "全国统一 12333，也可拨打 12348 法律咨询",
+          "action": "phone",
+          "phones": ["12333", "12348"]
+        },
+        {
+          "id": "legal_aid",
+          "title": "法律援助申请指南",
+          "description": "经济困难等符合条件可申请法律援助",
+          "action": "external",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "id": "enterprise_query",
+          "title": "查询用人单位",
+          "description": "核实企业工商登记与经营状态",
+          "action": "internal",
+          "route": "/enterprise"
+        }
+      ],
+      "steps": [
+        {
+          "title": "固定欠薪事实与金额",
+          "detail": "整理工资条、银行流水、包工头欠条、微信催要记录等",
+          "action": "internal",
+          "route": "/evidence"
+        },
+        {
+          "title": "向劳动监察投诉",
+          "detail": "用人单位仍存续、事实较清楚时可先行投诉",
+          "action": "report"
+        },
+        {
+          "title": "申请劳动仲裁",
+          "detail": "需确认劳动关系或监察未解决时",
+          "action": "external",
+          "url": "https://www.mohrss.gov.cn/"
+        },
+        {
+          "title": "起草仲裁申请书",
+          "detail": "使用「生成文书」辅助整理请求事项与事实理由",
+          "action": "internal",
+          "route": "/documents"
+        }
+      ],
+      "laws": [
+        {
+          "title": "劳动法 工资支付",
+          "search_query": "劳动法 工资支付"
+        },
+        {
+          "title": "保障农民工工资支付条例",
+          "search_query": "保障农民工工资支付条例"
+        }
+      ],
+      "enable_one_click_report": true,
+      "report_button_label": "一键举报欠薪（跳转官方平台）"
+    },
+    "intern-probation": {
+      "id": "intern-probation",
+      "title": "实习生 / 试用期劳动者专区",
+      "subtitle": "身份界定 · 权利义务",
+      "audience": "适用于在校实习生、试用期职工，对是否构成劳动关系、能否随意解除等有疑问的用户。",
+      "highlights": [
+        "区分在校实习与劳动关系两种路径",
+        "试用期违法解除专项指引",
+        "实习报酬、工时、保险常见问题",
+        "合同审查与证据留存一键跳转"
+      ],
+      "scenarios": [
+        {
+          "id": "intern_identity",
+          "title": "在校实习：算不算劳动关系？",
+          "summary": "学校安排或自行联系实习，单位要求签「实习协议」而非劳动合同，不确定能否按劳动法维权。",
+          "path_hint": "先判断身份 → 审查协议 → 构成劳动关系则按劳动法维权，纯实习则按协议与侵权规则处理",
+          "who_to_sue": "构成劳动关系的告用人单位；纯民事实习纠纷可能告实习单位，建议先咨询 12348。",
+          "evidence_checklist": [
+            "实习协议 / 三方协议",
+            "学校实习证明或派遣函",
+            "考勤、工牌、工作群记录",
+            "报酬发放记录",
+            "社保缴纳记录（如有）"
+          ],
+          "steps": [
+            {
+              "title": "审查实习协议",
+              "detail": "识别是否实质构成劳动合同、有无违法免责条款",
+              "action": "internal",
+              "route": "/contracts",
+              "link_label": "审查合同"
+            },
+            {
+              "title": "检索实习与劳动关系规定",
+              "detail": "了解认定劳动关系的裁判思路",
+              "action": "search",
+              "search_query": "实习 劳动关系 认定",
+              "link_label": "检索案例与法条"
+            },
+            {
+              "title": "保存工作管理证据",
+              "detail": "证明接受单位管理、从事有报酬劳动",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "咨询 12348",
+              "detail": "身份认定复杂时，先拨打公益法律热线",
+              "action": "phone",
+              "phones": ["12348"]
+            }
+          ],
+          "law_searches": ["劳动合同法", "职业学校学生实习管理规定"]
+        },
+        {
+          "id": "probation_fire",
+          "title": "试用期被违法辞退",
+          "summary": "入职不久以「不符合录用条件」等理由解除，怀疑违法，想要经济补偿或恢复劳动关系。",
+          "path_hint": "固定解除通知 → 审查是否符合法定试用期解除条件 → 在时效内申请仲裁",
+          "evidence_checklist": [
+            "劳动合同与录用条件说明",
+            "解除劳动合同通知书",
+            "试用期考核记录（如有）",
+            "工资流水、社保记录",
+            "与 HR 沟通记录"
+          ],
+          "steps": [
+            {
+              "title": "审查解除依据",
+              "detail": "核对试用期期限、解除理由是否符合劳动合同法第39条等",
+              "action": "search",
+              "search_query": "劳动合同法 试用期 解除",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "整理解除证据",
+              "detail": "保存书面解除通知、聊天记录、考勤",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求确认违法解除、支付赔偿金或继续履行",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人于【日期】入职【单位名称】，约定试用期【X】个月。于【日期】收到解除劳动合同通知，理由为【理由】。本人认为该解除不符合法定条件，请求裁决：1. 确认违法解除；2. 支付赔偿金【金额】元（或继续履行劳动合同）。"
+            }
+          ],
+          "law_searches": ["劳动合同法 第三十九条", "劳动合同法 试用期"]
+        },
+        {
+          "id": "intern_no_pay",
+          "title": "实习报酬 / 补贴被拖欠",
+          "summary": "实习约定有报酬或生活补贴，单位拖延发放或克扣。",
+          "path_hint": "先固定约定金额 → 查单位信息 → 协商或投诉 → 必要时仲裁或诉讼",
+          "evidence_checklist": [
+            "实习协议中报酬条款",
+            "offer、邮件中关于补贴的约定",
+            "催要报酬的聊天记录",
+            "银行流水（已发部分）"
+          ],
+          "steps": [
+            {
+              "title": "查询实习单位",
+              "detail": "确认单位存续状态与主体名称",
+              "action": "internal",
+              "route": "/enterprise",
+              "link_label": "查询企业"
+            },
+            {
+              "title": "整理报酬约定证据",
+              "detail": "协议、邮件、聊天中关于金额与支付时间的记录",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "构成劳动关系时申请仲裁",
+              "detail": "若认定存在劳动关系，可生成劳动仲裁申请书",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人作为实习生在【单位名称】实习，协议/约定月薪【金额】元。自【月份】起单位拖欠实习报酬共计【金额】元。请求裁决支付拖欠报酬。"
+            }
+          ],
+          "law_searches": ["劳动法 工资", "实习 报酬"]
+        }
+      ],
+      "rights_summary": [
+        "建立劳动关系的，应订立劳动合同并依法支付报酬、缴纳社保（依法）",
+        "试用期包含在劳动合同期限内，解除需符合法定情形",
+        "实习协议应明确岗位、报酬、保险、事故责任等（以协议与法规为准）",
+        "保留实习协议、录用通知、考勤、工资发放记录"
+      ],
+      "quick_actions": [
+        {
+          "id": "contract_review",
+          "title": "审查实习 / 劳动合同",
+          "description": "使用「审查合同」识别风险条款",
+          "action": "internal",
+          "route": "/contracts"
+        },
+        {
+          "id": "law_search",
+          "title": "检索相关法条",
+          "description": "劳动合同法、实习管理规定等",
+          "action": "internal",
+          "route": "/search"
+        },
+        {
+          "id": "hotline",
+          "title": "12348 法律咨询",
+          "description": "不确定身份或程序时先咨询",
+          "action": "external",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "id": "enterprise_query",
+          "title": "查询实习单位 / 用人单位",
+          "description": "核实企业工商登记与经营状态",
+          "action": "internal",
+          "route": "/enterprise"
+        }
+      ],
+      "steps": [
+        {
+          "title": "确认身份：实习还是劳动关系",
+          "detail": "看是否接受单位管理、是否以劳动为主要内容、是否发放劳动报酬等",
+          "action": "external",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "title": "保存协议与沟通记录",
+          "detail": "上传至「整理证据」或「我的材料」",
+          "action": "internal",
+          "route": "/vault"
+        },
+        {
+          "title": "违法解除时准备仲裁",
+          "detail": "注意仲裁时效，整理解除通知等证据",
+          "action": "internal",
+          "route": "/documents"
+        }
+      ],
+      "laws": [
+        {
+          "title": "劳动合同法",
+          "search_query": "劳动合同法"
+        }
+      ],
+      "enable_one_click_report": false
+    },
+    "female-worker": {
+      "id": "female-worker",
+      "title": "女职工维权专区",
+      "subtitle": "三期特别保护",
+      "audience": "适用于孕期、产期、哺乳期女职工，遭遇调岗降薪、违法解除、产假工资争议等情形。",
+      "highlights": [
+        "按孕期、产期、哺乳期时间线分情形",
+        "调岗降薪、违法解除专项路径",
+        "产假工资与生育津贴争议指引",
+        "可向监察、工会反映"
+      ],
+      "scenarios": [
+        {
+          "id": "pregnancy_transfer",
+          "title": "孕期被调岗降薪",
+          "summary": "怀孕后被调整岗位、降低工资或变更工作地点，怀疑针对性歧视。",
+          "path_hint": "固定书面通知 → 对照三期保护规定 → 向监察投诉或申请仲裁",
+          "evidence_checklist": [
+            "劳动合同与岗位、工资约定",
+            "调岗降薪书面或邮件通知",
+            "怀孕证明 / 产检记录",
+            "调整前后工资流水",
+            "与 HR 沟通记录"
+          ],
+          "steps": [
+            {
+              "title": "检索三期劳动保护规定",
+              "detail": "了解孕期调岗、降薪的法律边界",
+              "action": "search",
+              "search_query": "女职工劳动保护 调岗 降薪",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "整理调岗降薪证据",
+              "detail": "对比调整前后岗位、工资与通知材料",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "向劳动监察投诉",
+              "detail": "针对歧视性调岗降薪可向监察举报",
+              "action": "report",
+              "link_label": "一键举报"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求补足工资差额、恢复原岗位等",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人于【日期】确诊怀孕，处于孕期。用人单位于【日期】单方调整本人岗位由【原岗位】至【新岗位】，并将月工资由【原金额】元降至【新金额】元。该行为违反女职工特殊保护规定，请求裁决：1. 补足工资差额；2. 恢复原岗位及待遇。"
+            }
+          ],
+          "law_searches": ["女职工劳动保护特别规定", "劳动合同法 第四十条"]
+        },
+        {
+          "id": "maternity_leave",
+          "title": "产假 / 生育津贴争议",
+          "summary": "休产假期间工资停发，或生育津贴低于原工资，与单位产生争议。",
+          "path_hint": "核对地方产假天数与津贴政策 → 固定社保与工资证据 → 协商或仲裁",
+          "evidence_checklist": [
+            "生育证明、出生医学证明",
+            "产假申请与批准记录",
+            "产假期间工资发放流水",
+            "社保生育津贴发放记录",
+            "劳动合同工资条款"
+          ],
+          "steps": [
+            {
+              "title": "检索产假与生育津贴政策",
+              "detail": "了解国家与地方关于产假天数、津贴标准的规定",
+              "action": "search",
+              "search_query": "生育津贴 产假工资 女职工",
+              "link_label": "检索规定"
+            },
+            {
+              "title": "整理工资与社保证据",
+              "detail": "对比产假前应发工资与实发、津贴金额",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求支付产假工资差额或补足生育津贴",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人于【日期】生育，依法享受产假【X】天。产假期间用人单位未足额支付工资/生育津贴低于本人原工资标准。请求裁决支付产假期间工资差额【金额】元。"
+            }
+          ],
+          "law_searches": ["女职工劳动保护特别规定 产假", "社会保险法 生育"]
+        },
+        {
+          "id": "illegal_termination",
+          "title": "三期违法解除劳动合同",
+          "summary": "孕期、产期或哺乳期内收到解除通知，单位称「协商解除」或「严重违纪」。",
+          "path_hint": "切勿轻易签放弃权利文件 → 固定解除证据 → 咨询后及时仲裁",
+          "who_to_sue": "用人单位；解除理由是否符合法定例外情形，需结合具体事实判断。",
+          "evidence_checklist": [
+            "解除劳动合同通知书",
+            "怀孕 / 生育 / 哺乳相关证明",
+            "考勤、违纪指控材料（如有）",
+            "协商解除协议草稿（勿轻易签署）",
+            "工作年限与工资流水"
+          ],
+          "steps": [
+            {
+              "title": "了解违法解除后果",
+              "detail": "三期违法解除可能涉及赔偿金、恢复劳动关系等",
+              "action": "search",
+              "search_query": "女职工 三期 违法解除劳动合同",
+              "link_label": "检索规定"
+            },
+            {
+              "title": "咨询 12348",
+              "detail": "解除理由是否属于法定例外，建议专业复核",
+              "action": "phone",
+              "phones": ["12348"]
+            },
+            {
+              "title": "整理解除与三期证据",
+              "detail": "解除通知、三期证明、沟通记录一并保存",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求确认违法解除、支付赔偿金或继续履行",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人处于【孕期/产期/哺乳期】，用人单位于【日期】单方解除劳动合同，理由为【理由】。该解除违反女职工特殊保护规定，请求裁决：1. 确认违法解除；2. 支付赔偿金【2N 或具体金额】元；或继续履行劳动合同。"
+            }
+          ],
+          "law_searches": ["劳动合同法 第四十二条", "女职工劳动保护特别规定"]
+        }
+      ],
+      "rights_summary": [
+        "孕期、产期、哺乳期用人单位不得违法解除劳动合同（法定情形除外）",
+        "依法享受产假、生育津贴等（以社保与地方政策为准）",
+        "哺乳未满一周岁婴儿的有哺乳时间",
+        "不得因婚育歧视降低工资或违法调岗"
+      ],
+      "quick_actions": [
+        {
+          "id": "evidence",
+          "title": "整理三期相关证据",
+          "description": "劳动合同、生育证明、工资流水、解除通知等",
+          "action": "internal",
+          "route": "/evidence"
+        },
+        {
+          "id": "union",
+          "title": "工会与妇联资源",
+          "description": "可向用人单位工会或当地妇联咨询",
+          "action": "external",
+          "url": "https://www.mohrss.gov.cn/"
+        },
+        {
+          "id": "report",
+          "title": "劳动监察投诉",
+          "description": "违法行为可向劳动监察举报",
+          "action": "report"
+        },
+        {
+          "id": "enterprise_query",
+          "title": "查询用人单位",
+          "description": "核实企业工商登记与经营状态",
+          "action": "internal",
+          "route": "/enterprise"
+        }
+      ],
+      "steps": [
+        {
+          "title": "固定用人单位违法事实",
+          "detail": "书面通知、邮件、聊天、考勤等",
+          "action": "internal",
+          "route": "/evidence"
+        },
+        {
+          "title": "咨询是否符合违法解除",
+          "detail": "建议通过 12348 或法援复核",
+          "action": "external",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "title": "申请劳动仲裁",
+          "detail": "在法定时效内提出",
+          "action": "internal",
+          "route": "/documents"
+        }
+      ],
+      "laws": [
+        {
+          "title": "女职工劳动保护特别规定",
+          "search_query": "女职工劳动保护特别规定"
+        },
+        {
+          "title": "劳动合同法",
+          "search_query": "劳动合同法 女职工"
+        }
+      ],
+      "enable_one_click_report": true,
+      "report_button_label": "一键举报（跳转劳动监察）"
+    }
+  },
+  "ppt_future_features": [
+    {
+      "id": "lawyer_referral",
+      "title": "律师 / 法律援助机构推荐",
+      "note": "配置化外链，按地区展示律协、法援中心"
+    },
+    {
+      "id": "success_stories",
+      "title": "维权成功案例社区",
+      "note": "v1 不做 UGC，仅 PPT 概念"
+    },
+    {
+      "id": "enterprise_query",
+      "title": "企业违法信息查询",
+      "note": "已接入「查询企业」，对接企查查 736 企业风险扫描"
+    },
+    {
+      "id": "contract_ai",
+      "title": "劳动合同智能审查",
+      "note": "可使用「审查合同」上传劳动合同审查"
+    },
+    {
+      "id": "online_mediation",
+      "title": "线上调解对接",
+      "note": "外链人民调解、仲裁委调解说明"
+    }
+  ]
+}

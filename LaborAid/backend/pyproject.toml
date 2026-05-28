@@ -1,0 +1,18 @@
+[project]
+name = "LaborAid-backend"
+version = "1.0.0"
+description = "劳权智助 LaborAid — 劳动者维权智能法律服务助手后端"
+authors = [{ name = "Pulse Peng" }]
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401"]

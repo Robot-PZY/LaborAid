@@ -1,0 +1,137 @@
+{
+  "version": 2,
+  "description": "劳权智助知识库爬虫配置 — 多数据源 + 预置法规种子",
+  "sources": [
+    {
+      "id": "npc_flk",
+      "name": "国家法律法规数据库",
+      "provider": "npc_flk",
+      "website": "https://flk.npc.gov.cn",
+      "description": "全国人大法律法规库：法律、行政法规、司法解释，按法规全称精确抓取"
+    },
+    {
+      "id": "npc_labor_discover",
+      "name": "劳权法规专题发现",
+      "provider": "npc_topic",
+      "website": "https://flk.npc.gov.cn",
+      "description": "按主题关键词自动发现相关法规（含部门规章、修改决定等）",
+      "search_keywords": ["劳动", "工伤", "社会保险", "工资", "休假"],
+      "max_items_per_keyword": 6,
+      "tags": ["官方法规", "劳动法", "专题发现"]
+    }
+  ],
+  "seeds": [
+    {
+      "id": "labor-law",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国劳动法",
+      "keywords": ["中华人民共和国劳动法"],
+      "tags": ["官方法规", "劳动法", "核心法规"],
+      "category": "法律"
+    },
+    {
+      "id": "labor-contract-law",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国劳动合同法",
+      "keywords": ["中华人民共和国劳动合同法"],
+      "tags": ["官方法规", "劳动法", "核心法规"],
+      "category": "法律"
+    },
+    {
+      "id": "labor-dispute-arbitration",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国劳动争议调解仲裁法",
+      "keywords": ["中华人民共和国劳动争议调解仲裁法"],
+      "tags": ["官方法规", "劳动法", "核心法规"],
+      "category": "法律"
+    },
+    {
+      "id": "social-insurance-law",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国社会保险法",
+      "keywords": ["中华人民共和国社会保险法"],
+      "tags": ["官方法规", "劳动法", "社会保险"],
+      "category": "法律"
+    },
+    {
+      "id": "employment-promotion-law",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国就业促进法",
+      "keywords": ["中华人民共和国就业促进法"],
+      "tags": ["官方法规", "劳动法"],
+      "category": "法律"
+    },
+    {
+      "id": "labor-contract-regulation",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国劳动合同法实施条例",
+      "keywords": ["中华人民共和国劳动合同法实施条例"],
+      "tags": ["官方法规", "劳动法", "行政法规"],
+      "category": "行政法规"
+    },
+    {
+      "id": "work-injury-insurance",
+      "source_id": "npc_flk",
+      "name": "工伤保险条例",
+      "keywords": ["工伤保险条例"],
+      "tags": ["官方法规", "劳动法", "工伤保险"],
+      "category": "行政法规"
+    },
+    {
+      "id": "paid-annual-leave",
+      "source_id": "npc_flk",
+      "name": "职工带薪年休假条例",
+      "keywords": ["职工带薪年休假条例"],
+      "tags": ["官方法规", "劳动法", "休假"],
+      "category": "行政法规"
+    },
+    {
+      "id": "minimum-wage",
+      "source_id": "npc_flk",
+      "name": "最低工资规定",
+      "keywords": ["最低工资规定"],
+      "tags": ["官方法规", "劳动法", "工资"],
+      "category": "部门规章"
+    },
+    {
+      "id": "female-worker-protection",
+      "source_id": "npc_flk",
+      "name": "女职工劳动保护特别规定",
+      "keywords": ["女职工劳动保护特别规定"],
+      "tags": ["官方法规", "劳动法", "特殊保护"],
+      "category": "行政法规"
+    },
+    {
+      "id": "child-labor-prohibition",
+      "source_id": "npc_flk",
+      "name": "禁止使用童工规定",
+      "keywords": ["禁止使用童工规定"],
+      "tags": ["官方法规", "劳动法"],
+      "category": "行政法规"
+    },
+    {
+      "id": "labor-dispute-judicial-interpretation",
+      "source_id": "npc_flk",
+      "name": "最高人民法院关于审理劳动争议案件适用法律问题的解释（一）",
+      "keywords": ["最高人民法院关于审理劳动争议案件适用法律问题的解释（一）"],
+      "tags": ["官方法规", "劳动法", "司法解释"],
+      "category": "司法解释"
+    },
+    {
+      "id": "trade-union-law",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国工会法",
+      "keywords": ["中华人民共和国工会法"],
+      "tags": ["官方法规", "劳动法", "工会"],
+      "category": "法律"
+    },
+    {
+      "id": "administrative-reconsideration",
+      "source_id": "npc_flk",
+      "name": "中华人民共和国行政复议法",
+      "keywords": ["中华人民共和国行政复议法"],
+      "tags": ["官方法规", "程序"],
+      "category": "法律"
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "global_links": [
+    {
+      "id": "wage_clue",
+      "title": "全国根治欠薪线索反映",
+      "description": "国务院客户端小程序，工程建设领域欠薪优先推荐",
+      "platform_key": "wage_clue",
+      "type": "wage_clue"
+    },
+    {
+      "id": "legal_12348",
+      "title": "12348 法律服务热线",
+      "description": "免费法律咨询与法律援助申请指引",
+      "platform_key": "legal_12348",
+      "type": "hotline"
+    },
+    {
+      "id": "mohrss_service",
+      "title": "全国人社政务服务平台",
+      "description": "劳动仲裁、监察投诉、社保等各地办事入口",
+      "platform_key": "mohrss_service",
+      "type": "labor_authority"
+    },
+    {
+      "id": "npc_laws",
+      "title": "国家法律法规数据库",
+      "description": "查询法律、行政法规、司法解释原文",
+      "platform_key": "npc_laws",
+      "type": "law_database"
+    }
+  ],
+  "cause_guidance": {
+    "wage_arrears": {
+      "summary": "拖欠工资可依法向劳动监察投诉或申请劳动仲裁，具体以当地规定为准。",
+      "steps": [
+        {
+          "title": "收集欠薪证据",
+          "when": "准备阶段",
+          "action": "internal",
+          "tool_id": "evidence",
+          "hint": "整理并上传工资条、银行流水、聊天记录等材料"
+        },
+        {
+          "title": "国务院欠薪线索反映",
+          "when": "希望快速督办，尤其工程建设领域",
+          "action": "platform",
+          "platform_category": "wage_clue",
+          "hint": "微信搜索「国务院客户端」→ 欠薪线索反映"
+        },
+        {
+          "title": "向劳动保障监察投诉",
+          "when": "用人单位仍存续、事实较清楚",
+          "action": "platform",
+          "platform_category": "labor_inspection",
+          "note": "选择用工所在地省级入口"
+        },
+        {
+          "title": "申请劳动仲裁",
+          "when": "需确认劳动关系或监察未解决",
+          "action": "platform",
+          "platform_category": "arbitration",
+          "note": "一般为知道权利被侵害之日起一年内"
+        },
+        {
+          "title": "生成劳动仲裁申请书",
+          "when": "材料基本齐全",
+          "action": "internal",
+          "tool_id": "docgen",
+          "hint": "使用本站生成文书，可预填劳动者维权模板"
+        }
+      ]
+    },
+    "illegal_termination": {
+      "summary": "认为违法解除的，可在法定时效内申请劳动仲裁；注意保留解除通知与沟通记录。",
+      "steps": [
+        {
+          "title": "整理解除经过与时间线",
+          "when": "准备阶段",
+          "action": "internal",
+          "tool_id": "evidence",
+          "hint": "按时间顺序整理入职、解除、争议发生等关键节点"
+        },
+        {
+          "title": "咨询 12348 或申请法援",
+          "when": "不确定程序或时效",
+          "action": "platform",
+          "platform_category": "legal_aid"
+        },
+        {
+          "title": "申请劳动仲裁",
+          "when": "证据基本齐全",
+          "action": "platform",
+          "platform_category": "arbitration",
+          "note": "一般为知道或应当知道权利被侵害之日起一年内"
+        },
+        {
+          "title": "生成仲裁申请书",
+          "when": "撰写正式材料",
+          "action": "internal",
+          "tool_id": "docgen",
+          "hint": "选择「劳动仲裁申请书」模板生成"
+        }
+      ]
+    },
+    "overtime_pay": {
+      "summary": "加班费争议需重点证明加班事实与时长，可申请仲裁。",
+      "steps": [
+        {
+          "title": "固定考勤与加班证据",
+          "when": "准备阶段",
+          "action": "internal",
+          "tool_id": "evidence"
+        },
+        {
+          "title": "查阅相关法条",
+          "when": "撰写材料前",
+          "action": "internal",
+          "tool_id": "search",
+          "hint": "检索加班费、工时制度等相关法律规定"
+        },
+        {
+          "title": "申请劳动仲裁",
+          "when": "证据准备充分",
+          "action": "platform",
+          "platform_category": "arbitration"
+        },
+        {
+          "title": "生成仲裁申请书",
+          "when": "材料齐全",
+          "action": "internal",
+          "tool_id": "docgen"
+        }
+      ]
+    },
+    "no_written_contract": {
+      "summary": "未签书面合同争议需证明事实劳动关系与工作期间。",
+      "steps": [
+        {
+          "title": "证明入职时间与劳动关系",
+          "when": "准备阶段",
+          "action": "internal",
+          "tool_id": "evidence"
+        },
+        {
+          "title": "查询劳动合同法原文",
+          "when": "核对请求权基础",
+          "action": "internal",
+          "tool_id": "search",
+          "hint": "检索未签书面合同、双倍工资等规定"
+        },
+        {
+          "title": "申请劳动仲裁",
+          "when": "材料齐全",
+          "action": "platform",
+          "platform_category": "arbitration"
+        },
+        {
+          "title": "生成仲裁申请书",
+          "when": "撰写正式材料",
+          "action": "internal",
+          "tool_id": "docgen"
+        }
+      ]
+    }
+  },
+  "disclaimer": "以上链接与步骤仅供参考，不构成法律意见。办事要求、时效与材料清单以当地仲裁委、人社部门及司法机关最新公布为准。"
+}

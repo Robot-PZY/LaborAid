@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Uploads
+uploads/
+*.docx
+*.pdf
+
+# Database
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Synced from resources/brand/ (vite.config.ts → frontend/public/)
+LaborAid/frontend/public/laboraid-logo.png
+LaborAid/frontend/public/favicon.png

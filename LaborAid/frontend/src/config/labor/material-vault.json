@@ -1,0 +1,23 @@
+{
+  "title": "我的材料",
+  "description": "维权周期可能持续数月，您的工资条、合同、聊天截图等材料将按账号长期保存，随时下载与整理。",
+  "stages": [
+    { "id": "preparation", "label": "准备阶段" },
+    { "id": "complaint", "label": "监察投诉" },
+    { "id": "arbitration", "label": "劳动仲裁" },
+    { "id": "mediation", "label": "调解" },
+    { "id": "closed", "label": "已结案" }
+  ],
+  "sources": [
+    { "id": "manual", "label": "手动上传" },
+    { "id": "evidence", "label": "整理证据" },
+    { "id": "contract", "label": "审查合同" },
+    { "id": "document", "label": "生成文书" },
+    { "id": "knowledge", "label": "法律知识库" }
+  ],
+  "quota_hint": {
+    "max_file_mb": 50,
+    "max_total_mb": 500,
+    "max_files": 500
+  }
+}

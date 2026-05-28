@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserMaterialVault",
+  "description": "个人材料库 — 与 docs/special-channels-and-material-vault.md 第 4 节对应",
+  "type": "object",
+  "properties": {
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "enum": ["preparation", "complaint", "arbitration", "mediation", "closed"] },
+          "label": { "type": "string" }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "enum": ["manual", "evidence", "contract", "document", "knowledge"]
+      }
+    }
+  },
+  "definitions": {
+    "UserMaterial": {
+      "type": "object",
+      "required": ["user_id", "title", "stored_path", "source"],
+      "properties": {
+        "user_id": { "type": "integer" },
+        "case_id": { "type": ["integer", "null"] },
+        "source": { "type": "string" },
+        "source_id": { "type": ["integer", "null"] },
+        "title": { "type": "string" },
+        "original_filename": { "type": "string" },
+        "stored_path": { "type": "string" },
+        "mime_type": { "type": "string" },
+        "size_bytes": { "type": "integer" },
+        "stage": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}
