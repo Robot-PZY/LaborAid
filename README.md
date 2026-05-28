@@ -50,23 +50,6 @@
 
 管理端入口：<http://localhost:5173/login?portal=admin>
 
-## 🖼️ 使用过程（截图）
-
-> 可在此放 3~5 张核心流程截图：快速咨询、生成文书、整理证据、检索法规、管理端配置。
-> 建议统一放到 `resources/screenshots/` 目录，并按以下命名：
->
-> - `home-intake.png`
-> - `doc-generate.png`
-> - `evidence-ocr.png`
-> - `search-laws.png`
-> - `admin-models.png`
->
-> 示例（放图后取消注释）：
->
-> ```md
-> ![快速咨询](./resources/screenshots/home-intake.png)
-> ![生成文书](./resources/screenshots/doc-generate.png)
-> ```
 
 ---
 
