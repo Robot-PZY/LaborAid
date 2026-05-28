@@ -252,6 +252,7 @@ ALLOWED_MIME_MAP: dict[str, set[str]] = {
     },
     ".doc": {"application/msword"},
     ".txt": {"text/plain"},
+    ".md": {"text/markdown", "text/plain"},
     ".xlsx": {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     },

@@ -30,7 +30,7 @@ import { addToolHistory } from '@/lib/tool-history';
 const MAX_ATTACHMENTS = 3;
 const IMAGE_ACCEPT = 'image/png,image/jpeg,image/jpg,image/gif,image/webp,image/bmp,image/tiff';
 const FILE_ACCEPT =
-  '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  '.pdf,.doc,.docx,.txt,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown';
 
 function isImageFile(file: File) {
   return file.type.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp|tiff?)$/i.test(file.name);
@@ -49,7 +49,7 @@ function isWordFile(file: File) {
 }
 
 function isDocumentFile(file: File) {
-  return isPdfFile(file) || isWordFile(file);
+  return isPdfFile(file) || isWordFile(file) || /\.(txt|md)$/i.test(file.name);
 }
 
 interface IntakeDeskProps {
@@ -77,7 +77,7 @@ export default function IntakeDesk({ onAnalyzed }: IntakeDeskProps) {
   const addAttachments = (incoming: File[], kind: 'image' | 'file') => {
     const valid = incoming.filter((f) => (kind === 'image' ? isImageFile(f) : isDocumentFile(f)));
     if (valid.length < incoming.length) {
-      setError(kind === 'image' ? '请上传图片文件' : '请上传 PDF 或 Word 文件');
+      setError(kind === 'image' ? '请上传图片文件' : '请上传 PDF、Word、TXT 或 MD 文件');
     }
     if (valid.length === 0) return;
 

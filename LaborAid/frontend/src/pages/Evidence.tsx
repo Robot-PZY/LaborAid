@@ -73,7 +73,7 @@ function getFileCategory(fileName: string | null): 'image' | 'audio' | 'document
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff'].includes(ext)) return 'image';
   if (['mp3', 'wav', 'm4a', 'ogg', 'flac', 'aac', 'wma'].includes(ext)) return 'audio';
-  if (['pdf', 'docx', 'doc', 'txt', 'xlsx', 'xls'].includes(ext)) return 'document';
+  if (['pdf', 'docx', 'doc', 'txt', 'md', 'xlsx', 'xls'].includes(ext)) return 'document';
   return 'unknown';
 }
 
@@ -673,9 +673,9 @@ export default function Evidence() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 px-4 sm:px-0">
       <input type="file" ref={fileInputRef} className="hidden" onChange={onFileSelected}
-        accept=".pdf,.docx,.doc,.txt,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.mp3,.wav,.m4a,.ogg,.flac,.aac,.wma" />
+        accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.mp3,.wav,.m4a,.ogg,.flac,.aac,.wma" />
       <input type="file" ref={quickUploadInputRef} className="hidden" multiple onChange={onQuickFileSelected}
-        accept=".pdf,.docx,.doc,.txt,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.mp3,.wav,.m4a,.ogg,.flac,.aac,.wma" />
+        accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.mp3,.wav,.m4a,.ogg,.flac,.aac,.wma" />
 
       {intakeChecklist?.length ? (
         <div className="rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm">

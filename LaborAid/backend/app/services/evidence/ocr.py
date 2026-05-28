@@ -13,7 +13,7 @@ from app.services.evidence.pdf_vision import (
 logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {
-    ".pdf", ".docx", ".doc", ".txt",
+    ".pdf", ".docx", ".doc", ".txt", ".md",
     ".xlsx", ".xls",
     ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tiff",
     ".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aac", ".wma",
@@ -53,7 +53,7 @@ async def extract_text(
             return await _extract_doc(file_path)
         elif suffix in (".xlsx", ".xls"):
             return await _extract_excel(file_path)
-        elif suffix == ".txt":
+        elif suffix in (".txt", ".md"):
             return file_path.read_text(encoding="utf-8", errors="ignore")
         elif suffix in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tiff"):
             client = vision_llm.client if vision_llm else llm_client

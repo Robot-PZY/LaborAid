@@ -1117,7 +1117,7 @@ export default function DocumentGenerate() {
                 <label className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium cursor-pointer hover:bg-accent transition-colors">
                   <input
                     type="file"
-                    accept=".pdf,.docx,.doc,.txt,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.mp3,.wav,.m4a,.ogg,.flac,.aac,.wma"
+                    accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.mp3,.wav,.m4a,.ogg,.flac,.aac,.wma"
                     className="hidden"
                     onChange={handleFileExtract}
                     disabled={extractingFile || loading}

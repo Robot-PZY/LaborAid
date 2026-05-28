@@ -63,7 +63,7 @@ async def analyze_intake_endpoint(
             try:
                 raw = await validate_upload(img, allowed_extensions={
                     ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tiff", ".pdf",
-                    ".doc", ".docx",
+                    ".doc", ".docx", ".txt", ".md",
                 })
             except HTTPException:
                 raise

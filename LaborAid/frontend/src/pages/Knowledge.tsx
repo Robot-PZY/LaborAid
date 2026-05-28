@@ -440,7 +440,7 @@ function Knowledge({ adminMode = false }: KnowledgeProps) {
             <input
               type="file"
               ref={fileInputRef}
-              accept=".pdf,.docx,.doc,.txt,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff"
+              accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff"
               className="hidden"
               onChange={handleFileUpload}
               disabled={uploading}

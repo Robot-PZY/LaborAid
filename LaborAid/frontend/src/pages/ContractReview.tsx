@@ -672,7 +672,7 @@ export default function ContractReview() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">参考文件（可选）</label>
-                <input ref={draftFileRef} type="file" accept=".pdf,.docx,.doc,.txt,.xlsx,.xls"
+                <input ref={draftFileRef} type="file" accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls"
                   className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                   onChange={(e) => setDraftFile(e.target.files?.[0] || null)} />
               </div>
@@ -717,7 +717,7 @@ export default function ContractReview() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">合同文件 *</label>
-                <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc,.txt,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff"
+                <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff"
                   className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
               </div>
               <div className="flex gap-3 justify-end">
