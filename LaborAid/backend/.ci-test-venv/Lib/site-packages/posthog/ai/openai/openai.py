@@ -1,0 +1,670 @@
+import time
+import uuid
+from typing import Any, Dict, List, Optional
+
+from posthog.ai.types import TokenUsage
+
+try:
+    import openai
+except ImportError:
+    raise ModuleNotFoundError(
+        "Please install the OpenAI SDK to use this feature: 'pip install openai'"
+    )
+
+from posthog.ai.utils import (
+    call_llm_and_track_usage,
+    extract_available_tool_calls,
+    merge_usage_stats,
+    with_privacy_mode,
+)
+from posthog.ai.openai.openai_converter import (
+    extract_openai_usage_from_chunk,
+    extract_openai_content_from_chunk,
+    extract_openai_tool_calls_from_chunk,
+    accumulate_openai_tool_calls,
+)
+from posthog.ai.sanitization import sanitize_openai, sanitize_openai_response
+from posthog.client import Client as PostHogClient
+from posthog import setup
+from posthog.ai.openai.wrapper_utils import _OpenAIWrapperResource
+
+
+class OpenAI(openai.OpenAI):
+    """
+    A wrapper around the OpenAI SDK that automatically sends LLM usage events to PostHog.
+    """
+
+    _ph_client: PostHogClient
+
+    def __init__(self, posthog_client: Optional[PostHogClient] = None, **kwargs):
+        """
+        Args:
+            posthog_client: If provided, events will be captured via this client
+                instead of the global ``posthog`` client.
+            **kwargs: Arguments passed to ``openai.OpenAI`` such as ``api_key``
+                or ``organization``.
+        """
+
+        super().__init__(**kwargs)
+        self._ph_client = posthog_client or setup()
+
+        # Store original objects after parent initialization (only if they exist)
+        self._original_chat = getattr(self, "chat", None)
+        self._original_embeddings = getattr(self, "embeddings", None)
+        self._original_beta = getattr(self, "beta", None)
+        self._original_responses = getattr(self, "responses", None)
+
+        # Replace with wrapped versions (only if originals exist)
+        if self._original_chat is not None:
+            self.chat = WrappedChat(self, self._original_chat)
+
+        if self._original_embeddings is not None:
+            self.embeddings = WrappedEmbeddings(self, self._original_embeddings)
+
+        if self._original_beta is not None:
+            self.beta = WrappedBeta(self, self._original_beta)
+
+        if self._original_responses is not None:
+            self.responses = WrappedResponses(self, self._original_responses)
+
+
+def _parse_and_track(
+    wrapper,
+    posthog_distinct_id: Optional[str],
+    posthog_trace_id: Optional[str],
+    posthog_properties: Optional[Dict[str, Any]],
+    posthog_privacy_mode: bool,
+    posthog_groups: Optional[Dict[str, Any]],
+    **kwargs: Any,
+):
+    return call_llm_and_track_usage(
+        posthog_distinct_id,
+        wrapper._client._ph_client,
+        "openai",
+        posthog_trace_id,
+        posthog_properties,
+        posthog_privacy_mode,
+        posthog_groups,
+        wrapper._client.base_url,
+        wrapper._original.parse,
+        **kwargs,
+    )
+
+
+class WrappedResponses(_OpenAIWrapperResource):
+    """Wrapper for OpenAI responses that tracks usage in PostHog."""
+
+    def create(
+        self,
+        posthog_distinct_id: Optional[str] = None,
+        posthog_trace_id: Optional[str] = None,
+        posthog_properties: Optional[Dict[str, Any]] = None,
+        posthog_privacy_mode: bool = False,
+        posthog_groups: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        """
+        Create an OpenAI Responses API response while tracking usage in PostHog.
+
+        Args:
+            posthog_distinct_id: Optional distinct ID to associate with the usage event.
+            posthog_trace_id: Optional trace ID. Generated automatically when omitted.
+            posthog_properties: Additional properties to include with the usage event.
+            posthog_privacy_mode: Whether to redact captured input and output.
+            posthog_groups: Optional PostHog groups to associate with the event.
+            **kwargs: Arguments passed to OpenAI's ``responses.create`` API.
+
+        Returns:
+            The OpenAI response, or a streaming iterator when ``stream=True``.
+        """
+        if posthog_trace_id is None:
+            posthog_trace_id = str(uuid.uuid4())
+
+        if kwargs.get("stream", False):
+            return self._create_streaming(
+                posthog_distinct_id,
+                posthog_trace_id,
+                posthog_properties,
+                posthog_privacy_mode,
+                posthog_groups,
+                **kwargs,
+            )
+
+        return call_llm_and_track_usage(
+            posthog_distinct_id,
+            self._client._ph_client,
+            "openai",
+            posthog_trace_id,
+            posthog_properties,
+            posthog_privacy_mode,
+            posthog_groups,
+            self._client.base_url,
+            self._original.create,
+            **kwargs,
+        )
+
+    def _create_streaming(
+        self,
+        posthog_distinct_id: Optional[str],
+        posthog_trace_id: Optional[str],
+        posthog_properties: Optional[Dict[str, Any]],
+        posthog_privacy_mode: bool,
+        posthog_groups: Optional[Dict[str, Any]],
+        **kwargs: Any,
+    ):
+        start_time = time.time()
+        usage_stats: TokenUsage = TokenUsage()
+        final_content = []
+        model_from_response: Optional[str] = None
+        stop_reason: Optional[str] = None
+        response = self._original.create(**kwargs)
+
+        def generator():
+            nonlocal usage_stats
+            nonlocal final_content  # noqa: F824
+            nonlocal model_from_response
+            nonlocal stop_reason
+
+            try:
+                for chunk in response:
+                    # Extract model from response object in chunk (for stored prompts)
+                    if hasattr(chunk, "response") and chunk.response:
+                        if model_from_response is None and hasattr(
+                            chunk.response, "model"
+                        ):
+                            model_from_response = chunk.response.model
+
+                    # Extract usage stats from chunk
+                    chunk_usage = extract_openai_usage_from_chunk(chunk, "responses")
+
+                    if chunk_usage:
+                        merge_usage_stats(usage_stats, chunk_usage)
+
+                    # Extract content from chunk
+                    content = extract_openai_content_from_chunk(chunk, "responses")
+
+                    if content is not None:
+                        final_content.append(content)
+
+                    # Capture stop reason from response.completed event
+                    if (
+                        hasattr(chunk, "type")
+                        and chunk.type == "response.completed"
+                        and hasattr(chunk, "response")
+                        and chunk.response
+                    ):
+                        chunk_status = getattr(chunk.response, "status", None)
+                        if chunk_status is not None:
+                            stop_reason = chunk_status
+
+                    yield chunk
+
+            finally:
+                end_time = time.time()
+                latency = end_time - start_time
+                output = final_content
+                self._capture_streaming_event(
+                    posthog_distinct_id,
+                    posthog_trace_id,
+                    posthog_properties,
+                    posthog_privacy_mode,
+                    posthog_groups,
+                    kwargs,
+                    usage_stats,
+                    latency,
+                    output,
+                    None,  # Responses API doesn't have tools
+                    model_from_response,
+                    stop_reason=stop_reason,
+                )
+
+        return generator()
+
+    def _capture_streaming_event(
+        self,
+        posthog_distinct_id: Optional[str],
+        posthog_trace_id: Optional[str],
+        posthog_properties: Optional[Dict[str, Any]],
+        posthog_privacy_mode: bool,
+        posthog_groups: Optional[Dict[str, Any]],
+        kwargs: Dict[str, Any],
+        usage_stats: TokenUsage,
+        latency: float,
+        output: Any,
+        available_tool_calls: Optional[List[Dict[str, Any]]] = None,
+        model_from_response: Optional[str] = None,
+        stop_reason: Optional[str] = None,
+    ):
+        from posthog.ai.types import StreamingEventData
+        from posthog.ai.openai.openai_converter import (
+            format_openai_streaming_input,
+            format_openai_streaming_output,
+        )
+        from posthog.ai.utils import capture_streaming_event
+
+        # Prepare standardized event data
+        formatted_input = format_openai_streaming_input(kwargs, "responses")
+        sanitized_input = sanitize_openai_response(formatted_input)
+
+        # Use model from kwargs, fallback to model from response
+        model = kwargs.get("model") or model_from_response or "unknown"
+
+        event_data = StreamingEventData(
+            provider="openai",
+            model=model,
+            base_url=str(self._client.base_url),
+            kwargs=kwargs,
+            formatted_input=sanitized_input,
+            formatted_output=format_openai_streaming_output(output, "responses"),
+            usage_stats=usage_stats,
+            latency=latency,
+            distinct_id=posthog_distinct_id,
+            trace_id=posthog_trace_id,
+            properties=posthog_properties,
+            privacy_mode=posthog_privacy_mode,
+            groups=posthog_groups,
+            stop_reason=stop_reason,
+        )
+
+        # Use the common capture function
+        capture_streaming_event(self._client._ph_client, event_data)
+
+    def parse(
+        self,
+        posthog_distinct_id: Optional[str] = None,
+        posthog_trace_id: Optional[str] = None,
+        posthog_properties: Optional[Dict[str, Any]] = None,
+        posthog_privacy_mode: bool = False,
+        posthog_groups: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        """
+        Parse structured output using OpenAI's 'responses.parse' method, but also track usage in PostHog.
+
+        Args:
+            posthog_distinct_id: Optional ID to associate with the usage event.
+            posthog_trace_id: Optional trace UUID for linking events.
+            posthog_properties: Optional dictionary of extra properties to include in the event.
+            posthog_privacy_mode: Whether to anonymize the input and output.
+            posthog_groups: Optional dictionary of groups to associate with the event.
+            **kwargs: Any additional parameters for the OpenAI Responses Parse API.
+
+        Returns:
+            The response from OpenAI's responses.parse call.
+        """
+        return _parse_and_track(
+            self,
+            posthog_distinct_id,
+            posthog_trace_id,
+            posthog_properties,
+            posthog_privacy_mode,
+            posthog_groups,
+            **kwargs,
+        )
+
+
+class WrappedChat(_OpenAIWrapperResource):
+    """Wrapper for OpenAI chat that tracks usage in PostHog."""
+
+    @property
+    def completions(self):
+        """Access chat completions with PostHog usage tracking."""
+        return WrappedCompletions(self._client, self._original.completions)
+
+
+class WrappedCompletions(_OpenAIWrapperResource):
+    """Wrapper for OpenAI chat completions that tracks usage in PostHog."""
+
+    def parse(
+        self,
+        posthog_distinct_id: Optional[str] = None,
+        posthog_trace_id: Optional[str] = None,
+        posthog_properties: Optional[Dict[str, Any]] = None,
+        posthog_privacy_mode: bool = False,
+        posthog_groups: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        """
+        Parse an OpenAI chat completion while tracking usage in PostHog.
+
+        Args:
+            posthog_distinct_id: Optional distinct ID to associate with the usage event.
+            posthog_trace_id: Optional trace ID. Generated automatically when omitted.
+            posthog_properties: Additional properties to include with the usage event.
+            posthog_privacy_mode: Whether to redact captured input and output.
+            posthog_groups: Optional PostHog groups to associate with the event.
+            **kwargs: Arguments passed to OpenAI's ``chat.completions.parse`` API.
+
+        Returns:
+            The parsed response from OpenAI.
+        """
+        return _parse_and_track(
+            self,
+            posthog_distinct_id,
+            posthog_trace_id,
+            posthog_properties,
+            posthog_privacy_mode,
+            posthog_groups,
+            **kwargs,
+        )
+
+    def create(
+        self,
+        posthog_distinct_id: Optional[str] = None,
+        posthog_trace_id: Optional[str] = None,
+        posthog_properties: Optional[Dict[str, Any]] = None,
+        posthog_privacy_mode: bool = False,
+        posthog_groups: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        """
+        Create an OpenAI chat completion while tracking usage in PostHog.
+
+        Args:
+            posthog_distinct_id: Optional distinct ID to associate with the usage event.
+            posthog_trace_id: Optional trace ID. Generated automatically when omitted.
+            posthog_properties: Additional properties to include with the usage event.
+            posthog_privacy_mode: Whether to redact captured input and output.
+            posthog_groups: Optional PostHog groups to associate with the event.
+            **kwargs: Arguments passed to OpenAI's ``chat.completions.create`` API.
+
+        Returns:
+            The OpenAI chat completion, or a streaming iterator when ``stream=True``.
+        """
+        if posthog_trace_id is None:
+            posthog_trace_id = str(uuid.uuid4())
+
+        if kwargs.get("stream", False):
+            return self._create_streaming(
+                posthog_distinct_id,
+                posthog_trace_id,
+                posthog_properties,
+                posthog_privacy_mode,
+                posthog_groups,
+                **kwargs,
+            )
+
+        return call_llm_and_track_usage(
+            posthog_distinct_id,
+            self._client._ph_client,
+            "openai",
+            posthog_trace_id,
+            posthog_properties,
+            posthog_privacy_mode,
+            posthog_groups,
+            self._client.base_url,
+            self._original.create,
+            **kwargs,
+        )
+
+    def _create_streaming(
+        self,
+        posthog_distinct_id: Optional[str],
+        posthog_trace_id: Optional[str],
+        posthog_properties: Optional[Dict[str, Any]],
+        posthog_privacy_mode: bool,
+        posthog_groups: Optional[Dict[str, Any]],
+        **kwargs: Any,
+    ):
+        start_time = time.time()
+        usage_stats: TokenUsage = TokenUsage()
+        accumulated_content = []
+        accumulated_tool_calls: Dict[int, Dict[str, Any]] = {}
+        model_from_response: Optional[str] = None
+        stop_reason: Optional[str] = None
+        if "stream_options" not in kwargs:
+            kwargs["stream_options"] = {}
+        kwargs["stream_options"]["include_usage"] = True
+        response = self._original.create(**kwargs)
+
+        def generator():
+            nonlocal usage_stats
+            nonlocal accumulated_content  # noqa: F824
+            nonlocal accumulated_tool_calls
+            nonlocal model_from_response
+            nonlocal stop_reason
+
+            try:
+                for chunk in response:
+                    # Extract model from chunk (Chat Completions chunks have model field)
+                    if model_from_response is None and hasattr(chunk, "model"):
+                        model_from_response = chunk.model
+
+                    # Extract usage stats from chunk
+                    chunk_usage = extract_openai_usage_from_chunk(chunk, "chat")
+
+                    if chunk_usage:
+                        merge_usage_stats(usage_stats, chunk_usage)
+
+                    # Extract content from chunk
+                    content = extract_openai_content_from_chunk(chunk, "chat")
+
+                    if content is not None:
+                        accumulated_content.append(content)
+
+                    # Extract and accumulate tool calls from chunk
+                    chunk_tool_calls = extract_openai_tool_calls_from_chunk(chunk)
+                    if chunk_tool_calls:
+                        accumulate_openai_tool_calls(
+                            accumulated_tool_calls, chunk_tool_calls
+                        )
+
+                    # Capture stop reason from chunk
+                    if (
+                        hasattr(chunk, "choices")
+                        and chunk.choices
+                        and getattr(chunk.choices[0], "finish_reason", None) is not None
+                    ):
+                        stop_reason = chunk.choices[0].finish_reason
+
+                    yield chunk
+
+            finally:
+                end_time = time.time()
+                latency = end_time - start_time
+
+                # Convert accumulated tool calls dict to list
+                tool_calls_list = (
+                    list(accumulated_tool_calls.values())
+                    if accumulated_tool_calls
+                    else None
+                )
+
+                self._capture_streaming_event(
+                    posthog_distinct_id,
+                    posthog_trace_id,
+                    posthog_properties,
+                    posthog_privacy_mode,
+                    posthog_groups,
+                    kwargs,
+                    usage_stats,
+                    latency,
+                    accumulated_content,
+                    tool_calls_list,
+                    extract_available_tool_calls("openai", kwargs),
+                    model_from_response,
+                    stop_reason=stop_reason,
+                )
+
+        return generator()
+
+    def _capture_streaming_event(
+        self,
+        posthog_distinct_id: Optional[str],
+        posthog_trace_id: Optional[str],
+        posthog_properties: Optional[Dict[str, Any]],
+        posthog_privacy_mode: bool,
+        posthog_groups: Optional[Dict[str, Any]],
+        kwargs: Dict[str, Any],
+        usage_stats: TokenUsage,
+        latency: float,
+        output: Any,
+        tool_calls: Optional[List[Dict[str, Any]]] = None,
+        available_tool_calls: Optional[List[Dict[str, Any]]] = None,
+        model_from_response: Optional[str] = None,
+        stop_reason: Optional[str] = None,
+    ):
+        from posthog.ai.types import StreamingEventData
+        from posthog.ai.openai.openai_converter import (
+            format_openai_streaming_input,
+            format_openai_streaming_output,
+        )
+        from posthog.ai.utils import capture_streaming_event
+
+        # Prepare standardized event data
+        formatted_input = format_openai_streaming_input(kwargs, "chat")
+        sanitized_input = sanitize_openai(formatted_input)
+
+        # Use model from kwargs, fallback to model from response
+        model = kwargs.get("model") or model_from_response or "unknown"
+
+        event_data = StreamingEventData(
+            provider="openai",
+            model=model,
+            base_url=str(self._client.base_url),
+            kwargs=kwargs,
+            formatted_input=sanitized_input,
+            formatted_output=format_openai_streaming_output(output, "chat", tool_calls),
+            usage_stats=usage_stats,
+            latency=latency,
+            distinct_id=posthog_distinct_id,
+            trace_id=posthog_trace_id,
+            properties=posthog_properties,
+            privacy_mode=posthog_privacy_mode,
+            groups=posthog_groups,
+            stop_reason=stop_reason,
+        )
+
+        # Use the common capture function
+        capture_streaming_event(self._client._ph_client, event_data)
+
+
+class WrappedEmbeddings(_OpenAIWrapperResource):
+    """Wrapper for OpenAI embeddings that tracks usage in PostHog."""
+
+    def create(
+        self,
+        posthog_distinct_id: Optional[str] = None,
+        posthog_trace_id: Optional[str] = None,
+        posthog_properties: Optional[Dict[str, Any]] = None,
+        posthog_privacy_mode: bool = False,
+        posthog_groups: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        """
+        Create an embedding using OpenAI's 'embeddings.create' method, but also track usage in PostHog.
+
+        Args:
+            posthog_distinct_id: Optional ID to associate with the usage event.
+            posthog_trace_id: Optional trace UUID for linking events.
+            posthog_properties: Optional dictionary of extra properties to include in the event.
+            posthog_privacy_mode: Whether to anonymize the input and output.
+            posthog_groups: Optional dictionary of groups to associate with the event.
+            **kwargs: Any additional parameters for the OpenAI Embeddings API.
+
+        Returns:
+            The response from OpenAI's embeddings.create call.
+        """
+
+        if posthog_trace_id is None:
+            posthog_trace_id = str(uuid.uuid4())
+
+        start_time = time.time()
+        response = self._original.create(**kwargs)
+        end_time = time.time()
+
+        # Extract usage statistics if available
+        usage_stats = {}
+        if hasattr(response, "usage") and response.usage:
+            usage_stats = {
+                "prompt_tokens": getattr(response.usage, "prompt_tokens", 0),
+                "total_tokens": getattr(response.usage, "total_tokens", 0),
+            }
+
+        latency = end_time - start_time
+
+        # Build the event properties
+        event_properties = {
+            "$ai_provider": "openai",
+            "$ai_model": kwargs.get("model"),
+            "$ai_input": with_privacy_mode(
+                self._client._ph_client,
+                posthog_privacy_mode,
+                sanitize_openai_response(kwargs.get("input")),
+            ),
+            "$ai_http_status": 200,
+            "$ai_input_tokens": usage_stats.get("prompt_tokens", 0),
+            "$ai_latency": latency,
+            "$ai_trace_id": posthog_trace_id,
+            "$ai_base_url": str(self._client.base_url),
+            **(posthog_properties or {}),
+        }
+
+        if posthog_distinct_id is None:
+            event_properties["$process_person_profile"] = False
+
+        # Send capture event for embeddings
+        if hasattr(self._client._ph_client, "capture"):
+            self._client._ph_client.capture(
+                distinct_id=posthog_distinct_id or posthog_trace_id,
+                event="$ai_embedding",
+                properties=event_properties,
+                groups=posthog_groups,
+            )
+
+        return response
+
+
+class WrappedBeta(_OpenAIWrapperResource):
+    """Wrapper for OpenAI beta features that tracks usage in PostHog."""
+
+    @property
+    def chat(self):
+        """Access beta chat APIs with PostHog usage tracking."""
+        return WrappedBetaChat(self._client, self._original.chat)
+
+
+class WrappedBetaChat(_OpenAIWrapperResource):
+    """Wrapper for OpenAI beta chat that tracks usage in PostHog."""
+
+    @property
+    def completions(self):
+        """Access beta chat completions with PostHog usage tracking."""
+        return WrappedBetaCompletions(self._client, self._original.completions)
+
+
+class WrappedBetaCompletions(_OpenAIWrapperResource):
+    """Wrapper for OpenAI beta chat completions that tracks usage in PostHog."""
+
+    def parse(
+        self,
+        posthog_distinct_id: Optional[str] = None,
+        posthog_trace_id: Optional[str] = None,
+        posthog_properties: Optional[Dict[str, Any]] = None,
+        posthog_privacy_mode: bool = False,
+        posthog_groups: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        """
+        Parse an OpenAI beta chat completion while tracking usage in PostHog.
+
+        Args:
+            posthog_distinct_id: Optional distinct ID to associate with the usage event.
+            posthog_trace_id: Optional trace ID. Generated automatically when omitted.
+            posthog_properties: Additional properties to include with the usage event.
+            posthog_privacy_mode: Whether to redact captured input and output.
+            posthog_groups: Optional PostHog groups to associate with the event.
+            **kwargs: Arguments passed to OpenAI's beta ``chat.completions.parse`` API.
+
+        Returns:
+            The parsed response from OpenAI.
+        """
+        return _parse_and_track(
+            self,
+            posthog_distinct_id,
+            posthog_trace_id,
+            posthog_properties,
+            posthog_privacy_mode,
+            posthog_groups,
+            **kwargs,
+        )

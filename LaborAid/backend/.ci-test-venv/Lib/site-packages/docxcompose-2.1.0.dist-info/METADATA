@@ -1,0 +1,127 @@
+Metadata-Version: 2.4
+Name: docxcompose
+Version: 2.1.0
+Summary: Compose .docx documents
+License: MIT
+License-File: LICENSE
+Author: Thomas Buchberger
+Author-email: <t.buchberger@4teamwork.ch>
+Requires-Python: >=3.10,<4.0
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Provides-Extra: dev
+Provides-Extra: server
+Requires-Dist: aiohttp (>=3.13.0) ; extra == "server"
+Requires-Dist: babel (>=2.10.0)
+Requires-Dist: lxml
+Requires-Dist: pytest (>=9.0.2,<10.0.0) ; extra == "dev"
+Requires-Dist: pytest-aiohttp ; extra == "dev"
+Requires-Dist: python-docx (>=1.0.0)
+Requires-Dist: ruff (>=0.15.0) ; extra == "dev"
+Requires-Dist: towncrier (>=25.8.0) ; extra == "dev"
+Requires-Dist: zest-releaser (>=9.6.2,<10.0.0) ; extra == "dev"
+Requires-Dist: zestreleaser-towncrier (>=1.3.0,<2.0.0) ; extra == "dev"
+Description-Content-Type: text/x-rst
+
+
+*docxcompose* is a Python library for concatenating/appending Microsoft
+Word (.docx) files.
+
+
+Example usage
+-------------
+
+Append a document to another document:
+
+.. code::
+
+    from docxcompose.composer import Composer
+    from docx import Document
+    master = Document("master.docx")
+    composer = Composer(master)
+    doc1 = Document("doc1.docx")
+    composer.append(doc1)
+    composer.save("combined.docx")
+
+
+The docxcompose console script
+------------------------------
+
+
+The ``docxcompose`` console script allows to compose docx files from the command
+line, e.g.:
+
+.. code:: sh
+
+    $ docxcompose files/master.docx files/content.docx -o files/composed.docx
+
+
+Docker container
+----------------
+
+docxcompose is also available as a Docker container allowing to compose docx 
+documents through a web service.
+
+To start the web service, run:
+
+.. code:: sh
+
+    $ docker run -it --rm -p 8080:8080 4teamwork/docxcompose
+
+To compose documents, just upload them in the desired order as a ``multipart/form-data``
+request to the web service and you will get back the composed document. Example with curl:
+
+.. code:: sh
+
+    $ curl -F "first=@first.docx" -F "second=@second.docx" -o composed.docx http://localhost:8080/
+
+
+Installation for development
+----------------------------
+
+To install docxcompose for development, clone the repository and using a python with poetry:
+
+.. code:: sh
+
+    $ poetry install
+
+Tests can then be run with ``pytest``.
+
+
+A note about testing
+--------------------
+
+The tests provide helpers for blackbox testing that can compare whole word
+files. To do so the following files should be provided:
+
+- a file for the expected output that should be added to the folder
+  `docs/composed_fixture`
+- multiple files that can be composed into the file above should be added
+  to the folder `docs`.
+
+The expected output can now be tested as follows:
+
+
+.. code:: python
+
+    def test_example():
+        fixture = FixtureDocument("expected.docx")
+        composed = ComposedDocument("master.docx", "slave1.docx", "slave2.docx")
+        assert fixture == composed
+
+
+Should the assertion fail the output file will be stored in the folder
+`docs/composed_debug` with the filename of the fixture file, `expected.docx`
+in case of this example.
+
+
+Headers and footers
+-------------------
+
+The first document is considered as the main template and headers and footers from the other documents are ignored, so that the header and footer of the first document is used throughout the merged file.
+

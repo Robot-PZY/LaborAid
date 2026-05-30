@@ -1,0 +1,86 @@
+Metadata-Version: 2.4
+Name: pyHanko
+Version: 0.35.1
+Summary: Tools for stamping and signing PDF files
+Author-email: Matthias Valvekens <dev@mvalvekens.be>
+Maintainer-email: Matthias Valvekens <dev@mvalvekens.be>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/MatthiasValvekens/pyHanko
+Project-URL: Documentation, https://docs.pyhanko.eu/
+Project-URL: Changes, https://docs.pyhanko.eu/en/latest/changelog.html
+Project-URL: Source Code, https://github.com/MatthiasValvekens/pyHanko
+Project-URL: Issue Tracker, https://github.com/MatthiasValvekens/pyHanko/issues
+Keywords: signature,pdf,pades,digital-signature,pkcs11
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Classifier: Topic :: Security :: Cryptography
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+License-File: src/pyhanko/pdf_utils/LICENSE.PyPDF2
+Requires-Dist: asn1crypto>=1.5.1
+Requires-Dist: tzlocal>=4.3
+Requires-Dist: pyhanko-certvalidator<0.32,>=0.31.1
+Requires-Dist: requests>=2.31.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: cryptography>=48.0.0
+Requires-Dist: lxml>=5.4.0
+Provides-Extra: opentype
+Requires-Dist: fonttools>=4.33.3; extra == "opentype"
+Requires-Dist: uharfbuzz<0.55.0,>=0.25.0; extra == "opentype"
+Provides-Extra: qr
+Requires-Dist: qrcode>=7.3.1; extra == "qr"
+Provides-Extra: image-support
+Requires-Dist: Pillow>=7.2.0; extra == "image-support"
+Requires-Dist: python-barcode==0.16.1; extra == "image-support"
+Provides-Extra: pkcs11
+Requires-Dist: python-pkcs11~=0.9.3; extra == "pkcs11"
+Provides-Extra: async-http
+Requires-Dist: aiohttp<3.14,>=3.9; extra == "async-http"
+Provides-Extra: etsi
+Requires-Dist: xsdata<27.0,>=24.4; extra == "etsi"
+Requires-Dist: signxml>=4.2.0; extra == "etsi"
+Dynamic: license-file
+
+![Codecov](https://img.shields.io/codecov/c/github/MatthiasValvekens/pyHanko)
+![pypi](https://img.shields.io/pypi/v/pyHanko.svg)
+
+
+``pyhanko`` is a library for working with signatures in PDF documents.
+
+**Note:** pyHanko's CLI is no longer bundled together with the library. This functionality is now
+distributed separately as ``pyhanko-cli``.
+
+### Documentation
+
+The [documentation for pyHanko is hosted on ReadTheDocs](https://docs.pyhanko.eu/en/latest/)
+and includes information on CLI usage, library usage, and API reference documentation derived from
+inline docstrings.
+
+### Installing
+
+PyHanko is hosted on [PyPI](https://pypi.org/project/pyHanko/),
+and can be installed using `pip`:
+
+```bash
+pip install 'pyHanko[pkcs11,image-support,opentype,qr]'
+```
+
+Depending on your shell, you might have to leave off the quotes:
+
+```bash
+pip install pyHanko[pkcs11,image-support,opentype,qr]
+```
+
+This `pip` invocation includes the optional dependencies required for PKCS#11, image handling,
+OpenType/TrueType support and QR code generation.
+
+PyHanko requires Python 3.10 or later.

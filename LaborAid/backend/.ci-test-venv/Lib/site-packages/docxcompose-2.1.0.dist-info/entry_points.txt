@@ -1,0 +1,4 @@
+[console_scripts]
+docxcompose=docxcompose.command:main
+docxcompose-server=docxcompose.server:main
+

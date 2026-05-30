@@ -1,0 +1,927 @@
+import calendar
+import datetime
+import hashlib
+import logging
+import re
+import warnings
+from typing import Optional
+
+from posthog import utils
+from posthog.types import FlagValue
+from posthog.utils import convert_to_datetime_aware, is_valid_regex
+
+__LONG_SCALE__ = float(0xFFFFFFFFFFFFFFF)
+
+log = logging.getLogger("posthog")
+
+NONE_VALUES_ALLOWED_OPERATORS = ["is_not"]
+
+# All operators supported by match_property, grouped by category.
+EQUALITY_OPERATORS = ("exact", "is_not", "is_set", "is_not_set")
+STRING_OPERATORS = ("icontains", "not_icontains", "regex", "not_regex")
+NUMERIC_OPERATORS = ("gt", "gte", "lt", "lte")
+DATE_OPERATORS = ("is_date_before", "is_date_after")
+SEMVER_COMPARISON_OPERATORS = (
+    "semver_eq",
+    "semver_neq",
+    "semver_gt",
+    "semver_gte",
+    "semver_lt",
+    "semver_lte",
+)
+SEMVER_RANGE_OPERATORS = ("semver_tilde", "semver_caret", "semver_wildcard")
+SEMVER_OPERATORS = SEMVER_COMPARISON_OPERATORS + SEMVER_RANGE_OPERATORS
+
+PROPERTY_OPERATORS = (
+    EQUALITY_OPERATORS
+    + STRING_OPERATORS
+    + NUMERIC_OPERATORS
+    + DATE_OPERATORS
+    + SEMVER_OPERATORS
+)
+
+
+class InconclusiveMatchError(Exception):
+    pass
+
+
+class RequiresServerEvaluation(Exception):
+    """
+    Raised when feature flag evaluation requires server-side data that is not
+    available locally (e.g., static cohorts, experience continuity).
+
+    This error should propagate immediately to trigger API fallback, unlike
+    InconclusiveMatchError which allows trying other conditions.
+    """
+
+    pass
+
+
+# This function takes a bucketing value and a feature flag key and returns a float between 0 and 1.
+# Given the same bucketing value and key, it'll always return the same float. These floats are
+# uniformly distributed between 0 and 1, so if we want to show this feature to 20% of traffic
+# we can do _hash(key, bucketing_value) < 0.2
+def _hash(key: str, bucketing_value: str, salt: str = "") -> float:
+    hash_key = f"{key}.{bucketing_value}{salt}"
+    hash_val = int(hashlib.sha1(hash_key.encode("utf-8")).hexdigest()[:15], 16)
+    return hash_val / __LONG_SCALE__
+
+
+def get_matching_variant(flag, bucketing_value):
+    hash_value = _hash(flag["key"], bucketing_value, salt="variant")
+    for variant in variant_lookup_table(flag):
+        if hash_value >= variant["value_min"] and hash_value < variant["value_max"]:
+            return variant["key"]
+    return None
+
+
+def variant_lookup_table(feature_flag):
+    lookup_table = []
+    value_min = 0
+    multivariates = ((feature_flag.get("filters") or {}).get("multivariate") or {}).get(
+        "variants"
+    ) or []
+    for variant in multivariates:
+        value_max = value_min + variant["rollout_percentage"] / 100
+        lookup_table.append(
+            {"value_min": value_min, "value_max": value_max, "key": variant["key"]}
+        )
+        value_min = value_max
+    return lookup_table
+
+
+def evaluate_flag_dependency(
+    property,
+    flags_by_key,
+    evaluation_cache,
+    distinct_id,
+    properties,
+    cohort_properties,
+    device_id=None,
+):
+    """
+    Evaluate a flag dependency property according to the dependency chain algorithm.
+
+    Args:
+        property: Flag property with type="flag" and dependency_chain
+        flags_by_key: Dictionary of all flags by their key
+        evaluation_cache: Cache for storing evaluation results
+        distinct_id: The distinct ID being evaluated
+        properties: Person properties for evaluation
+        cohort_properties: Cohort properties for evaluation
+        device_id: The device ID for bucketing (optional)
+
+    Returns:
+        bool: True if all dependencies in the chain evaluate to True, False otherwise
+    """
+    if flags_by_key is None or evaluation_cache is None:
+        # Cannot evaluate flag dependencies without required context
+        raise InconclusiveMatchError(
+            f"Cannot evaluate flag dependency on '{property.get('key', 'unknown')}' without flags_by_key and evaluation_cache"
+        )
+
+    # Check if dependency_chain is present - it should always be provided for flag dependencies
+    if "dependency_chain" not in property:
+        # Missing dependency_chain indicates malformed server data
+        raise InconclusiveMatchError(
+            f"Flag dependency property for '{property.get('key', 'unknown')}' is missing required 'dependency_chain' field"
+        )
+
+    dependency_chain = property["dependency_chain"]
+
+    # Handle circular dependency (empty chain means circular)
+    if len(dependency_chain) == 0:
+        log.debug(f"Circular dependency detected for flag: {property.get('key')}")
+        raise InconclusiveMatchError(
+            f"Circular dependency detected for flag '{property.get('key', 'unknown')}'"
+        )
+
+    # Evaluate all dependencies in the chain order
+    for dep_flag_key in dependency_chain:
+        if dep_flag_key not in evaluation_cache:
+            # Need to evaluate this dependency first
+            dep_flag = flags_by_key.get(dep_flag_key)
+            if not dep_flag:
+                # Missing flag dependency - cannot evaluate locally
+                evaluation_cache[dep_flag_key] = None
+                raise InconclusiveMatchError(
+                    f"Cannot evaluate flag dependency '{dep_flag_key}' - flag not found in local flags"
+                )
+            else:
+                # Check if the flag is active (same check as in client._compute_flag_locally)
+                if not dep_flag.get("active"):
+                    evaluation_cache[dep_flag_key] = False
+                else:
+                    # Recursively evaluate the dependency
+                    try:
+                        dep_flag_filters = dep_flag.get("filters") or {}
+                        dep_aggregation_group_type_index = dep_flag_filters.get(
+                            "aggregation_group_type_index"
+                        )
+                        if dep_aggregation_group_type_index is not None:
+                            # Group flags should continue bucketing by the group key
+                            # from the current evaluation context.
+                            dep_bucketing_value = distinct_id
+                        else:
+                            dep_bucketing_value = resolve_bucketing_value(
+                                dep_flag, distinct_id, device_id
+                            )
+                        dep_result = match_feature_flag_properties(
+                            dep_flag,
+                            distinct_id,
+                            properties,
+                            cohort_properties=cohort_properties,
+                            flags_by_key=flags_by_key,
+                            evaluation_cache=evaluation_cache,
+                            device_id=device_id,
+                            bucketing_value=dep_bucketing_value,
+                        )
+                        evaluation_cache[dep_flag_key] = dep_result
+                    except InconclusiveMatchError as e:
+                        # If we can't evaluate a dependency, store None and propagate the error
+                        evaluation_cache[dep_flag_key] = None
+                        raise InconclusiveMatchError(
+                            f"Cannot evaluate flag dependency '{dep_flag_key}': {e}"
+                        ) from e
+
+        # Check the cached result
+        cached_result = evaluation_cache[dep_flag_key]
+        if cached_result is None:
+            # Previously inconclusive - raise error again
+            raise InconclusiveMatchError(
+                f"Flag dependency '{dep_flag_key}' was previously inconclusive"
+            )
+        elif not cached_result:
+            # Definitive False result - dependency failed
+            return False
+
+    # All dependencies in the chain have been evaluated successfully
+    # Now check if the final flag value matches the expected value in the property
+    flag_key = property.get("key")
+    expected_value = property.get("value")
+    operator = property.get("operator", "exact")
+
+    if flag_key and expected_value is not None:
+        # Get the actual value of the flag we're checking
+        actual_value = evaluation_cache.get(flag_key)
+
+        if actual_value is None:
+            # Flag wasn't evaluated - this shouldn't happen if dependency chain is correct
+            raise InconclusiveMatchError(
+                f"Flag '{flag_key}' was not evaluated despite being in dependency chain"
+            )
+
+        # For flag dependencies, we need to compare the actual flag result with expected value
+        # using the flag_evaluates_to operator logic
+        if operator == "flag_evaluates_to":
+            return matches_dependency_value(expected_value, actual_value)
+        else:
+            # This should never happen, but just to be defensive.
+            raise InconclusiveMatchError(
+                f"Flag dependency property for '{property.get('key', 'unknown')}' has invalid operator '{operator}'"
+            )
+
+    # If no value check needed, return True (all dependencies passed)
+    return True
+
+
+def matches_dependency_value(expected_value, actual_value):
+    """
+    Check if the actual flag value matches the expected dependency value.
+
+    This follows the same logic as the C# MatchesDependencyValue function:
+    - String variant case: check for exact match or boolean true
+    - Boolean case: must match expected boolean value
+
+    Args:
+        expected_value: The expected value from the property
+        actual_value: The actual value returned by the flag evaluation
+
+    Returns:
+        bool: True if the values match according to flag dependency rules
+    """
+    # String variant case - check for exact match or boolean true
+    if isinstance(actual_value, str) and len(actual_value) > 0:
+        if isinstance(expected_value, bool):
+            # Any variant matches boolean true
+            return expected_value
+        elif isinstance(expected_value, str):
+            # variants are case-sensitive, hence our comparison is too
+            return actual_value == expected_value
+        else:
+            return False
+
+    # Boolean case - must match expected boolean value
+    elif isinstance(actual_value, bool) and isinstance(expected_value, bool):
+        return actual_value == expected_value
+
+    # Default case
+    return False
+
+
+def resolve_bucketing_value(flag, distinct_id, device_id=None):
+    """Resolve the bucketing value for a flag based on its bucketing_identifier setting.
+
+    Returns:
+        The appropriate identifier string to use for hashing/bucketing.
+
+    Raises:
+        InconclusiveMatchError: If the flag requires device_id but none was provided.
+    """
+    flag_filters = flag.get("filters") or {}
+    bucketing_identifier = flag.get("bucketing_identifier") or flag_filters.get(
+        "bucketing_identifier"
+    )
+    if bucketing_identifier == "device_id":
+        if not device_id:
+            raise InconclusiveMatchError(
+                "Flag requires device_id for bucketing but none was provided"
+            )
+        return device_id
+    return distinct_id
+
+
+def match_feature_flag_properties(
+    flag,
+    distinct_id,
+    properties,
+    *,
+    cohort_properties=None,
+    flags_by_key=None,
+    evaluation_cache=None,
+    device_id=None,
+    bucketing_value=None,
+    group_type_mapping=None,
+    groups=None,
+    group_properties=None,
+) -> FlagValue:
+    if bucketing_value is None:
+        warnings.warn(
+            "Calling match_feature_flag_properties() without bucketing_value is deprecated. "
+            "Pass bucketing_value explicitly. This fallback will be removed in a future major release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        bucketing_value = resolve_bucketing_value(flag, distinct_id, device_id)
+
+    flag_filters = flag.get("filters") or {}
+    flag_conditions = flag_filters.get("groups") or []
+    flag_aggregation = flag_filters.get("aggregation_group_type_index")
+    is_inconclusive = False
+    cohort_properties = cohort_properties or {}
+    groups = groups or {}
+    group_properties = group_properties or {}
+    group_type_mapping = group_type_mapping or {}
+    # Some filters can be explicitly set to null, which require accessing variants like so
+    flag_variants = (flag_filters.get("multivariate") or {}).get("variants") or []
+    valid_variant_keys = [variant["key"] for variant in flag_variants]
+
+    for condition in flag_conditions:
+        try:
+            # Per-condition aggregation overrides only when the condition explicitly
+            # sets its own aggregation_group_type_index (mixed targeting).
+            # When absent, use the properties/bucketing already resolved by the caller.
+            condition_aggregation = condition.get(
+                "aggregation_group_type_index", flag_aggregation
+            )
+
+            # Mixed-override path: condition-level aggregation differs from flag-level.
+            # This assumes flag-level aggregation is None for mixed flags.
+            if condition_aggregation != flag_aggregation:
+                if condition_aggregation is not None:
+                    group_name = group_type_mapping.get(str(condition_aggregation))
+                    if not group_name or group_name not in groups:
+                        log.debug(
+                            "Skipping group condition for flag '%s': group type index %s not available",
+                            flag.get("key", ""),
+                            condition_aggregation,
+                        )
+                        continue
+                    if group_name not in group_properties:
+                        is_inconclusive = True
+                        continue
+                    effective_properties = group_properties[group_name]
+                    effective_bucketing = groups[group_name]
+                else:
+                    effective_properties = properties
+                    effective_bucketing = bucketing_value
+            else:
+                effective_properties = properties
+                effective_bucketing = bucketing_value
+
+            if is_condition_match(
+                flag,
+                distinct_id,
+                condition,
+                effective_properties,
+                cohort_properties,
+                flags_by_key,
+                evaluation_cache,
+                bucketing_value=effective_bucketing,
+                device_id=device_id,
+            ):
+                variant_override = condition.get("variant")
+                if variant_override and variant_override in valid_variant_keys:
+                    variant = variant_override
+                else:
+                    variant = get_matching_variant(flag, effective_bucketing)
+                return variant or True
+        except RequiresServerEvaluation:
+            # Static cohort or other missing server-side data - must fallback to API
+            raise
+        except InconclusiveMatchError:
+            # Evaluation error (bad regex, invalid date, missing property, etc.)
+            # Track that we had an inconclusive match, but try other conditions
+            is_inconclusive = True
+
+    if is_inconclusive:
+        raise InconclusiveMatchError(
+            "Can't determine if feature flag is enabled or not with given properties"
+        )
+
+    # We can only return False when either all conditions are False, or
+    # no condition was inconclusive.
+    return False
+
+
+def is_condition_match(
+    feature_flag,
+    distinct_id,
+    condition,
+    properties,
+    cohort_properties,
+    flags_by_key=None,
+    evaluation_cache=None,
+    *,
+    bucketing_value,
+    device_id=None,
+) -> bool:
+    rollout_percentage = condition.get("rollout_percentage")
+    if len(condition.get("properties") or []) > 0:
+        for prop in condition.get("properties"):
+            property_type = prop.get("type")
+            if property_type == "cohort":
+                matches = match_cohort(
+                    prop,
+                    properties,
+                    cohort_properties,
+                    flags_by_key,
+                    evaluation_cache,
+                    distinct_id,
+                    device_id=device_id,
+                )
+            elif property_type == "flag":
+                matches = evaluate_flag_dependency(
+                    prop,
+                    flags_by_key,
+                    evaluation_cache,
+                    distinct_id,
+                    properties,
+                    cohort_properties,
+                    device_id=device_id,
+                )
+            else:
+                matches = match_property(prop, properties)
+            if not matches:
+                return False
+
+        if rollout_percentage is None:
+            return True
+
+    if rollout_percentage is not None and _hash(
+        feature_flag["key"], bucketing_value
+    ) > (rollout_percentage / 100):
+        return False
+
+    return True
+
+
+def match_property(property, property_values) -> bool:
+    # only looks for matches where key exists in override_property_values
+    # doesn't support operator is_not_set
+    key = property.get("key")
+    operator = property.get("operator") or "exact"
+    value = property.get("value")
+
+    if operator not in PROPERTY_OPERATORS:
+        raise InconclusiveMatchError(f"Unknown operator {operator}")
+
+    if key not in property_values:
+        raise InconclusiveMatchError(
+            "can't match properties without a given property value"
+        )
+
+    if operator == "is_not_set":
+        raise InconclusiveMatchError("can't match properties with operator is_not_set")
+
+    override_value = property_values[key]
+
+    if (operator not in NONE_VALUES_ALLOWED_OPERATORS) and override_value is None:
+        return False
+
+    if operator in ("exact", "is_not"):
+
+        def compute_exact_match(value, override_value):
+            if isinstance(value, list):
+                return str(override_value).casefold() in [
+                    str(val).casefold() for val in value
+                ]
+            return utils.str_iequals(value, override_value)
+
+        if operator == "exact":
+            return compute_exact_match(value, override_value)
+        else:
+            return not compute_exact_match(value, override_value)
+
+    if operator == "is_set":
+        return key in property_values
+
+    if operator == "icontains":
+        return utils.str_icontains(override_value, value)
+
+    if operator == "not_icontains":
+        return not utils.str_icontains(override_value, value)
+
+    if operator == "regex":
+        return (
+            is_valid_regex(str(value))
+            and re.compile(str(value)).search(str(override_value)) is not None
+        )
+
+    if operator == "not_regex":
+        return (
+            is_valid_regex(str(value))
+            and re.compile(str(value)).search(str(override_value)) is None
+        )
+
+    if operator in ("gt", "gte", "lt", "lte"):
+        # :TRICKY: We adjust comparison based on the override value passed in,
+        # to make sure we handle both numeric and string comparisons appropriately.
+        def compare(lhs, rhs, operator):
+            if operator == "gt":
+                return lhs > rhs
+            elif operator == "gte":
+                return lhs >= rhs
+            elif operator == "lt":
+                return lhs < rhs
+            elif operator == "lte":
+                return lhs <= rhs
+            else:
+                raise ValueError(f"Invalid operator: {operator}")
+
+        parsed_value = None
+        try:
+            parsed_value = float(value)  # type: ignore
+        except Exception:
+            pass
+
+        if parsed_value is not None and override_value is not None:
+            if isinstance(override_value, str):
+                return compare(override_value, str(value), operator)
+            else:
+                return compare(override_value, parsed_value, operator)
+        else:
+            return compare(str(override_value), str(value), operator)
+
+    if operator in ["is_date_before", "is_date_after"]:
+        try:
+            parsed_date = relative_date_parse_for_feature_flag_matching(str(value))
+
+            if not parsed_date:
+                parsed_date = parse_datetime(str(value))
+                parsed_date = convert_to_datetime_aware(parsed_date)
+        except Exception as e:
+            raise InconclusiveMatchError(
+                "The date set on the flag is not a valid format"
+            ) from e
+
+        if not parsed_date:
+            raise InconclusiveMatchError(
+                "The date set on the flag is not a valid format"
+            )
+
+        if isinstance(override_value, datetime.datetime):
+            override_date = convert_to_datetime_aware(override_value)
+            if operator == "is_date_before":
+                return override_date < parsed_date
+            else:
+                return override_date > parsed_date
+        elif isinstance(override_value, datetime.date):
+            if operator == "is_date_before":
+                return override_value < parsed_date.date()
+            else:
+                return override_value > parsed_date.date()
+        elif isinstance(override_value, str):
+            try:
+                override_date = parse_datetime(override_value)
+                override_date = convert_to_datetime_aware(override_date)
+                if operator == "is_date_before":
+                    return override_date < parsed_date
+                else:
+                    return override_date > parsed_date
+            except Exception:
+                raise InconclusiveMatchError("The date provided is not a valid format")
+        else:
+            raise InconclusiveMatchError(
+                "The date provided must be a string or date object"
+            )
+
+    if operator in SEMVER_OPERATORS:
+        try:
+            override_parsed = parse_semver(override_value)
+        except (ValueError, TypeError):
+            raise InconclusiveMatchError(
+                f"Person property value '{override_value}' is not a valid semver"
+            )
+
+        if operator in SEMVER_COMPARISON_OPERATORS:
+            try:
+                flag_parsed = parse_semver(value)
+            except (ValueError, TypeError):
+                raise InconclusiveMatchError(
+                    f"Flag semver value '{value}' is not a valid semver"
+                )
+
+            if operator == "semver_eq":
+                return override_parsed == flag_parsed
+            elif operator == "semver_neq":
+                return override_parsed != flag_parsed
+            elif operator == "semver_gt":
+                return override_parsed > flag_parsed
+            elif operator == "semver_gte":
+                return override_parsed >= flag_parsed
+            elif operator == "semver_lt":
+                return override_parsed < flag_parsed
+            elif operator == "semver_lte":
+                return override_parsed <= flag_parsed
+
+        elif operator == "semver_tilde":
+            try:
+                lower, upper = _tilde_bounds(str(value))
+            except (ValueError, TypeError):
+                raise InconclusiveMatchError(
+                    f"Flag semver value '{value}' is not valid for tilde operator"
+                )
+            return lower <= override_parsed < upper
+
+        elif operator == "semver_caret":
+            try:
+                lower, upper = _caret_bounds(str(value))
+            except (ValueError, TypeError):
+                raise InconclusiveMatchError(
+                    f"Flag semver value '{value}' is not valid for caret operator"
+                )
+            return lower <= override_parsed < upper
+
+        elif operator == "semver_wildcard":
+            try:
+                lower, upper = _wildcard_bounds(str(value))
+            except (ValueError, TypeError):
+                raise InconclusiveMatchError(
+                    f"Flag semver value '{value}' is not valid for wildcard operator"
+                )
+            return lower <= override_parsed < upper
+
+    # Unreachable: all operators in PROPERTY_OPERATORS are handled above,
+    # and unknown operators are rejected at the top of this function.
+    raise InconclusiveMatchError(f"Unknown operator {operator}")
+
+
+def match_cohort(
+    property,
+    property_values,
+    cohort_properties,
+    flags_by_key=None,
+    evaluation_cache=None,
+    distinct_id=None,
+    device_id=None,
+) -> bool:
+    # Cohort properties are in the form of property groups like this:
+    # {
+    #     "cohort_id": {
+    #         "type": "AND|OR",
+    #         "values": [{
+    #            "key": "property_name", "value": "property_value"
+    #        }]
+    #     }
+    # }
+    cohort_id = str(property.get("value"))
+    if cohort_id not in cohort_properties:
+        raise RequiresServerEvaluation(
+            f"cohort {cohort_id} not found in local cohorts - likely a static cohort that requires server evaluation"
+        )
+
+    property_group = cohort_properties[cohort_id]
+    return match_property_group(
+        property_group,
+        property_values,
+        cohort_properties,
+        flags_by_key,
+        evaluation_cache,
+        distinct_id,
+        device_id=device_id,
+    )
+
+
+def match_property_group(
+    property_group,
+    property_values,
+    cohort_properties,
+    flags_by_key=None,
+    evaluation_cache=None,
+    distinct_id=None,
+    device_id=None,
+) -> bool:
+    if not property_group:
+        return True
+
+    property_group_type = property_group.get("type")
+    properties = property_group.get("values")
+
+    if not properties or len(properties) == 0:
+        # empty groups are no-ops, always match
+        return True
+
+    error_matching_locally = False
+
+    if "values" in properties[0]:
+        # a nested property group
+        for prop in properties:
+            try:
+                matches = match_property_group(
+                    prop,
+                    property_values,
+                    cohort_properties,
+                    flags_by_key,
+                    evaluation_cache,
+                    distinct_id,
+                    device_id=device_id,
+                )
+                if property_group_type == "AND":
+                    if not matches:
+                        return False
+                else:
+                    # OR group
+                    if matches:
+                        return True
+            except RequiresServerEvaluation:
+                # Immediately propagate - this condition requires server-side data
+                raise
+            except InconclusiveMatchError as e:
+                log.debug(f"Failed to compute property {prop} locally: {e}")
+                error_matching_locally = True
+
+        if error_matching_locally:
+            raise InconclusiveMatchError(
+                "Can't match cohort without a given cohort property value"
+            )
+        # if we get here, all matched in AND case, or none matched in OR case
+        return property_group_type == "AND"
+
+    else:
+        for prop in properties:
+            try:
+                if prop.get("type") == "cohort":
+                    matches = match_cohort(
+                        prop,
+                        property_values,
+                        cohort_properties,
+                        flags_by_key,
+                        evaluation_cache,
+                        distinct_id,
+                        device_id=device_id,
+                    )
+                elif prop.get("type") == "flag":
+                    matches = evaluate_flag_dependency(
+                        prop,
+                        flags_by_key,
+                        evaluation_cache,
+                        distinct_id,
+                        property_values,
+                        cohort_properties,
+                        device_id=device_id,
+                    )
+                else:
+                    matches = match_property(prop, property_values)
+
+                negation = prop.get("negation", False)
+
+                if property_group_type == "AND":
+                    # if negated property, do the inverse
+                    if not matches and not negation:
+                        return False
+                    if matches and negation:
+                        return False
+                else:
+                    # OR group
+                    if matches and not negation:
+                        return True
+                    if not matches and negation:
+                        return True
+            except RequiresServerEvaluation:
+                # Immediately propagate - this condition requires server-side data
+                raise
+            except InconclusiveMatchError as e:
+                log.debug(f"Failed to compute property {prop} locally: {e}")
+                error_matching_locally = True
+
+        if error_matching_locally:
+            raise InconclusiveMatchError(
+                "can't match cohort without a given cohort property value"
+            )
+
+        # if we get here, all matched in AND case, or none matched in OR case
+        return property_group_type == "AND"
+
+
+def parse_datetime(value: str) -> datetime.datetime:
+    text = value.strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    elif text.upper().endswith(" UTC"):
+        text = text[:-4] + "+00:00"
+    elif re.fullmatch(r"\d{4}", text):
+        now = datetime.datetime.now()
+        return datetime.datetime(int(text), now.month, now.day)
+
+    text = re.sub(r" ([+-]\d{2}:\d{2})$", r"\1", text)
+    return datetime.datetime.fromisoformat(text)
+
+
+# Python's stdlib doesn't provide a calendar-aware month/year delta.
+# Clamp the day to the target month's end to match dateutil.relativedelta behavior.
+def _subtract_months(dt: datetime.datetime, months: int) -> Optional[datetime.datetime]:
+    month_index = dt.year * 12 + dt.month - 1 - months
+    year = month_index // 12
+    month = month_index % 12 + 1
+    if not 1 <= year <= 9999:
+        return None
+    day = min(dt.day, calendar.monthrange(year, month)[1])
+    return dt.replace(year=year, month=month, day=day)
+
+
+def _subtract_years(dt: datetime.datetime, years: int) -> Optional[datetime.datetime]:
+    year = dt.year - years
+    if not 1 <= year <= 9999:
+        return None
+    day = min(dt.day, calendar.monthrange(year, dt.month)[1])
+    return dt.replace(year=year, day=day)
+
+
+def relative_date_parse_for_feature_flag_matching(
+    value: str,
+) -> Optional[datetime.datetime]:
+    regex = r"^-?(?P<number>[0-9]+)(?P<interval>[a-z])$"
+    match = re.search(regex, value)
+    parsed_dt = datetime.datetime.now(datetime.timezone.utc)
+    if match:
+        number = int(match.group("number"))
+
+        if number >= 10_000:
+            # Guard against overflow, disallow numbers greater than 10_000
+            return None
+
+        interval = match.group("interval")
+        if interval == "h":
+            parsed_dt = parsed_dt - datetime.timedelta(hours=number)
+        elif interval == "d":
+            parsed_dt = parsed_dt - datetime.timedelta(days=number)
+        elif interval == "w":
+            parsed_dt = parsed_dt - datetime.timedelta(weeks=number)
+        elif interval == "m":
+            return _subtract_months(parsed_dt, number)
+        elif interval == "y":
+            return _subtract_years(parsed_dt, number)
+        else:
+            return None
+
+        return parsed_dt
+    else:
+        return None
+
+
+def _semver_numeric_identifier(part: str) -> int:
+    # Semver 2.0.0 §2: numeric identifiers MUST NOT include leading zeros.
+    if not part or not part.isdigit():
+        raise ValueError(f"Invalid semver numeric identifier: '{part}'")
+    if len(part) > 1 and part[0] == "0":
+        raise ValueError(f"Semver numeric identifier has leading zero: '{part}'")
+    return int(part)
+
+
+def parse_semver(value: str) -> tuple:
+    """Parse a semver string into a comparable (major, minor, patch) integer tuple.
+
+    Matches the behavior of the sortableSemver HogQL function:
+    - Handles v-prefix, whitespace, pre-release suffixes
+    - Defaults missing components to 0 (e.g., 1.2 -> 1.2.0)
+    - Rejects numeric identifiers with leading zeros per semver 2.0.0 §2
+    Raises ValueError if parsing fails.
+    """
+    text = str(value).strip().lstrip("vV")
+    # Strip pre-release/build metadata suffix
+    text = text.split("-")[0].split("+")[0]
+    parts = text.split(".")
+
+    if not parts or not parts[0]:
+        raise ValueError("Invalid semver format")
+
+    major = _semver_numeric_identifier(parts[0])
+    minor = _semver_numeric_identifier(parts[1]) if len(parts) > 1 and parts[1] else 0
+    patch = _semver_numeric_identifier(parts[2]) if len(parts) > 2 and parts[2] else 0
+
+    return (major, minor, patch)
+
+
+def _tilde_bounds(value: str) -> tuple:
+    """~1.2.3 means >=1.2.3 <1.3.0 (allows patch-level changes)."""
+    major, minor, patch = parse_semver(value)
+    return (major, minor, patch), (major, minor + 1, 0)
+
+
+def _caret_bounds(value: str) -> tuple:
+    """Caret follows semver spec:
+    ^1.2.3 means >=1.2.3 <2.0.0
+    ^0.2.3 means >=0.2.3 <0.3.0
+    ^0.0.3 means >=0.0.3 <0.0.4
+    """
+    major, minor, patch = parse_semver(value)
+    lower = (major, minor, patch)
+
+    if major > 0:
+        upper = (major + 1, 0, 0)
+    elif minor > 0:
+        upper = (0, minor + 1, 0)
+    else:
+        upper = (0, 0, patch + 1)
+
+    return lower, upper
+
+
+def _wildcard_bounds(value: str) -> tuple:
+    """Wildcard matching:
+    1.* means >=1.0.0 <2.0.0
+    1.2.* means >=1.2.0 <1.3.0
+    """
+    cleaned = str(value).strip().lstrip("vV").replace("*", "").rstrip(".")
+    if not cleaned:
+        raise ValueError("Invalid wildcard pattern")
+
+    parts = [p for p in cleaned.split(".") if p]
+    if not parts:
+        raise ValueError("Invalid wildcard pattern")
+
+    if len(parts) == 1:
+        major = _semver_numeric_identifier(parts[0])
+        return (major, 0, 0), (major + 1, 0, 0)
+    elif len(parts) == 2:
+        major, minor = (
+            _semver_numeric_identifier(parts[0]),
+            _semver_numeric_identifier(parts[1]),
+        )
+        return (major, minor, 0), (major, minor + 1, 0)
+    else:
+        major = _semver_numeric_identifier(parts[0])
+        minor = _semver_numeric_identifier(parts[1])
+        patch = _semver_numeric_identifier(parts[2])
+        return (major, minor, patch), (major, minor, patch + 1)
