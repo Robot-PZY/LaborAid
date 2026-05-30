@@ -28,13 +28,8 @@ engine_kwargs: dict = {"echo": settings.APP_DEBUG}
 
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
-    # SQLite pool settings — use StaticPool for single-connection scenario
-    # or set pool_size for WAL mode concurrent reads
-    engine_kwargs["pool_size"] = 5
-    engine_kwargs["pool_recycle"] = 1800  # 30 min
-    engine_kwargs["pool_pre_ping"] = True
-    # Enable WAL journal mode for better concurrent read performance
     connect_args["timeout"] = 30  # seconds to wait for lock
+    # aiosqlite defaults to NullPool — pool_size/recycle/pre_ping are invalid
 else:
     engine_kwargs["pool_size"] = 10
     engine_kwargs["max_overflow"] = 20

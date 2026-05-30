@@ -9,6 +9,10 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: development
+      JWT_SECRET_KEY: ci-jwt-secret-not-for-production
+      APP_SECRET_KEY: ci-app-secret-not-for-production
     defaults:
       run:
         working-directory: LaborAid/backend
