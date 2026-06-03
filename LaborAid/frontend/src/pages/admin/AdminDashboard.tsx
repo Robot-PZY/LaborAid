@@ -12,8 +12,10 @@ import {
   ArrowRight,
   TrendingUp,
   Activity,
+  AlertTriangle,
 } from 'lucide-react';
 import { adminApi, type AdminStatsOverview, type UsageTrendDay } from '@/lib/api/admin';
+import { SectionTitle } from '@/components/ui/primitives';
 import {
   CHART_COLORS,
   DonutChart,
@@ -38,6 +40,7 @@ function StatCard({
   sparkValues,
   accentClass,
   sparkColor,
+  to,
 }: {
   label: string;
   value: number | string;
@@ -46,9 +49,12 @@ function StatCard({
   sparkValues?: number[];
   accentClass?: string;
   sparkColor?: string;
+  to?: string;
 }) {
-  return (
-    <div className="rounded-xl border border-border/70 bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover">
+  const card = (
+    <div
+      className={`rounded-xl border border-border/70 bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover ${to ? 'cursor-pointer' : ''}`}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm text-muted-foreground">{label}</p>
@@ -66,6 +72,11 @@ function StatCard({
       )}
     </div>
   );
+
+  if (to) {
+    return <Link to={to} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">{card}</Link>;
+  }
+  return card;
 }
 
 export default function AdminDashboard() {
@@ -113,6 +124,18 @@ export default function AdminDashboard() {
     ];
   }, [stats]);
 
+  const materialSegments = useMemo(() => {
+    if (!stats) return [];
+    const ready = stats.cases_material_ready;
+    const inProgress = Math.max(0, stats.cases_with_evidence - ready);
+    const empty = Math.max(0, stats.cases_total - stats.cases_with_evidence);
+    return [
+      { label: '材料达标', value: ready, color: CHART_COLORS.evidence },
+      { label: '进行中', value: inProgress, color: CHART_COLORS.documents },
+      { label: '待补充', value: empty, color: 'hsl(0 65% 55%)' },
+    ].filter((s) => s.value > 0);
+  }, [stats]);
+
   const userSegments = useMemo(() => {
     if (!stats) return [];
     const inactive = Math.max(0, stats.users_total - stats.users_active);
@@ -142,6 +165,21 @@ export default function AdminDashboard() {
   const contentTotal =
     stats.cases_total + stats.documents_total + stats.evidence_total + stats.research_total;
 
+  const alerts = [
+    !stats.llm_configured && {
+      message: '文本模型尚未配置，文书生成等功能可能不可用',
+      to: '/admin/models',
+    },
+    !stats.vision_llm_configured && {
+      message: '视觉 OCR 模型尚未配置，图片/PDF 识别可能不可用',
+      to: '/admin/models',
+    },
+    weekTotal === 0 && {
+      message: '近 7 日暂无新增记录，可检查用户端是否正常接入',
+      to: '/admin/users',
+    },
+  ].filter(Boolean) as { message: string; to: string }[];
+
   return (
     <div className="space-y-8">
       <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-accent/8 p-6 shadow-card">
@@ -170,67 +208,169 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="注册用户"
-          value={stats.users_total}
-          icon={Users}
-          sub={`近7日新增 ${stats.users_new_7d}`}
-          accentClass={STAT_STYLES[0].ring}
-        />
-        <StatCard
-          label="活跃账号"
-          value={stats.users_active}
-          icon={Users}
-          sub={`活跃率 ${stats.users_total ? Math.round((stats.users_active / stats.users_total) * 100) : 0}%`}
-          accentClass={STAT_STYLES[0].ring}
-        />
-        <StatCard
-          label="案件"
-          value={stats.cases_total}
-          icon={Briefcase}
-          sparkValues={trend.map((d) => d.cases)}
-          accentClass={STAT_STYLES[0].ring}
-          sparkColor={CHART_COLORS.cases}
-        />
-        <StatCard
-          label="文书"
-          value={stats.documents_total}
-          icon={FileText}
-          sparkValues={trend.map((d) => d.documents)}
-          accentClass={STAT_STYLES[2].ring}
-          sparkColor={CHART_COLORS.documents}
-        />
-        <StatCard
-          label="证据"
-          value={stats.evidence_total}
-          icon={Upload}
-          sparkValues={trend.map((d) => d.evidence)}
-          accentClass={STAT_STYLES[1].ring}
-          sparkColor={CHART_COLORS.evidence}
-        />
-        <StatCard
-          label="研究报告"
-          value={stats.research_total}
-          icon={BookOpen}
-          sparkValues={trend.map((d) => d.research)}
-          accentClass={STAT_STYLES[3].ring}
-          sparkColor={CHART_COLORS.research}
-        />
-        <StatCard
-          label="文本模型"
-          value={stats.llm_configured ? '已配置' : '未配置'}
-          icon={Cpu}
-          sub="前往模型配置"
-          accentClass={stats.llm_configured ? 'bg-emerald-500/10 text-emerald-700' : 'bg-amber-500/10 text-amber-800'}
-        />
-        <StatCard
-          label="视觉 OCR"
-          value={stats.vision_llm_configured ? '已配置' : '未配置'}
-          icon={Eye}
-          accentClass={stats.vision_llm_configured ? 'bg-emerald-500/10 text-emerald-700' : 'bg-amber-500/10 text-amber-800'}
-        />
-      </div>
+      {alerts.length > 0 && (
+        <div className="space-y-2">
+          {alerts.map((alert) => (
+            <Link
+              key={alert.message}
+              to={alert.to}
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-950 transition-colors hover:bg-amber-100/60 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100 dark:hover:bg-amber-950/50"
+            >
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span className="flex-1">{alert.message}</span>
+              <ArrowRight className="h-4 w-4 shrink-0 opacity-60" />
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <section>
+        <SectionTitle title="用户" description="注册与活跃情况" className="mb-3" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StatCard
+            label="注册用户"
+            value={stats.users_total}
+            icon={Users}
+            sub={`近7日新增 ${stats.users_new_7d}`}
+            accentClass={STAT_STYLES[0].ring}
+            to="/admin/users"
+          />
+          <StatCard
+            label="活跃账号"
+            value={stats.users_active}
+            icon={Users}
+            sub={`活跃率 ${stats.users_total ? Math.round((stats.users_active / stats.users_total) * 100) : 0}%`}
+            accentClass={STAT_STYLES[0].ring}
+            to="/admin/users"
+          />
+        </div>
+      </section>
+
+      <section>
+        <SectionTitle title="平台内容" description="案件、文书、证据与研究报告" className="mb-3" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="案件"
+            value={stats.cases_total}
+            icon={Briefcase}
+            sparkValues={trend.map((d) => d.cases)}
+            accentClass={STAT_STYLES[0].ring}
+            sparkColor={CHART_COLORS.cases}
+          />
+          <StatCard
+            label="文书"
+            value={stats.documents_total}
+            icon={FileText}
+            sparkValues={trend.map((d) => d.documents)}
+            accentClass={STAT_STYLES[2].ring}
+            sparkColor={CHART_COLORS.documents}
+          />
+          <StatCard
+            label="证据"
+            value={stats.evidence_total}
+            icon={Upload}
+            sparkValues={trend.map((d) => d.evidence)}
+            accentClass={STAT_STYLES[1].ring}
+            sparkColor={CHART_COLORS.evidence}
+          />
+          <StatCard
+            label="研究报告"
+            value={stats.research_total}
+            icon={BookOpen}
+            sparkValues={trend.map((d) => d.research)}
+            accentClass={STAT_STYLES[3].ring}
+            sparkColor={CHART_COLORS.research}
+          />
+        </div>
+      </section>
+
+      <section>
+        <SectionTitle title="AI 材料与完整度" description="用户端案情、证据 OCR 与报告产出健康度" className="mb-3" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="材料达标案件"
+            value={`${stats.material_ready_rate_pct}%`}
+            icon={Activity}
+            sub={`${stats.cases_material_ready} / ${stats.cases_total} 案（有描述且含证据或文书）`}
+            accentClass="bg-violet-500/10 text-violet-700 dark:text-violet-300"
+          />
+          <StatCard
+            label="证据 OCR 覆盖"
+            value={`${stats.evidence_ocr_rate_pct}%`}
+            icon={Eye}
+            sub={`${stats.evidence_with_ocr} / ${stats.evidence_total} 份证据已识别`}
+            accentClass="bg-sky-500/10 text-sky-800 dark:text-sky-300"
+          />
+          <StatCard
+            label="近7日案情报告"
+            value={stats.research_reports_7d}
+            icon={BookOpen}
+            sub={`累计研究报告 ${stats.research_total}`}
+            accentClass={STAT_STYLES[3].ring}
+          />
+          <StatCard
+            label="已关联证据案件"
+            value={stats.cases_with_evidence}
+            icon={Upload}
+            sub={`${stats.cases_with_description} 案已填写描述`}
+            accentClass={STAT_STYLES[1].ring}
+          />
+        </div>
+        {materialSegments.length > 0 && (
+          <div className="mt-4 rounded-xl border border-border/70 bg-muted/20 p-5">
+            <h3 className="text-sm font-semibold">案件材料完整度分布（估算）</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              达标：有案情描述且含证据或文书 · 进行中：已有证据但未达标 · 待补充：尚无证据
+            </p>
+            <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+              <DonutChart
+                segments={materialSegments}
+                size={150}
+                stroke={18}
+                centerLabel={`${stats.material_ready_rate_pct}%`}
+                centerSub="达标率"
+              />
+              <MiniBarCompare
+                items={materialSegments.map((s) => ({
+                  label: s.label,
+                  value: s.value,
+                  color: s.color,
+                }))}
+              />
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <SectionTitle title="系统状态" description="模型与 OCR 配置" className="mb-3" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StatCard
+            label="文本模型"
+            value={stats.llm_configured ? '已配置' : '未配置'}
+            icon={Cpu}
+            sub="点击前往模型配置"
+            to="/admin/models"
+            accentClass={
+              stats.llm_configured
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                : 'bg-amber-500/10 text-amber-800 dark:text-amber-300'
+            }
+          />
+          <StatCard
+            label="视觉 OCR"
+            value={stats.vision_llm_configured ? '已配置' : '未配置'}
+            icon={Eye}
+            sub="点击前往模型配置"
+            to="/admin/models"
+            accentClass={
+              stats.vision_llm_configured
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                : 'bg-amber-500/10 text-amber-800 dark:text-amber-300'
+            }
+          />
+        </div>
+      </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-border/70 bg-card p-6 shadow-card">

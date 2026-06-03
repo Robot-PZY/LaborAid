@@ -99,9 +99,9 @@ export const AGENTS: AgentConfig[] = [
   },
   {
     id: 'channels',
-    name: '维权专区',
-    shortName: '专区',
-    description: '农民工、实习生、女职工等专属维权通道与一键举报',
+    name: '专项维权',
+    shortName: '专项',
+    description: '农民工、实习生、女职工等人群的分情形指引与官方渠道',
     icon: HeartHandshake,
     route: '/channels',
     color: 'text-amber-700',
@@ -305,6 +305,13 @@ export function getHubAgents(): AgentConfig[] {
   return AGENTS.filter((a) => a.showInHub && a.enabled);
 }
 
+/** 按 id 取已启用智能体（不受 showInHub 限制，供首页等自定义编排） */
+export function getAgentsByIds(ids: readonly string[]): AgentConfig[] {
+  return ids
+    .map((id) => AGENTS.find((a) => a.id === id && a.enabled))
+    .filter(Boolean) as AgentConfig[];
+}
+
 export function getAgentByRoute(route: string): AgentConfig | undefined {
   if (route === '/') return AGENTS.find((a) => a.id === 'hub');
   return AGENTS.find((a) => a.route === route);
@@ -338,7 +345,7 @@ export function getRouteLabelMap(): Record<string, string> {
   AGENTS.forEach((a) => {
     map[a.route] = a.id === 'hub' ? '服务首页' : a.name;
   });
-  map['/channels'] = '维权专区';
+  map['/channels'] = '专项维权';
   return map;
 }
 

@@ -24,6 +24,7 @@ import { resultToSession, sessionToAnalyzeResult } from '@/lib/intake-plan';
 import { useSpeechInput } from '@/hooks/useSpeechInput';
 import IntakePlanResult from '@/components/intake/IntakePlanResult';
 import IntakeSampleCards from '@/components/intake/IntakeSampleCards';
+import demoScenarios from '@/config/labor/demo-scenarios.json';
 import { Button, Surface, Badge } from '@/components/ui/primitives';
 import { addToolHistory } from '@/lib/tool-history';
 
@@ -168,6 +169,24 @@ export default function IntakeDesk({ onAnalyzed }: IntakeDeskProps) {
       });
     }
   }, [searchParams, setSearchParams, restoreFromSession]);
+
+  useEffect(() => {
+    const demoId = searchParams.get('demo');
+    if (!demoId) return;
+    const scenario = (demoScenarios as { id: string; intakeText: string }[]).find(
+      (s) => s.id === demoId,
+    );
+    if (!scenario) return;
+    setText(scenario.intakeText);
+    setResult(null);
+    setError('');
+    const next = new URLSearchParams(searchParams);
+    next.delete('demo');
+    setSearchParams(next, { replace: true });
+    requestAnimationFrame(() => {
+      document.getElementById('intake-desk')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     hydrateIntakeSessionFromServer().then((saved) => {

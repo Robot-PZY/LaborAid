@@ -76,18 +76,34 @@ async def list_knowledge(
 ):
     try:
         base_where = _platform_filter()
-        # Count query
-        count_q = select(func.count(KnowledgeItem.id)).where(base_where)
-        if tag:
-            count_q = count_q.where(KnowledgeItem.tags.contains([tag]))
-        total = (await db.execute(count_q)).scalar() or 0
+        selected_tag = tag.strip() if tag else ""
 
-        query = select(KnowledgeItem).where(base_where)
-        if tag:
-            query = query.where(KnowledgeItem.tags.contains([tag]))
-        query = query.order_by(KnowledgeItem.created_at.desc()).offset(skip).limit(limit)
-        result = await db.execute(query)
-        items = result.scalars().all()
+        if selected_tag:
+            # SQLite / JSON 的 contains 在多标签数组上表现不稳定，
+            # 这里改为 Python 层精确匹配，确保标签筛选可靠。
+            query = select(KnowledgeItem).where(base_where).order_by(KnowledgeItem.created_at.desc())
+            result = await db.execute(query)
+            all_items = result.scalars().all()
+            matched_items = [
+                item
+                for item in all_items
+                if any((t or "").strip() == selected_tag for t in (item.tags or []))
+            ]
+            total = len(matched_items)
+            items = matched_items[skip : skip + limit]
+        else:
+            count_q = select(func.count(KnowledgeItem.id)).where(base_where)
+            total = (await db.execute(count_q)).scalar() or 0
+
+            query = (
+                select(KnowledgeItem)
+                .where(base_where)
+                .order_by(KnowledgeItem.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+            )
+            result = await db.execute(query)
+            items = result.scalars().all()
 
         # Truncate content in list view
         response_data = []

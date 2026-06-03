@@ -3,6 +3,8 @@ import { BookOpen, Plus, Trash2, Loader2, Tag, Search, FileText, X, Upload, Aler
 import { AxiosError } from 'axios';
 import { knowledgeApi, type KnowledgeItem, type KnowledgeStats, type CrawlSeed, type CrawlSource, type CrawlRunResponse, type CrawlScheduleStatus } from '@/lib/api';
 import { useToast } from '@/lib/toast';
+import { PageHeader } from '@/components/ui/primitives';
+import { cn } from '@/lib/utils';
 
 interface KnowledgeProps {
   /** 管理端模式：平台知识库配置 */
@@ -410,62 +412,72 @@ function Knowledge({ adminMode = false }: KnowledgeProps) {
     return { sortedTags: sorted, maxTagCount: sorted.length > 0 ? sorted[0][1] : 1 };
   }, [items]);
 
+  const headerActions = (
+    <div className="flex flex-wrap gap-2">
+      <button onClick={() => setShowCreate(true)}
+        className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm cursor-pointer">
+        <Plus className="h-4 w-4" /> 添加知识
+      </button>
+      <label className="flex items-center gap-2 px-4 py-2.5 border border-primary text-primary rounded-lg hover:bg-primary/10 text-sm cursor-pointer">
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff"
+          className="hidden"
+          onChange={handleFileUpload}
+          disabled={uploading}
+        />
+        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+        {uploading ? '处理中...' : '上传文件'}
+      </label>
+      <button onClick={() => setBulkMode(!bulkMode)}
+        className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm cursor-pointer ${bulkMode ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}>
+        {bulkMode ? '取消批量' : '批量操作'}
+      </button>
+      {adminMode && (
+        <button onClick={() => setShowCrawlPanel(v => !v)}
+          className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm cursor-pointer ${showCrawlPanel ? 'bg-emerald-600 text-white border-emerald-600' : 'hover:bg-accent'}`}>
+          <Globe className="h-4 w-4" /> 官方法规同步
+        </button>
+      )}
+      {filtered.length > 0 && (
+        <button onClick={handleExportKnowledge}
+          className="flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm hover:bg-accent cursor-pointer">
+          <Download className="h-4 w-4" /> 导出
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
+    <div className={cn('space-y-6', !adminMode && 'max-w-5xl mx-auto')}>
+      {adminMode ? (
+        <PageHeader
+          eyebrow="运营管理"
+          title="平台知识库"
+          description="配置全站共用的法律参考资料，供检索法规等功能引用"
+          action={headerActions}
+          className="mb-2"
+        />
+      ) : (
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">
-            {adminMode ? '平台知识库' : '知识库管理'}
-          </h1>
+          <h1 className="text-2xl font-bold">知识库管理</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {adminMode
-              ? '配置全站共用的法律参考资料，供检索法规等功能引用'
-              : '管理法律知识、文书模板、办案笔记，构建个人/团队知识库'}
+            管理法律知识、文书模板、办案笔记，构建个人/团队知识库
           </p>
         </div>
-        {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 max-w-md">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
-            <button onClick={() => setError('')} className="ml-auto"><X className="h-4 w-4" /></button>
-          </div>
-        )}
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm">
-            <Plus className="h-4 w-4" /> 添加知识
-          </button>
-          <label className="flex items-center gap-2 px-4 py-2.5 border border-primary text-primary rounded-lg hover:bg-primary/10 text-sm cursor-pointer">
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff"
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={uploading}
-            />
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            {uploading ? '处理中...' : '上传文件'}
-          </label>
-          <button onClick={() => setBulkMode(!bulkMode)}
-            className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm ${bulkMode ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}>
-            {bulkMode ? '取消批量' : '批量操作'}
-          </button>
-          {adminMode && (
-            <button onClick={() => setShowCrawlPanel(v => !v)}
-              className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm ${showCrawlPanel ? 'bg-emerald-600 text-white border-emerald-600' : 'hover:bg-accent'}`}>
-              <Globe className="h-4 w-4" /> 官方法规同步
-            </button>
-          )}
-          {filtered.length > 0 && (
-            <button onClick={handleExportKnowledge}
-              className="flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm hover:bg-accent">
-              <Download className="h-4 w-4" /> 导出
-            </button>
-          )}
-        </div>
+        {headerActions}
       </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 max-w-md dark:border-red-800/50 dark:bg-red-950/40 dark:text-red-300">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{error}</span>
+          <button type="button" onClick={() => setError('')} className="ml-auto cursor-pointer"><X className="h-4 w-4" /></button>
+        </div>
+      )}
 
       {adminMode && (
         <div className="rounded-xl border border-border/70 bg-card p-5 shadow-sm">

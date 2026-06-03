@@ -5,6 +5,7 @@ import { llmSettingsApi, externalApiConfigApi, appConfigApi, apiClient, type LLM
 import { useToast } from '@/lib/toast';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/ui/primitives';
 
 interface Preset {
   key: string;
@@ -84,10 +85,10 @@ function StatusDashboard({ llmConfigs, apiConfigs, connectionStatuses, vectorSta
   const connectedCount = Object.values(connectionStatuses).filter(s => s === 'connected').length + (vectorStatus === 'connected' ? 1 : 0);
   const healthPercent = totalServices > 0 ? Math.round((connectedCount / totalServices) * 100) : 0;
 
-  let healthColor = 'text-green-600';
-  let healthBg = 'bg-green-50 border-green-200';
-  if (healthPercent < 50) { healthColor = 'text-red-600'; healthBg = 'bg-red-50 border-red-200'; }
-  else if (healthPercent < 80) { healthColor = 'text-amber-600'; healthBg = 'bg-amber-50 border-amber-200'; }
+  let healthColor = 'text-green-600 dark:text-green-400';
+  let healthBg = 'bg-green-500/10 border-green-200/80 dark:bg-green-950/30 dark:border-green-800/50';
+  if (healthPercent < 50) { healthColor = 'text-red-600 dark:text-red-400'; healthBg = 'bg-red-500/10 border-red-200/80 dark:bg-red-950/30 dark:border-red-800/50'; }
+  else if (healthPercent < 80) { healthColor = 'text-amber-600 dark:text-amber-400'; healthBg = 'bg-amber-500/10 border-amber-200/80 dark:bg-amber-950/30 dark:border-amber-800/50'; }
 
   return (
     <div className={`rounded-lg border p-4 ${healthBg}`}>
@@ -122,20 +123,20 @@ function StatusDashboard({ llmConfigs, apiConfigs, connectionStatuses, vectorSta
       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
         {/* LLM services */}
         {llmConfigs.map(c => (
-          <div key={`llm_${c.id}`} className="flex items-center justify-between rounded-md bg-white/60 px-3 py-1.5">
+          <div key={`llm_${c.id}`} className="flex items-center justify-between rounded-md bg-card/70 px-3 py-1.5">
             <span className="text-xs font-medium truncate">{c.name}</span>
             <StatusIndicator status={connectionStatuses[`llm_${c.id}`] || 'unknown'} />
           </div>
         ))}
         {/* API services */}
         {apiConfigs.filter(a => a.is_enabled).map(c => (
-          <div key={`api_${c.id}`} className="flex items-center justify-between rounded-md bg-white/60 px-3 py-1.5">
+          <div key={`api_${c.id}`} className="flex items-center justify-between rounded-md bg-card/70 px-3 py-1.5">
             <span className="text-xs font-medium truncate">{c.name}</span>
             <StatusIndicator status={connectionStatuses[`api_${c.id}`] || 'unknown'} />
           </div>
         ))}
         {/* Vector DB */}
-        <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-1.5">
+        <div className="flex items-center justify-between rounded-md bg-card/70 px-3 py-1.5">
           <span className="text-xs font-medium">向量数据库</span>
           <StatusIndicator status={vectorStatus === 'unknown' ? 'unknown' : vectorStatus} />
         </div>
@@ -744,14 +745,13 @@ export default function Settings({
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 px-4 sm:px-0">
-      <div>
-        <div className="flex items-center gap-3">
-          <SettingsIcon className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">{title}</h1>
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-      </div>
+    <div className="mx-auto space-y-6">
+      <PageHeader
+        eyebrow={title !== '系统配置' ? '运营管理' : undefined}
+        title={title}
+        description={subtitle}
+        className="mb-0"
+      />
 
       {pageError && (
         <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -764,9 +764,10 @@ export default function Settings({
       {allowedTabs.length > 1 && (
       <div className="flex gap-1 border-b overflow-x-auto">
         {ALL_TABS.filter((tab) => allowedTabs.includes(tab.key)).map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+          <button key={tab.key} onClick={() => setActiveTab(tab.key)} aria-label={tab.label}
             className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-            <tab.icon className="h-4 w-4" /> <span className="hidden sm:inline">{tab.label}</span><span className="sm:hidden">{tab.label.slice(0, 4)}</span>
+            <tab.icon className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>

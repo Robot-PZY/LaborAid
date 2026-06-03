@@ -42,7 +42,7 @@ export default function ChannelDetail() {
       <div className="text-center py-16">
         <p className="text-muted-foreground">未找到该专区</p>
         <Link to="/channels" className="mt-4 inline-block text-sm font-medium hover:underline">
-          返回维权专区
+          返回专项维权
         </Link>
       </div>
     );

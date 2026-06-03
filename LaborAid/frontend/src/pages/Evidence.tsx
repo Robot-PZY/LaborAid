@@ -2,7 +2,16 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Upload, FileText, Trash2, Download, Loader2, Sparkles, ChevronDown, ChevronRight, Link2, MessageSquare, AlertCircle, X, Plus, Image, Mic, Volume2, Scale, Camera, Monitor, FileSpreadsheet, Clock, Eye } from 'lucide-react';
 import { AxiosError } from 'axios';
-import { caseApi, evidenceApi, evidenceChainApi, type Case as CaseType, type EvidenceItem, type OcrStatus } from '@/lib/api';
+import {
+  caseApi,
+  evidenceApi,
+  evidenceChainApi,
+  type Case as CaseType,
+  type CaseReadinessSummary,
+  type EvidenceItem,
+  type OcrStatus,
+} from '@/lib/api';
+import CaseReadinessHint from '@/components/cases/CaseReadinessHint';
 import { useToast } from '@/lib/toast';
 import OcrStatusBadge from '@/components/ocr/OcrStatusBadge';
 import type { ChainAnalysisResult } from '@/lib/api';
@@ -10,6 +19,11 @@ import { loadIntakeSession } from '@/lib/intake-session';
 import { getActiveCaseId, setActiveCaseId, subscribeActiveCase } from '@/lib/active-case';
 import CredibilityBar from '@/components/ui/CredibilityBar';
 import { addToolHistory } from '@/lib/tool-history';
+import {
+  clearChainAnalysis,
+  loadChainAnalysis,
+  saveChainAnalysis,
+} from '@/lib/case-ai-cache';
 
 const VALID_EVIDENCE_TYPES = [
   'documentary',
@@ -260,12 +274,15 @@ export default function Evidence() {
 
   const MAX_BATCH_FILES = 20;
   const [chainResult, setChainResult] = useState<ChainAnalysisResult | null>(null);
+  const [chainCachedAt, setChainCachedAt] = useState<string | null>(null);
   const [analyzingChain, setAnalyzingChain] = useState(false);
   const [crossExamId, setCrossExamId] = useState<number | null>(null);
   const [crossExamText, setCrossExamText] = useState<Record<number, string>>({});
   const [casesLoading, setCasesLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
+  const [readiness, setReadiness] = useState<CaseReadinessSummary | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(false);
 
   // Drag-and-drop state for the upload zone
   const [isDragOver, setIsDragOver] = useState(false);
@@ -348,6 +365,58 @@ export default function Evidence() {
     if (selectedCase) loadEvidence();
   }, [selectedCase]);
 
+  const loadReadiness = useCallback(async (chainScore?: number) => {
+    if (!selectedCase) {
+      setReadiness(null);
+      return;
+    }
+    setReadinessLoading(true);
+    try {
+      const data = await caseApi.getReadiness(selectedCase, {
+        chainScore: chainScore != null ? chainScore : undefined,
+      });
+      setReadiness(data);
+    } catch {
+      setReadiness(null);
+    } finally {
+      setReadinessLoading(false);
+    }
+  }, [selectedCase]);
+
+  useEffect(() => {
+    if (!selectedCase) {
+      setReadiness(null);
+      setChainResult(null);
+      setChainCachedAt(null);
+      return;
+    }
+    const cached = loadChainAnalysis(selectedCase);
+    if (cached) {
+      setChainResult(cached);
+      setChainCachedAt(cached.savedAt);
+    } else {
+      setChainResult(null);
+      setChainCachedAt(null);
+    }
+    const chainScore =
+      typeof cached?.completeness_score === 'number' ? cached.completeness_score : undefined;
+    void loadReadiness(chainScore);
+  }, [selectedCase, loadReadiness]);
+
+  useEffect(() => {
+    if (!selectedCase) return;
+    const onActive = () => {
+      const id = getActiveCaseId();
+      if (id === selectedCase) {
+        const cached = loadChainAnalysis(selectedCase);
+        const chainScore =
+          typeof cached?.completeness_score === 'number' ? cached.completeness_score : undefined;
+        void loadReadiness(chainScore);
+      }
+    };
+    return subscribeActiveCase(onActive);
+  }, [selectedCase, loadReadiness]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && showCreate) {
@@ -395,7 +464,8 @@ export default function Evidence() {
         ...prev,
         [evidenceId]: { status: item.ocr_status ?? 'pending', message: item.ocr_message },
       }));
-      loadEvidence();
+      await loadEvidence();
+      void loadReadiness();
       notifyUploadResult(item, file.name);
     } catch (err: unknown) {
       const msg = err instanceof AxiosError ? String(err.response?.data?.detail || err.message) : (err instanceof Error ? err.message : '上传失败');
@@ -406,7 +476,7 @@ export default function Evidence() {
       setUploading(null);
       setDropTarget(null);
     }
-  }, [loadEvidence, notifyUploadResult, toast]);
+  }, [loadEvidence, loadReadiness, notifyUploadResult, toast]);
 
   const batchQuickUploadFiles = useCallback(async (fileList: FileList | File[]) => {
     if (!selectedCase) {
@@ -446,6 +516,7 @@ export default function Evidence() {
     }
 
     await loadEvidence();
+    void loadReadiness();
     const ok = files.length - failed;
     if (ok > 0) {
       if (failed === 0) {
@@ -469,7 +540,7 @@ export default function Evidence() {
     setQuickUploading(false);
     setBatchProgress(null);
     if (quickUploadInputRef.current) quickUploadInputRef.current.value = '';
-  }, [selectedCase, loadEvidence, notifyUploadResult, toast]);
+  }, [selectedCase, loadEvidence, loadReadiness, notifyUploadResult, toast]);
 
   const handleCreate = useCallback(async () => {
     if (!selectedCase) {
@@ -582,17 +653,25 @@ export default function Evidence() {
   const handleChainAnalysis = useCallback(async () => {
     if (!selectedCase) return;
     setAnalyzingChain(true);
-    setChainResult(null);
     try {
       const result = await evidenceChainApi.analyzeChain(selectedCase);
       setChainResult(result);
-      toast({ type: 'success', title: '证据链分析完成', description: `完整度评分: ${result.completeness_score ?? '-'}` });
+      saveChainAnalysis(selectedCase, result);
+      setChainCachedAt(new Date().toISOString());
+      const chainScore =
+        typeof result.completeness_score === 'number' ? result.completeness_score : undefined;
+      void loadReadiness(chainScore);
+      toast({
+        type: 'success',
+        title: '证据链分析完成',
+        description: `证据链 ${result.completeness_score ?? '-'} 分，已同步到材料完整度评估`,
+      });
     } catch (e: unknown) {
       const msg = e instanceof AxiosError ? (e.response?.data?.detail || '证据链分析失败') : '证据链分析失败';
       setError(msg);
       toast({ type: 'error', title: '证据链分析失败', description: msg });
     } finally { setAnalyzingChain(false); }
-  }, [selectedCase, toast]);
+  }, [selectedCase, loadReadiness, toast]);
 
   const handleCrossExamination = useCallback(async (id: number) => {
     setCrossExamId(id);
@@ -677,7 +756,13 @@ export default function Evidence() {
       <input type="file" ref={quickUploadInputRef} className="hidden" multiple onChange={onQuickFileSelected}
         accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.mp3,.wav,.m4a,.ogg,.flac,.aac,.wma" />
 
-      {intakeChecklist?.length ? (
+      {selectedCase ? (
+        <CaseReadinessHint
+          readiness={readiness}
+          loading={readinessLoading}
+          variant="evidence"
+        />
+      ) : intakeChecklist?.length ? (
         <div className="rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
           <p className="font-medium">建议收集的证据</p>
           <p className="mt-1 text-xs text-muted-foreground">{intakeChecklist.join(' · ')}</p>
@@ -1009,10 +1094,29 @@ export default function Evidence() {
 
       {/* Chain Analysis Result */}
       {chainResult && (
-        <div className="rounded-lg border p-4 space-y-3">
+        <div className="rounded-lg border border-accent/25 bg-card p-4 space-y-3 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <h3 className="font-semibold">证据链分析</h3>
-            <button onClick={() => setChainResult(null)} className="text-xs text-muted-foreground hover:underline">关闭</button>
+            <div>
+              <h3 className="font-semibold">证据链分析</h3>
+              {chainCachedAt && (
+                <p className="text-[11px] text-muted-foreground">
+                  {analyzingChain
+                    ? '正在重新分析…'
+                    : `已恢复上次分析 · ${new Date(chainCachedAt).toLocaleString('zh-CN')}`}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setChainResult(null);
+                setChainCachedAt(null);
+                if (selectedCase) clearChainAnalysis(selectedCase);
+              }}
+              className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              关闭并清除缓存
+            </button>
           </div>
           <ChainVisualization result={chainResult} evidenceList={evidenceList} />
         </div>

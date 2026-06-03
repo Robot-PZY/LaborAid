@@ -14,7 +14,15 @@ from app.models.case import Case
 from app.models.document import Document
 from app.models.evidence import Evidence
 from app.config import get_settings
-from app.schemas.case import CaseCreate, CaseUpdate, CaseOut, CaseReportRequest
+from app.schemas.case import (
+    CaseCreate,
+    CaseUpdate,
+    CaseOut,
+    CaseReportRequest,
+    CaseReadinessOut,
+)
+from app.services.case_readiness import build_case_readiness
+from app.services.intake.session_store import get_user_intake_session
 from app.schemas.research import ResearchReportOut
 
 logger = logging.getLogger(__name__)
@@ -234,6 +242,56 @@ async def get_case_materials(
             stats["has_description"] or stats["documents"] > 0 or stats["evidence"] > 0
         ),
     }
+
+
+@router.get("/{case_id}/readiness", response_model=CaseReadinessOut)
+async def get_case_readiness(
+    case_id: int,
+    chain_score: int | None = Query(
+        None,
+        ge=0,
+        le=100,
+        description="证据链分析得分，用于与材料完整度加权合并",
+    ),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """计算案件 AI 就绪度，返回缺失项与下一步建议。"""
+    case = await _get_accessible_case(case_id, current_user, db)
+
+    docs_count_q = await db.execute(
+        select(func.count(Document.id)).where(Document.case_id == case.id)
+    )
+    evid_count_q = await db.execute(
+        select(func.count(Evidence.id)).where(Evidence.case_id == case.id)
+    )
+    evid_ocr_count_q = await db.execute(
+        select(func.count(Evidence.id)).where(
+            Evidence.case_id == case.id,
+            Evidence.ocr_text.isnot(None),
+            Evidence.ocr_text != "",
+        )
+    )
+    evid_rows = (
+        await db.execute(select(Evidence).where(Evidence.case_id == case.id))
+    ).scalars().all()
+
+    intake_cause: str | None = None
+    intake_row = await get_user_intake_session(db, current_user.id)
+    if intake_row and isinstance(intake_row.session_data, dict):
+        session = intake_row.session_data
+        if session.get("createdCaseId") == case.id:
+            intake_cause = session.get("causeType") or None
+
+    return build_case_readiness(
+        case,
+        documents_count=int(docs_count_q.scalar() or 0),
+        evidence_count=int(evid_count_q.scalar() or 0),
+        evidence_with_ocr_count=int(evid_ocr_count_q.scalar() or 0),
+        evidences=list(evid_rows),
+        intake_cause_type=intake_cause,
+        chain_completeness_score=chain_score,
+    )
 
 
 @router.post("/{case_id}/case-report", response_model=ResearchReportOut)

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
   Loader2,
@@ -21,11 +21,14 @@ import {
   researchApi,
   caseApi,
   type CaseMaterialsSummary,
+  type CaseReadinessSummary,
   type ResearchReport as ReportType,
   type Case as CaseType,
 } from '@/lib/api';
 import { useToast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
+import EvidenceCoveragePanel from '@/components/cases/EvidenceCoveragePanel';
+import CaseReadinessHint from '@/components/cases/CaseReadinessHint';
 import MarkdownRenderer from '@/lib/markdown';
 import { announceToScreenReader } from '@/lib/accessibility';
 import { addToolHistory } from '@/lib/tool-history';
@@ -69,10 +72,12 @@ const CONCLUSION_STYLES: Record<string, string> = {
 
 export default function Research() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [caseId, setCaseId] = useState<number | null>(null);
   const [cases, setCases] = useState<CaseType[]>([]);
   const [materials, setMaterials] = useState<CaseMaterialsSummary | null>(null);
+  const [readiness, setReadiness] = useState<CaseReadinessSummary | null>(null);
   const [materialsLoading, setMaterialsLoading] = useState(false);
   const [extraNotes, setExtraNotes] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -125,13 +130,19 @@ export default function Research() {
   useEffect(() => {
     if (!caseId) {
       setMaterials(null);
+      setReadiness(null);
       return;
     }
     setMaterialsLoading(true);
-    caseApi
-      .getMaterials(caseId)
-      .then(setMaterials)
-      .catch(() => setMaterials(null))
+    Promise.all([caseApi.getMaterials(caseId), caseApi.getReadiness(caseId)])
+      .then(([materialsSummary, readinessSummary]) => {
+        setMaterials(materialsSummary);
+        setReadiness(readinessSummary);
+      })
+      .catch(() => {
+        setMaterials(null);
+        setReadiness(null);
+      })
       .finally(() => setMaterialsLoading(false));
   }, [caseId]);
 
@@ -328,6 +339,18 @@ export default function Research() {
               )}
             </div>
 
+            {caseId && (materialsLoading || readiness) && (
+              <CaseReadinessHint
+                readiness={readiness}
+                loading={materialsLoading}
+                variant="compact"
+              />
+            )}
+
+            {caseId && readiness?.evidence_suggestions && readiness.evidence_suggestions.length > 0 && (
+              <EvidenceCoveragePanel readiness={readiness} />
+            )}
+
             {caseId && (
               <div className="rounded-lg border bg-muted/20 p-3 text-xs space-y-2">
                 {materialsLoading ? (
@@ -346,6 +369,50 @@ export default function Research() {
                       <li>关联文书：{materials.documents_count} 份</li>
                       <li>关联证据：{materials.evidence_count} 项</li>
                     </ul>
+                    {readiness && (
+                      <>
+                        <div className="pt-1">
+                          <div className="h-1.5 rounded-full bg-muted">
+                            <div
+                              className={cn(
+                                'h-full rounded-full transition-all duration-300',
+                                readiness.readiness_level === 'high'
+                                  ? 'bg-emerald-500'
+                                  : readiness.readiness_level === 'medium'
+                                    ? 'bg-amber-500'
+                                    : 'bg-rose-500',
+                              )}
+                              style={{ width: `${Math.max(0, Math.min(100, readiness.readiness_score))}%` }}
+                            />
+                          </div>
+                          <p className="mt-1 text-[11px] font-medium">
+                            AI 完整度 {readiness.readiness_score}%：{readiness.summary}
+                          </p>
+                        </div>
+                        {readiness.missing_items.length > 0 && (
+                          <ul className="space-y-0.5 text-[11px] text-amber-800">
+                            {readiness.missing_items.slice(0, 2).map((item) => (
+                              <li key={item}>- {item}</li>
+                            ))}
+                          </ul>
+                        )}
+                        {readiness.next_actions.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {readiness.next_actions.slice(0, 2).map((action) => (
+                              <button
+                                key={`${action.label}-${action.route}`}
+                                type="button"
+                                onClick={() => navigate(action.route)}
+                                className="rounded-md border px-2 py-1 text-[11px] font-medium hover:bg-accent"
+                                title={action.reason}
+                              >
+                                {action.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                     {!materials.ready_for_analysis && (
                       <p className="text-amber-800">请至少补充案情描述、证据或文书之一后再分析。</p>
                     )}

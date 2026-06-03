@@ -1,36 +1,38 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowUpRight,
   AlertCircle,
-  Compass,
-  History,
-  ExternalLink,
-  Briefcase,
-  FileText,
-  Upload,
-  BookOpen,
-  ShieldCheck,
-  HeartHandshake,
+  ArrowUpRight,
   Archive,
-  Sparkles,
+  BookOpen,
+  Briefcase,
+  Compass,
+  FileText,
+  HeartHandshake,
+  Scale,
+  ShieldCheck,
+  Upload,
 } from 'lucide-react';
 import CaseJourneyPanel from '@/components/cases/CaseJourneyPanel';
-import { listChannels, resolveGuidanceGlobalLink } from '@/lib/channels';
-import { BRAND } from '@/config/brand';
-import { guidanceApi, userPortalApi, type GlobalLink } from '@/lib/api';
+import DashboardHeroBanner from '@/components/dashboard/DashboardHeroBanner';
+import ServiceStrip from '@/components/service/ServiceStrip';
+import { caseApi, userPortalApi, type CaseReadinessSummary } from '@/lib/api';
+import { getActiveCaseId, subscribeActiveCase } from '@/lib/active-case';
 import {
+  getAgentsByIds,
   getHubAgents,
   getRecentAgentIds,
   recordAgentVisit,
   type AgentConfig,
 } from '@/config/agents';
-import guidanceFallback from '@/config/labor/guidance.json';
+import CalculatorToolRow from '@/components/dashboard/CalculatorToolRow';
+import GuidanceHubPanel from '@/components/guidance/GuidanceHubPanel';
 import { formatBytes } from '@/lib/format';
 import IntakeDesk from '@/components/intake/IntakeDesk';
 import PageSkeleton from '@/components/ui/PageSkeleton';
-import { Button, Surface, SectionTitle, Badge } from '@/components/ui/primitives';
+import { Button, SectionTitle, Surface } from '@/components/ui/primitives';
 import { CHART_COLORS, MiniBarCompare } from '@/components/charts/SimpleCharts';
+import { cn } from '@/lib/utils';
 
 const STAT_META = {
   cases: {
@@ -70,23 +72,60 @@ const STAT_META = {
   },
 } as const;
 
-const CHANNEL_ACCENTS: Record<string, { border: string; bg: string; emoji: string }> = {
-  'migrant-worker': {
-    border: 'border-l-amber-500',
-    bg: 'from-amber-500/8 to-card',
-    emoji: '🏗️',
+const FLOW_STEPS = [
+  {
+    title: '判断维权路径',
+    description: '输入案情后明确可走渠道，避免直接进入错误流程。',
+    cta: '开始维权诊断',
+    route: '/guidance',
+    icon: Compass,
   },
-  'intern-probation': {
-    border: 'border-l-sky-500',
-    bg: 'from-sky-500/8 to-card',
-    emoji: '🎓',
+  {
+    title: '整理证据链',
+    description: '上传聊天记录、工资流水、合同文本，系统自动提取关键信息。',
+    cta: '去整理证据',
+    route: '/evidence',
+    icon: Upload,
   },
-  'female-worker': {
-    border: 'border-l-rose-500',
-    bg: 'from-rose-500/8 to-card',
-    emoji: '💪',
+  {
+    title: '形成行动文书',
+    description: '根据已有材料生成仲裁申请、投诉书等可直接修改提交的文书。',
+    cta: '去生成文书',
+    route: '/documents',
+    icon: FileText,
   },
-};
+  {
+    title: '生成总结报告',
+    description: '结合案件档案、证据与文书，输出可直接复盘与提交的案情总结报告。',
+    cta: '去分析案情',
+    route: '/research',
+    icon: BookOpen,
+  },
+] as const;
+
+const PRIMARY_TOOL_IDS = ['cases', 'research', 'docgen', 'evidence', 'contract'] as const;
+const MORE_TOOL_IDS = ['search', 'enterprise'] as const;
+
+const SHOWCASE_CARDS = [
+  {
+    title: '证据时间线',
+    description: '证据按时间排序，自动补足时间、金额、主体等关键字段，便于提交与答辩。',
+    route: '/evidence',
+    icon: Upload,
+  },
+  {
+    title: '文书质量感',
+    description: '统一结构、术语和版式，输出更接近真实办案文书而非普通聊天回复。',
+    route: '/documents',
+    icon: Scale,
+  },
+  {
+    title: '官方渠道闭环',
+    description: '站内完成整理，站外直达 12348、人社与法规库，形成可执行闭环。',
+    route: '/guidance',
+    icon: HeartHandshake,
+  },
+] as const;
 
 function ToolRow({ agent, onClick }: { agent: AgentConfig; onClick: () => void }) {
   const Icon = agent.icon;
@@ -113,7 +152,6 @@ function ToolRow({ agent, onClick }: { agent: AgentConfig; onClick: () => void }
 function Dashboard() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
-  const [links, setLinks] = useState<GlobalLink[]>([]);
   const [stats, setStats] = useState({
     cases: 0,
     documents: 0,
@@ -125,6 +163,9 @@ function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeFlowStep, setActiveFlowStep] = useState(0);
+  const [activeCaseReadiness, setActiveCaseReadiness] = useState<CaseReadinessSummary | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(false);
 
   const hubAgents = useMemo(() => getHubAgents(), []);
   const recentAgents = useMemo(() => {
@@ -132,10 +173,8 @@ function Dashboard() {
     return ids.map((id) => hubAgents.find((a) => a.id === id)).filter(Boolean) as AgentConfig[];
   }, [hubAgents]);
 
-  const featuredTools = useMemo(
-    () => hubAgents.filter((a) => ['docgen', 'evidence', 'search', 'contract'].includes(a.id)),
-    [hubAgents],
-  );
+  const primaryTools = useMemo(() => getAgentsByIds(PRIMARY_TOOL_IDS), []);
+  const moreTools = useMemo(() => getAgentsByIds(MORE_TOOL_IDS), []);
 
   useEffect(() => {
     try {
@@ -147,14 +186,39 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    const loadReadiness = async () => {
+      const activeCaseId = getActiveCaseId();
+      if (!activeCaseId) {
+        setActiveCaseReadiness(null);
+        return;
+      }
+      setReadinessLoading(true);
+      try {
+        const readiness = await caseApi.getReadiness(activeCaseId);
+        if (!cancelled) setActiveCaseReadiness(readiness);
+      } catch {
+        if (!cancelled) setActiveCaseReadiness(null);
+      } finally {
+        if (!cancelled) setReadinessLoading(false);
+      }
+    };
+
+    void loadReadiness();
+    const unsub = subscribeActiveCase(() => {
+      void loadReadiness();
+    });
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
+
+  useEffect(() => {
     async function load() {
       setError('');
       try {
-        const [guidance, overview] = await Promise.all([
-          guidanceApi.get().catch(() => guidanceFallback as { global_links: GlobalLink[] }),
-          userPortalApi.getOverview(),
-        ]);
-        setLinks(guidance.global_links?.slice(0, 4) || []);
+        const overview = await userPortalApi.getOverview();
         setStats({
           cases: overview.cases,
           documents: overview.documents,
@@ -166,13 +230,22 @@ function Dashboard() {
         });
       } catch {
         setError('部分数据加载失败');
-        const fb = guidanceFallback as { global_links: GlobalLink[] };
-        setLinks(fb.global_links?.slice(0, 4) || []);
       } finally {
         setLoading(false);
       }
     }
     load();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const timer = window.setInterval(() => {
+      setActiveFlowStep((prev) => (prev + 1) % FLOW_STEPS.length);
+    }, 2600);
+    return () => window.clearInterval(timer);
   }, []);
 
   const handleTool = (agent: AgentConfig) => {
@@ -187,9 +260,6 @@ function Dashboard() {
     { key: 'research' as const },
     { key: 'contracts' as const },
   ];
-
-  const totalRecords =
-    stats.cases + stats.documents + stats.evidence + stats.research + stats.contracts;
 
   const activityBars = useMemo(
     () =>
@@ -209,51 +279,53 @@ function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <Surface
-        padding="lg"
-        className="relative overflow-hidden border-ink/10 bg-gradient-to-br from-accent/12 via-card to-blue-500/5"
-      >
-        <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-accent/20 blur-3xl dashboard-blob" />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-32 w-32 rounded-full bg-blue-400/15 blur-2xl dashboard-blob-delayed" />
-        <div className="relative z-10">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="accent">{BRAND.name}</Badge>
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/25 bg-background/70 px-2 py-0.5 text-[11px] text-muted-foreground backdrop-blur-sm">
-              <Sparkles className="h-3 w-3 text-accent" />
-              一步步把维权材料理清楚
-            </span>
-          </div>
-          <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight sm:text-[1.85rem]">
-            {greeting}
-          </h1>
-          <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
-            先理清维权路径与官方渠道，再整理证据与文书——每一步都有指引，不必一个人硬扛。
-          </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => navigate('/guidance')}>
-              <Compass className="h-4 w-4" />
-              维权指引
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/records')}>
-              <History className="h-4 w-4" />
-              我的记录
-              {totalRecords > 0 && (
-                <span className="ml-1 rounded-full bg-accent/15 px-1.5 text-[10px] font-semibold text-accent">
-                  {totalRecords}
-                </span>
-              )}
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/channels')}>
-              <HeartHandshake className="h-4 w-4" />
-              维权专区
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/vault')}>
-              <Archive className="h-4 w-4" />
-              材料库
-            </Button>
-          </div>
+      <DashboardHeroBanner greeting={greeting} />
+
+      <section>
+        <SectionTitle
+          title="维权流程"
+          description="按需进入对应模块，完成从路径到报告的全流程。"
+        />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {FLOW_STEPS.map((step, idx) => {
+            const Icon = step.icon;
+            const isActive = idx === activeFlowStep;
+            return (
+              <Surface
+                key={step.title}
+                padding="md"
+                hover
+                className={`relative overflow-hidden transition-all ${isActive ? 'ring-2 ring-accent/35' : ''}`}
+              >
+                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-accent/10 blur-2xl" />
+                <div className="mb-3 h-1.5 rounded-full bg-muted/80">
+                  <div
+                    className={`h-full rounded-full bg-accent transition-all duration-500 ${
+                      isActive ? 'w-full' : 'w-0'
+                    }`}
+                  />
+                </div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                  STEP 0{idx + 1}
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-accent" />
+                  <h3 className="font-display text-lg font-semibold">{step.title}</h3>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{step.description}</p>
+                <button
+                  type="button"
+                  onClick={() => navigate(step.route)}
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                >
+                  {step.cta}
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </button>
+              </Surface>
+            );
+          })}
         </div>
-      </Surface>
+      </section>
 
       <IntakeDesk />
 
@@ -266,15 +338,66 @@ function Dashboard() {
 
       <section className="grid gap-4 lg:grid-cols-[1fr_auto]">
         <CaseJourneyPanel />
-        <div className="min-w-[200px] rounded-xl border border-border/70 bg-card p-5 shadow-card">
-          <h2 className="text-sm font-semibold">材料概况</h2>
+        <div className="min-w-[260px] space-y-4">
+          <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
+            <h2 className="text-sm font-semibold">当前案件 AI 完整度</h2>
+            {readinessLoading ? (
+              <p className="mt-2 text-xs text-muted-foreground">正在计算…</p>
+            ) : !activeCaseReadiness ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                请选择一个案件作为当前案件，即可显示智能评估。
+              </p>
+            ) : (
+              <>
+                <div className="mt-3 h-2.5 rounded-full bg-muted">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all duration-300',
+                      activeCaseReadiness.readiness_level === 'high'
+                        ? 'bg-emerald-500'
+                        : activeCaseReadiness.readiness_level === 'medium'
+                          ? 'bg-amber-500'
+                          : 'bg-rose-500',
+                    )}
+                    style={{ width: `${Math.max(0, Math.min(100, activeCaseReadiness.readiness_score))}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs font-medium">
+                  完整度 {activeCaseReadiness.readiness_score}% · {activeCaseReadiness.summary}
+                </p>
+                {activeCaseReadiness.next_actions.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(activeCaseReadiness.next_actions[0].route)}
+                    className="mt-3 inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs font-medium transition-colors hover:bg-accent"
+                  >
+                    {activeCaseReadiness.next_actions[0].label}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+          <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
+          <h2 className="text-sm font-semibold">材料与产出概况</h2>
+          <p className="mt-1 text-xs text-muted-foreground">当前账号维权资产一览</p>
           <div className="mt-3">
             <MiniBarCompare items={activityBars} />
           </div>
+          <button
+            type="button"
+            onClick={() => navigate('/vault')}
+            className="mt-4 inline-flex w-full items-center justify-between rounded-lg border border-accent/35 bg-accent/10 px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent/20"
+          >
+            <span>材料库 {stats.vault_files} 份</span>
+            <span className="text-muted-foreground">{formatBytes(stats.vault_bytes)}</span>
+          </button>
+        </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <section>
+        <SectionTitle title="工作台概览" description="关键数据入口，快速进入对应模块处理。" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {statEntries.map(({ key }) => {
           const meta = STAT_META[key];
           const Icon = meta.icon;
@@ -308,90 +431,45 @@ function Dashboard() {
             材料库 · {formatBytes(stats.vault_bytes)}
           </p>
         </button>
-      </div>
-
-      <section>
-        <SectionTitle
-          title="维权专区"
-          description="农民工、实习生、女职工等群体的专属维权路径与办事指引"
-        />
-        <div className="grid gap-3 sm:grid-cols-3">
-          {listChannels().map((ch) => {
-            const accent = CHANNEL_ACCENTS[ch.id] || {
-              border: 'border-l-accent',
-              bg: 'from-accent/8 to-card',
-              emoji: '✨',
-            };
-            return (
-              <button
-                key={ch.id}
-                type="button"
-                onClick={() => navigate(`/channels/${ch.id}`)}
-                className={`rounded-[var(--radius-md)] border border-border/70 border-l-4 bg-gradient-to-br ${accent.bg} p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover ${accent.border}`}
-              >
-                <span className="text-xl" aria-hidden>
-                  {accent.emoji}
-                </span>
-                <p className="mt-2 font-display font-semibold">{ch.title}</p>
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{ch.subtitle}</p>
-                {ch.enable_one_click_report && (
-                  <Badge tone="accent" className="mt-2">
-                    一键举报
-                  </Badge>
-                )}
-              </button>
-            );
-          })}
         </div>
       </section>
 
       <section>
         <SectionTitle
-          title="专业法律服务"
-          description="法律援助、人社服务、法律法规等官方入口"
+          title="核心展示能力"
+          description="不仅能用，更能把维权过程讲清楚、交付清楚。"
         />
-        <div className="grid gap-2 sm:grid-cols-2">
-          {links.map((link, i) => {
-            const resolved = resolveGuidanceGlobalLink(link);
-            const href = resolved?.url || link.url;
-            if (!href) return null;
-            const hues = [
-              'bg-blue-500/10 text-blue-800',
-              'bg-amber-500/10 text-amber-900',
-              'bg-emerald-500/10 text-emerald-800',
-              'bg-violet-500/10 text-violet-800',
-            ];
+        <div className="grid gap-4 md:grid-cols-3">
+          {SHOWCASE_CARDS.map((card) => {
+            const Icon = card.icon;
             return (
-              <a
-                key={link.id}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-start gap-4 rounded-[var(--radius-md)] border border-border/70 bg-card p-4 shadow-card transition-all hover:border-accent/30 hover:shadow-card-hover"
-              >
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-display text-sm font-semibold ${hues[i % hues.length]}`}
-                >
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{link.title}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                    {link.description}
-                  </p>
+              <Surface key={card.title} padding="md" hover>
+                <div className="inline-flex rounded-lg bg-accent/12 p-2 text-accent">
+                  <Icon className="h-4 w-4" />
                 </div>
-                <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-accent opacity-50 transition-opacity group-hover:opacity-100" />
-              </a>
+                <h3 className="mt-3 font-display text-lg font-semibold">{card.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{card.description}</p>
+                <button
+                  type="button"
+                  onClick={() => navigate(card.route)}
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                >
+                  进入查看
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </button>
+              </Surface>
             );
           })}
         </div>
       </section>
+
+      <GuidanceHubPanel />
 
       <section className="grid gap-6 lg:grid-cols-2">
         <div>
-          <SectionTitle title="常用工具" />
+          <SectionTitle title="常用工具" description="案件与分析优先，再处理文书与证据。" />
           <Surface padding="sm" className="divide-y divide-border/60">
-            {featuredTools.map((agent) => (
+            {primaryTools.map((agent) => (
               <ToolRow key={agent.id} agent={agent} onClick={() => handleTool(agent)} />
             ))}
           </Surface>
@@ -413,16 +491,23 @@ function Dashboard() {
         </div>
 
         <div>
-          <SectionTitle title="更多工具" />
+          <SectionTitle title="更多工具" description="法规检索、计算器与企业查询等辅助工具。" />
           <Surface padding="sm" className="divide-y divide-border/60">
-            {hubAgents
-              .filter((a) => !featuredTools.some((f) => f.id === a.id))
-              .map((agent) => (
-                <ToolRow key={agent.id} agent={agent} onClick={() => handleTool(agent)} />
-              ))}
+            {moreTools.map((agent) => (
+              <ToolRow key={agent.id} agent={agent} onClick={() => handleTool(agent)} />
+            ))}
+            <CalculatorToolRow
+              onOpen={(route) => {
+                const id = route.includes('compensation') ? 'compensation_calc' : 'limitation_calc';
+                recordAgentVisit(id);
+                navigate(route);
+              }}
+            />
           </Surface>
         </div>
       </section>
+
+      <ServiceStrip />
 
       <p className="border-t border-border/60 pt-6 text-[11px] leading-relaxed text-muted-foreground">
         AI 生成内容仅供参考，不构成法律意见。办事要求、时效与材料以当地仲裁委、人社部门及司法机关最新公布为准。

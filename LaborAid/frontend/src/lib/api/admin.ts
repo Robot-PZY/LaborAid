@@ -20,6 +20,13 @@ export interface AdminStatsOverview {
   research_total: number;
   llm_configured: boolean;
   vision_llm_configured: boolean;
+  cases_with_description: number;
+  cases_with_evidence: number;
+  cases_material_ready: number;
+  evidence_with_ocr: number;
+  evidence_ocr_rate_pct: number;
+  research_reports_7d: number;
+  material_ready_rate_pct: number;
 }
 
 export interface UsageTrendDay {

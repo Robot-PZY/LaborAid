@@ -14,6 +14,13 @@ class AdminStatsOverview(BaseModel):
     research_total: int
     llm_configured: bool
     vision_llm_configured: bool
+    cases_with_description: int = 0
+    cases_with_evidence: int = 0
+    cases_material_ready: int = 0
+    evidence_with_ocr: int = 0
+    evidence_ocr_rate_pct: int = 0
+    research_reports_7d: int = 0
+    material_ready_rate_pct: int = 0
 
 
 class AdminUserOut(BaseModel):

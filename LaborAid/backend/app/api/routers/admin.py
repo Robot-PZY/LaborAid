@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -43,6 +43,52 @@ async def stats_overview(
     research_total = (
         await db.execute(select(func.count(ResearchReport.id)))
     ).scalar() or 0
+    research_reports_7d = (
+        await db.execute(
+            select(func.count(ResearchReport.id)).where(ResearchReport.created_at >= week_ago)
+        )
+    ).scalar() or 0
+
+    cases_with_description = (
+        await db.execute(
+            select(func.count(Case.id)).where(
+                Case.description.isnot(None),
+                Case.description != "",
+            )
+        )
+    ).scalar() or 0
+
+    cases_with_evidence = (
+        await db.execute(select(func.count(func.distinct(Evidence.case_id))))
+    ).scalar() or 0
+
+    cases_material_ready = (
+        await db.execute(
+            select(func.count(Case.id)).where(
+                Case.description.isnot(None),
+                Case.description != "",
+                or_(
+                    exists(select(1).where(Evidence.case_id == Case.id)),
+                    exists(select(1).where(Document.case_id == Case.id)),
+                ),
+            )
+        )
+    ).scalar() or 0
+
+    evidence_with_ocr = (
+        await db.execute(
+            select(func.count(Evidence.id)).where(
+                Evidence.ocr_text.isnot(None),
+                Evidence.ocr_text != "",
+            )
+        )
+    ).scalar() or 0
+    evidence_ocr_rate_pct = (
+        round(100 * evidence_with_ocr / evidence_total) if evidence_total else 0
+    )
+    material_ready_rate_pct = (
+        round(100 * cases_material_ready / cases_total) if cases_total else 0
+    )
 
     system = await get_system_user(db)
     text_llm = await resolve_user_llm(db, system)
@@ -62,6 +108,13 @@ async def stats_overview(
         vision_llm_configured=bool(vision_llm.api_key)
         and vision_llm.client is not None
         and is_vision_profile(vision_llm.config_name, vision_llm.model),
+        cases_with_description=cases_with_description,
+        cases_with_evidence=cases_with_evidence,
+        cases_material_ready=cases_material_ready,
+        evidence_with_ocr=evidence_with_ocr,
+        evidence_ocr_rate_pct=evidence_ocr_rate_pct,
+        research_reports_7d=research_reports_7d,
+        material_ready_rate_pct=material_ready_rate_pct,
     )
 
 

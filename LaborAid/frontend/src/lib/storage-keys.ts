@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   toolHistory: 'laboraid_tool_history',
   activeCase: 'laboraid_active_case',
   intakeSession: 'laboraid_intake_session',
+  caseChainPrefix: 'laboraid_case_chain:',
   apiUsage: 'laboraid_api_usage',
   generalConfig: 'laboraid_general_config',
   autoSavePrefix: 'laboraid_autosave_',

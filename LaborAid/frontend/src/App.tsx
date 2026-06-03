@@ -63,7 +63,7 @@ function App() {
           </AdminRoute>
         }
       >
-        <Route index element={<Navigate to="/admin/models" replace />} />
+        <Route index element={<Navigate to="/admin/overview" replace />} />
         <Route path="overview" element={<Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense>} />
         <Route path="models" element={<Suspense fallback={<PageLoader />}><AdminModels /></Suspense>} />
         <Route path="apis" element={<Suspense fallback={<PageLoader />}><AdminApis /></Suspense>} />

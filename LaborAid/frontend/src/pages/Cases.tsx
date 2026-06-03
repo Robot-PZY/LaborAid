@@ -2,8 +2,9 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus, Filter, Briefcase, Search, X, ChevronLeft, ChevronRight,
-  ArrowLeft, Calendar, Users, FileText, Loader2, AlertCircle, CheckCircle2, Download, Trash2,
-} from 'lucide-react';
+  ArrowLeft, Calendar, Users, FileText, Loader2, AlertCircle, CheckCircle2, Download, Trash2, } from 'lucide-react';
+import CaseReadinessHint from '@/components/cases/CaseReadinessHint';
+import EvidenceCoveragePanel from '@/components/cases/EvidenceCoveragePanel';
 import { AxiosError } from 'axios';
 import { caseApi, documentApi, intakeApi } from '@/lib/api';
 import { useToast } from '@/lib/toast';
@@ -12,7 +13,7 @@ import { withCaseTitleDatePrefix } from '@/lib/case-title';
 import { loadIntakeSession } from '@/lib/intake-session';
 import { setActiveCaseId } from '@/lib/active-case';
 import { downloadBlob } from '@/lib/api/client';
-import type { Case, CaseCreate, Document } from '@/lib/api';
+import type { Case, CaseCreate, CaseReadinessSummary, Document } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 const CASE_TYPES = [
@@ -97,6 +98,8 @@ function Cases() {
   const [caseDocs, setCaseDocs] = useState<Document[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
+  const [readiness, setReadiness] = useState<CaseReadinessSummary | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(false);
 
   // Create dialog state
   const [showCreate, setShowCreate] = useState(false);
@@ -183,13 +186,20 @@ function Cases() {
     setActiveCaseId(c.id);
     setSelectedCase(c);
     setDetailLoading(true);
+    setReadinessLoading(true);
     try {
-      const docs = await documentApi.list({ case_id: c.id, limit: 50 });
+      const [docs, readinessSummary] = await Promise.all([
+        documentApi.list({ case_id: c.id, limit: 50 }),
+        caseApi.getReadiness(c.id),
+      ]);
       setCaseDocs(docs);
+      setReadiness(readinessSummary);
     } catch {
       setCaseDocs([]);
+      setReadiness(null);
     } finally {
       setDetailLoading(false);
+      setReadinessLoading(false);
     }
   }, []);
 
@@ -411,6 +421,15 @@ function Cases() {
             )}
           </div>
         </div>
+
+        <CaseReadinessHint
+          readiness={readiness}
+          loading={readinessLoading}
+          variant="evidence"
+        />
+        {readiness?.evidence_suggestions && readiness.evidence_suggestions.length > 0 && (
+          <EvidenceCoveragePanel readiness={readiness} />
+        )}
 
         {/* Related Documents */}
         <div className="rounded-xl border bg-card shadow-sm">

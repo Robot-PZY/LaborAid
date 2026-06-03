@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { ExternalLink, ArrowUpRight, AlertCircle, HeartHandshake } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ExternalLink, ArrowUpRight, AlertCircle } from 'lucide-react';
+import GuidanceHubPanel from '@/components/guidance/GuidanceHubPanel';
 import { guidanceApi, type CauseGuidance, type GlobalLink, type GuidanceStep } from '@/lib/api/guidance';
 import guidanceFallback from '@/config/labor/guidance.json';
 import { AGENTS } from '@/config/agents';
@@ -108,23 +109,7 @@ export default function Guidance() {
         </div>
       )}
 
-      <Surface padding="md" className="flex flex-col gap-4 border-accent/25 bg-accent/5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-3">
-          <HeartHandshake className="h-5 w-5 shrink-0 text-accent" />
-          <div>
-            <p className="font-medium">需要人群专属指引？</p>
-            <p className="text-sm text-muted-foreground">
-              农民工、实习生、女职工等可进入维权专区，含分情形指引与官方入口。
-            </p>
-          </div>
-        </div>
-        <Link
-          to="/channels"
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-accent px-4 text-sm font-medium text-accent-foreground shadow-sm transition-all hover:bg-accent/90"
-        >
-          维权专区
-        </Link>
-      </Surface>
+      <GuidanceHubPanel mode="channels-only" showSectionTitle />
 
       <section>
         <SectionTitle title="常用全国入口" description="欠薪线索、12348、人社政务平台等" />

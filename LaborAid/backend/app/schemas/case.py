@@ -83,3 +83,32 @@ class CaseOut(BaseModel):
     document_count: int = 0
 
     model_config = {"from_attributes": True}
+
+
+class CaseReadinessAction(BaseModel):
+    label: str
+    route: str
+    reason: str
+
+
+class CaseEvidenceSuggestion(BaseModel):
+    item: str
+    status: str  # missing | covered | optional
+    priority: str  # required | optional
+
+
+class CaseReadinessOut(BaseModel):
+    case_id: int
+    readiness_score: int
+    readiness_level: str
+    summary: str
+    strengths: list[str]
+    missing_items: list[str]
+    next_actions: list[CaseReadinessAction]
+    cause_type: str | None = None
+    cause_label: str | None = None
+    evidence_suggestions: list[CaseEvidenceSuggestion] = []
+    docgen_ready: bool = False
+    docgen_blockers: list[str] = []
+    chain_completeness_score: int | None = None
+    combined_score: int | None = None

@@ -26,7 +26,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
-import { documentApi, caseApi, researchApi, templateApi } from '@/lib/api';
+import { documentApi, caseApi, researchApi, templateApi, type CaseReadinessSummary } from '@/lib/api';
+import CaseReadinessHint from '@/components/cases/CaseReadinessHint';
 import { useToast } from '@/lib/toast';
 import type { Document, Case, CaseCreate, ResearchReport, Template } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -225,6 +226,8 @@ export default function DocumentGenerate() {
   const [bundleResults, setBundleResults] = useState<Document[]>([]);
   const [bundleProgress, setBundleProgress] = useState({ current: 0, total: 0, currentLabel: '' });
   const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
+  const [caseReadiness, setCaseReadiness] = useState<CaseReadinessSummary | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(false);
 
   // Character / word counter
   const wordCount = useMemo(() => countWords(caseFacts), [caseFacts]);
@@ -245,6 +248,20 @@ export default function DocumentGenerate() {
     const q = reportSearch.toLowerCase();
     return researchReports.filter(r => r.query.toLowerCase().includes(q));
   }, [researchReports, reportSearch]);
+
+  useEffect(() => {
+    const caseId = selectedCaseId ? Number(selectedCaseId) : null;
+    if (!caseId || !Number.isFinite(caseId)) {
+      setCaseReadiness(null);
+      return;
+    }
+    setReadinessLoading(true);
+    caseApi
+      .getReadiness(caseId)
+      .then(setCaseReadiness)
+      .catch(() => setCaseReadiness(null))
+      .finally(() => setReadinessLoading(false));
+  }, [selectedCaseId]);
 
   const refreshRecentDocuments = useCallback(() => {
     documentApi
@@ -478,6 +495,18 @@ export default function DocumentGenerate() {
     e?.preventDefault();
     if (!docType || !caseFacts.trim()) return;
 
+    if (
+      caseReadiness &&
+      caseReadiness.readiness_score < 45 &&
+      (caseReadiness.docgen_blockers?.length ?? 0) > 0
+    ) {
+      toast({
+        type: 'warning',
+        title: '材料完整度偏低',
+        description: caseReadiness.docgen_blockers?.[0] || '建议先补充证据与案情描述',
+      });
+    }
+
     setLoading(true);
     setError('');
     setGeneratedDoc(null);
@@ -523,7 +552,18 @@ export default function DocumentGenerate() {
       cleanup();
       setLoading(false);
     }
-  }, [docType, caseFacts, selectedCaseId, extraInstructions, selectedReportIds, selectedTemplateId, startProgressSimulation, toast, refreshRecentDocuments]);
+  }, [
+    docType,
+    caseFacts,
+    selectedCaseId,
+    extraInstructions,
+    selectedReportIds,
+    selectedTemplateId,
+    caseReadiness,
+    startProgressSimulation,
+    toast,
+    refreshRecentDocuments,
+  ]);
 
   const handleExport = useCallback(async (format: 'word' | 'markdown' | 'html' | 'pdf') => {
     if (!generatedDoc) return;
@@ -1107,6 +1147,15 @@ export default function DocumentGenerate() {
                 </button>
               </div>
             </div>
+
+            {selectedCaseId && (readinessLoading || caseReadiness) && (
+              <CaseReadinessHint
+                readiness={caseReadiness}
+                loading={readinessLoading}
+                variant="docgen"
+                className="sticky top-2 z-10"
+              />
+            )}
 
             {/* Case Facts */}
             <div>

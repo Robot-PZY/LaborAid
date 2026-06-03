@@ -3,6 +3,7 @@ import { Plus, Edit3, Trash2, FileCode, X, Loader2, Copy, Check, Eye, AlertCircl
 import { templateApi } from '@/lib/api';
 import type { Template } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/ui/primitives';
 import { DOC_TYPES, docTypeLabel, normalizeDocType } from '@/config/doc-types';
 
 const LABOR_TEMPLATE_TYPES = new Set([
@@ -181,39 +182,50 @@ function Templates({ adminMode = false }: { adminMode?: boolean }) {
     [templates],
   );
 
+  const headerActions = (
+    <div className="flex flex-wrap gap-2">
+      {adminMode && (
+        <button
+          type="button"
+          onClick={handleSeedPlatform}
+          disabled={seedingPlatform}
+          className="flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+        >
+          {seedingPlatform ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCode className="h-4 w-4" />}
+          同步平台模板包
+        </button>
+      )}
+      <button
+        onClick={openCreate}
+        className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+      >
+        <Plus className="h-4 w-4" />
+        新建模板
+      </button>
+    </div>
+  );
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      {/* Header */}
+    <div className={cn('space-y-6', !adminMode && 'mx-auto max-w-6xl')}>
+      {adminMode ? (
+        <PageHeader
+          eyebrow="运营管理"
+          title="平台文书模板"
+          description={`劳动者维权专用模板 ${laborCount} 个，含仲裁申请书、监察投诉书、催告函等；生成文书时自动匹配`}
+          action={headerActions}
+          className="mb-0"
+        />
+      ) : (
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{adminMode ? '平台文书模板' : '文书模板'}</h1>
+          <h1 className="text-2xl font-bold">文书模板</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {adminMode
-              ? `劳动者维权专用模板 ${laborCount} 个，含仲裁申请书、监察投诉书、催告函等；生成文书时自动匹配`
-              : `共 ${templates.length} 个文书模板`}
+            {`共 ${templates.length} 个文书模板`}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {adminMode && (
-            <button
-              type="button"
-              onClick={handleSeedPlatform}
-              disabled={seedingPlatform}
-              className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
-            >
-              {seedingPlatform ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCode className="h-4 w-4" />}
-              同步平台模板包
-            </button>
-          )}
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" />
-            新建模板
-          </button>
-        </div>
+        {headerActions}
       </div>
+      )}
 
       {adminMode && templates.length > 0 && (
         <div className="flex flex-wrap gap-2">
