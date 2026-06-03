@@ -14,9 +14,9 @@ export const TOOL_LABELS = {
   cases: '管理案件',
   knowledge: '法律知识库',
   templates: '文书模板',
-  channels: '维权专区',
+  channels: '专项维权',
   vault: '我的材料',
-  guidance: '维权指引',
+  guidance: '办事资源',
   records: '我的记录',
 } as const;
 

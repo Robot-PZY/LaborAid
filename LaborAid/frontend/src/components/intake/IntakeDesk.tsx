@@ -24,7 +24,6 @@ import { resultToSession, sessionToAnalyzeResult } from '@/lib/intake-plan';
 import { useSpeechInput } from '@/hooks/useSpeechInput';
 import IntakePlanResult from '@/components/intake/IntakePlanResult';
 import IntakeSampleCards from '@/components/intake/IntakeSampleCards';
-import demoScenarios from '@/config/labor/demo-scenarios.json';
 import { Button, Surface, Badge } from '@/components/ui/primitives';
 import { addToolHistory } from '@/lib/tool-history';
 
@@ -55,9 +54,11 @@ function isDocumentFile(file: File) {
 
 interface IntakeDeskProps {
   onAnalyzed?: (session: IntakeSession) => void;
+  /** 嵌套在 EntryGate 普通入口内 */
+  embedded?: boolean;
 }
 
-export default function IntakeDesk({ onAnalyzed }: IntakeDeskProps) {
+export default function IntakeDesk({ onAnalyzed, embedded }: IntakeDeskProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const imageRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -171,24 +172,6 @@ export default function IntakeDesk({ onAnalyzed }: IntakeDeskProps) {
   }, [searchParams, setSearchParams, restoreFromSession]);
 
   useEffect(() => {
-    const demoId = searchParams.get('demo');
-    if (!demoId) return;
-    const scenario = (demoScenarios as { id: string; intakeText: string }[]).find(
-      (s) => s.id === demoId,
-    );
-    if (!scenario) return;
-    setText(scenario.intakeText);
-    setResult(null);
-    setError('');
-    const next = new URLSearchParams(searchParams);
-    next.delete('demo');
-    setSearchParams(next, { replace: true });
-    requestAnimationFrame(() => {
-      document.getElementById('intake-desk')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
     hydrateIntakeSessionFromServer().then((saved) => {
       if (saved && hasActiveIntakePlan(saved) && !result) {
         setResult(sessionToAnalyzeResult(saved));
@@ -205,14 +188,14 @@ export default function IntakeDesk({ onAnalyzed }: IntakeDeskProps) {
   };
 
   return (
-    <div id="intake-desk" className="scroll-mt-24">
+    <div id={embedded ? undefined : 'intake-desk'} className={embedded ? undefined : 'scroll-mt-24'}>
     <Surface
       padding="lg"
       className="border-accent/20 bg-gradient-to-br from-card to-accent/5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Badge tone="accent">快速咨询</Badge>
+          <Badge tone="accent">{embedded ? '普通入口' : '快速咨询'}</Badge>
           <h2 className="mt-2 font-display text-lg font-semibold">说说你的情况</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             说说情况后，将为您整理<strong className="font-medium text-foreground">分步维权安排</strong>

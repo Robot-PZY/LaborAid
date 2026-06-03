@@ -101,9 +101,9 @@
       },
       "arbitration": {
         "label": "上海市劳动人事争议仲裁",
-        "url": "https://www.12333.gov.cn/",
+        "url": "https://rsj.sh.gov.cn/",
         "phone": "12333",
-        "hint": "上海「一网通办」搜索「劳动人事争议仲裁申请」；或咨询 12333"
+        "hint": "「一网通办」搜索「劳动人事争议仲裁申请」；或咨询 12333"
       },
       "legal_aid": {
         "label": "上海市法律援助",
@@ -418,6 +418,406 @@
         "url": "https://hrss.ah.gov.cn/",
         "phone": "12333"
       }
+    },
+    "河北省": {
+      "labor_inspection": {
+        "label": "河北省劳动保障监察",
+        "url": "https://rst.hebei.gov.cn/",
+        "phone": "12333",
+        "hint": "进入河北省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「冀时办」办理"
+      },
+      "arbitration": {
+        "label": "河北省劳动人事争议仲裁",
+        "url": "https://rst.hebei.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「冀时办」或河北省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "河北省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「河北」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "河北省人力资源和社会保障厅",
+        "url": "https://rst.hebei.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "山西省": {
+      "labor_inspection": {
+        "label": "山西省劳动保障监察",
+        "url": "https://rst.shanxi.gov.cn/",
+        "phone": "12333",
+        "hint": "进入山西省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「三晋通」办理"
+      },
+      "arbitration": {
+        "label": "山西省劳动人事争议仲裁",
+        "url": "https://rst.shanxi.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「三晋通」或山西省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "山西省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「山西」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "山西省人力资源和社会保障厅",
+        "url": "https://rst.shanxi.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "辽宁省": {
+      "labor_inspection": {
+        "label": "辽宁省劳动保障监察",
+        "url": "https://rst.ln.gov.cn/",
+        "phone": "12333",
+        "hint": "进入辽宁省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「辽事通」办理"
+      },
+      "arbitration": {
+        "label": "辽宁省劳动人事争议仲裁",
+        "url": "https://rst.ln.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「辽事通」或辽宁省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "辽宁省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「辽宁」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "辽宁省人力资源和社会保障厅",
+        "url": "https://rst.ln.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "吉林省": {
+      "labor_inspection": {
+        "label": "吉林省劳动保障监察",
+        "url": "https://hrss.jl.gov.cn/",
+        "phone": "12333",
+        "hint": "进入吉林省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「吉事办」办理"
+      },
+      "arbitration": {
+        "label": "吉林省劳动人事争议仲裁",
+        "url": "https://hrss.jl.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「吉事办」或吉林省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "吉林省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「吉林」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "吉林省人力资源和社会保障厅",
+        "url": "https://hrss.jl.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "黑龙江省": {
+      "labor_inspection": {
+        "label": "黑龙江省劳动保障监察",
+        "url": "https://hrss.hlj.gov.cn/",
+        "phone": "12333",
+        "hint": "进入黑龙江省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「黑龙江全省事」办理"
+      },
+      "arbitration": {
+        "label": "黑龙江省劳动人事争议仲裁",
+        "url": "https://hrss.hlj.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「黑龙江全省事」或黑龙江省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "黑龙江省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「黑龙江」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "黑龙江省人力资源和社会保障厅",
+        "url": "https://hrss.hlj.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "江西省": {
+      "labor_inspection": {
+        "label": "江西省劳动保障监察",
+        "url": "https://rst.jiangxi.gov.cn/",
+        "phone": "12333",
+        "hint": "进入江西省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「赣服通」办理"
+      },
+      "arbitration": {
+        "label": "江西省劳动人事争议仲裁",
+        "url": "https://rst.jiangxi.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「赣服通」或江西省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "江西省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「江西」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "江西省人力资源和社会保障厅",
+        "url": "https://rst.jiangxi.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "海南省": {
+      "labor_inspection": {
+        "label": "海南省劳动保障监察",
+        "url": "https://hrss.hainan.gov.cn/",
+        "phone": "12333",
+        "hint": "进入海南省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「海易办」办理"
+      },
+      "arbitration": {
+        "label": "海南省劳动人事争议仲裁",
+        "url": "https://hrss.hainan.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「海易办」或海南省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "海南省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「海南」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "海南省人力资源和社会保障厅",
+        "url": "https://hrss.hainan.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "贵州省": {
+      "labor_inspection": {
+        "label": "贵州省劳动保障监察",
+        "url": "https://rst.guizhou.gov.cn/",
+        "phone": "12333",
+        "hint": "进入贵州省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「贵人服务」办理"
+      },
+      "arbitration": {
+        "label": "贵州省劳动人事争议仲裁",
+        "url": "https://rst.guizhou.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「贵人服务」或贵州省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "贵州省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「贵州」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "贵州省人力资源和社会保障厅",
+        "url": "https://rst.guizhou.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "云南省": {
+      "labor_inspection": {
+        "label": "云南省劳动保障监察",
+        "url": "https://hrss.yn.gov.cn/",
+        "phone": "12333",
+        "hint": "进入云南省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「一部手机办事通」办理"
+      },
+      "arbitration": {
+        "label": "云南省劳动人事争议仲裁",
+        "url": "https://hrss.yn.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「一部手机办事通」或云南省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "云南省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「云南」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "云南省人力资源和社会保障厅",
+        "url": "https://hrss.yn.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "甘肃省": {
+      "labor_inspection": {
+        "label": "甘肃省劳动保障监察",
+        "url": "https://rst.gansu.gov.cn/",
+        "phone": "12333",
+        "hint": "进入甘肃省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「甘快办」办理"
+      },
+      "arbitration": {
+        "label": "甘肃省劳动人事争议仲裁",
+        "url": "https://rst.gansu.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「甘快办」或甘肃省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "甘肃省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「甘肃」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "甘肃省人力资源和社会保障厅",
+        "url": "https://rst.gansu.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "青海省": {
+      "labor_inspection": {
+        "label": "青海省劳动保障监察",
+        "url": "https://hrss.qinghai.gov.cn/",
+        "phone": "12333",
+        "hint": "进入青海省人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「青松办」办理"
+      },
+      "arbitration": {
+        "label": "青海省劳动人事争议仲裁",
+        "url": "https://hrss.qinghai.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「青松办」或青海省人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "青海省法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「青海」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "青海省人力资源和社会保障厅",
+        "url": "https://hrss.qinghai.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "内蒙古自治区": {
+      "labor_inspection": {
+        "label": "内蒙古自治区劳动保障监察",
+        "url": "https://rst.nmg.gov.cn/",
+        "phone": "12333",
+        "hint": "进入内蒙古自治区人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「蒙速办」办理"
+      },
+      "arbitration": {
+        "label": "内蒙古自治区劳动人事争议仲裁",
+        "url": "https://rst.nmg.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「蒙速办」或内蒙古自治区人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "内蒙古自治区法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「内蒙古」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "内蒙古自治区人力资源和社会保障厅",
+        "url": "https://rst.nmg.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "广西壮族自治区": {
+      "labor_inspection": {
+        "label": "广西壮族自治区劳动保障监察",
+        "url": "https://rst.gxzf.gov.cn/",
+        "phone": "12333",
+        "hint": "进入广西壮族自治区人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「广西人社」办理"
+      },
+      "arbitration": {
+        "label": "广西壮族自治区劳动人事争议仲裁",
+        "url": "https://rst.gxzf.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「广西人社」或广西壮族自治区人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "广西壮族自治区法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「广西」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "广西壮族自治区人力资源和社会保障厅",
+        "url": "https://rst.gxzf.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "西藏自治区": {
+      "labor_inspection": {
+        "label": "西藏自治区劳动保障监察",
+        "url": "https://hrss.xizang.gov.cn/",
+        "phone": "12333",
+        "hint": "进入西藏自治区人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「西藏政务」办理"
+      },
+      "arbitration": {
+        "label": "西藏自治区劳动人事争议仲裁",
+        "url": "https://hrss.xizang.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「西藏政务」或西藏自治区人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "西藏自治区法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「西藏」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "西藏自治区人力资源和社会保障厅",
+        "url": "https://hrss.xizang.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "宁夏回族自治区": {
+      "labor_inspection": {
+        "label": "宁夏回族自治区劳动保障监察",
+        "url": "https://hrss.nx.gov.cn/",
+        "phone": "12333",
+        "hint": "进入宁夏回族自治区人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「我的宁夏」办理"
+      },
+      "arbitration": {
+        "label": "宁夏回族自治区劳动人事争议仲裁",
+        "url": "https://hrss.nx.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「我的宁夏」或宁夏回族自治区人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "宁夏回族自治区法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「宁夏」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "宁夏回族自治区人力资源和社会保障厅",
+        "url": "https://hrss.nx.gov.cn/",
+        "phone": "12333"
+      }
+    },
+    "新疆维吾尔自治区": {
+      "labor_inspection": {
+        "label": "新疆维吾尔自治区劳动保障监察",
+        "url": "https://rst.xinjiang.gov.cn/",
+        "phone": "12333",
+        "hint": "进入新疆维吾尔自治区人力资源和社会保障厅官网，搜索「劳动保障监察」或「举报投诉」；也可使用「新疆政务服务」办理"
+      },
+      "arbitration": {
+        "label": "新疆维吾尔自治区劳动人事争议仲裁",
+        "url": "https://rst.xinjiang.gov.cn/",
+        "phone": "12333",
+        "hint": "劳动仲裁一般由用人单位所在地或劳动合同履行地县级仲裁委受理；可通过「新疆政务服务」或新疆维吾尔自治区人力资源和社会保障厅官网查找申请入口"
+      },
+      "legal_aid": {
+        "label": "新疆维吾尔自治区法律援助",
+        "url": "https://www.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "打开 12348 法律服务网，选择「新疆」属地；或到当地司法局法律援助中心现场咨询"
+      },
+      "hrss_portal": {
+        "label": "新疆维吾尔自治区人力资源和社会保障厅",
+        "url": "https://rst.xinjiang.gov.cn/",
+        "phone": "12333"
+      }
     }
   },
   "fallback": {
@@ -438,5 +838,38 @@
       "url": "https://www.12348.gov.cn/",
       "phone": "12348"
     }
-  }
+  },
+  "province_order": [
+    "北京市",
+    "天津市",
+    "河北省",
+    "山西省",
+    "内蒙古自治区",
+    "辽宁省",
+    "吉林省",
+    "黑龙江省",
+    "上海市",
+    "江苏省",
+    "浙江省",
+    "安徽省",
+    "福建省",
+    "江西省",
+    "山东省",
+    "河南省",
+    "湖北省",
+    "湖南省",
+    "广东省",
+    "广西壮族自治区",
+    "海南省",
+    "重庆市",
+    "四川省",
+    "贵州省",
+    "云南省",
+    "西藏自治区",
+    "陕西省",
+    "甘肃省",
+    "青海省",
+    "宁夏回族自治区",
+    "新疆维吾尔自治区"
+  ]
 }

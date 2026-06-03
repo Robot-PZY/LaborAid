@@ -55,7 +55,7 @@ function useBreadcrumbs() {
     const ch = getChannel(parts[1]);
     return [
       { path: '/', label: '服务首页' },
-      { path: '/channels', label: '维权专区' },
+      { path: '/channels', label: '专项维权' },
       { path: location.pathname, label: ch?.title || parts[1] },
     ];
   }

@@ -4,6 +4,10 @@ import {
   Plus, Filter, Briefcase, Search, X, ChevronLeft, ChevronRight,
   ArrowLeft, Calendar, Users, FileText, Loader2, AlertCircle, CheckCircle2, Download, Trash2, } from 'lucide-react';
 import CaseReadinessHint from '@/components/cases/CaseReadinessHint';
+import CaseAgentCoach from '@/components/cases/CaseAgentCoach';
+import CaseWorkflowStepper from '@/components/cases/CaseWorkflowStepper';
+import { useCaseAgentStep } from '@/hooks/useCaseAgentStep';
+import { useCaseWorkflow } from '@/hooks/useCaseWorkflow';
 import EvidenceCoveragePanel from '@/components/cases/EvidenceCoveragePanel';
 import { AxiosError } from 'axios';
 import { caseApi, documentApi, intakeApi } from '@/lib/api';
@@ -100,6 +104,24 @@ function Cases() {
   const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
   const [readiness, setReadiness] = useState<CaseReadinessSummary | null>(null);
   const [readinessLoading, setReadinessLoading] = useState(false);
+  const {
+    step: agentStep,
+    loading: agentLoading,
+    error: agentError,
+    refresh: refreshAgent,
+  } = useCaseAgentStep(selectedCase?.id ?? null);
+
+  const {
+    workflow,
+    loading: workflowLoading,
+    error: workflowError,
+    refresh: refreshWorkflow,
+  } = useCaseWorkflow(selectedCase?.id ?? null);
+
+  const refreshCaseAi = () => {
+    refreshAgent();
+    refreshWorkflow();
+  };
 
   // Create dialog state
   const [showCreate, setShowCreate] = useState(false);
@@ -422,6 +444,19 @@ function Cases() {
           </div>
         </div>
 
+        <CaseWorkflowStepper
+          workflow={workflow}
+          loading={workflowLoading}
+          error={workflowError}
+          className="mb-4"
+        />
+        <CaseAgentCoach
+          step={agentStep}
+          caseId={selectedCase.id}
+          loading={agentLoading}
+          error={agentError}
+          onRefresh={refreshCaseAi}
+        />
         <CaseReadinessHint
           readiness={readiness}
           loading={readinessLoading}

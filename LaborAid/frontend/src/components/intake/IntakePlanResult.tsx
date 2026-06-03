@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   CheckCircle2,
   Circle,
   ExternalLink,
-  HeartHandshake,
   Loader2,
   MapPin,
 } from 'lucide-react';
-import { getChannel } from '@/lib/channels';
 import type { IntakeAnalyzeResult } from '@/lib/api/intake';
 import type { IntakePlanStep, IntakeSession } from '@/lib/intake-session';
 import CredibilityBar from '@/components/ui/CredibilityBar';
@@ -36,6 +34,7 @@ interface IntakePlanResultProps {
   result: IntakeAnalyzeResult;
   inputText: string;
   onReset: () => void;
+  onBack?: () => void;
 }
 
 function stepIcon(done: boolean, active: boolean) {
@@ -44,7 +43,7 @@ function stepIcon(done: boolean, active: boolean) {
   return <Circle className="h-4 w-4 text-muted-foreground/50" />;
 }
 
-export default function IntakePlanResult({ result, inputText, onReset }: IntakePlanResultProps) {
+export default function IntakePlanResult({ result, inputText, onReset, onBack }: IntakePlanResultProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
@@ -124,40 +123,17 @@ export default function IntakePlanResult({ result, inputText, onReset }: IntakeP
       setLoading(null);
     }
   };
-  const channel = result.channel_id ? getChannel(result.channel_id) : null;
-  const channelHref = result.channel_id
-    ? `/channels/${result.channel_id}${result.scenario_id ? `?scenario=${result.scenario_id}` : ''}`
-    : null;
-
   return (
     <div className="mt-4 space-y-4">
       <div>
         <Badge tone="accent">{result.cause_label}</Badge>
+        {result.intake_mode === 'structured' && result.channel_id && (
+          <Badge className="ml-2" tone="neutral">
+            专项通道
+          </Badge>
+        )}
         <p className="mt-2 text-sm text-muted-foreground">{result.summary}</p>
       </div>
-
-      {channel && channelHref && (
-        <div className="rounded-xl border border-amber-200/80 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/30">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex gap-3">
-              <HeartHandshake className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
-              <div>
-                <p className="text-sm font-medium">专项入口 · {channel.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  人群专属情形指引、证据清单与官方入口，与下方主线步骤分开办理
-                </p>
-              </div>
-            </div>
-            <Link
-              to={channelHref}
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-amber-300/80 bg-card px-4 text-sm font-medium transition-colors hover:bg-amber-100/60 dark:border-amber-800 dark:hover:bg-amber-950/50"
-            >
-              进入专区
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-      )}
 
       <CredibilityBar
         score={result.credibility.score}
@@ -247,8 +223,13 @@ export default function IntakePlanResult({ result, inputText, onReset }: IntakeP
               开始办理
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={onReset}>
-              重新描述
+              {result.intake_mode === 'structured' ? '重新填写' : '重新描述'}
             </Button>
+            {onBack && (
+              <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+                返回选择
+              </Button>
+            )}
           </div>
         </div>
       )}

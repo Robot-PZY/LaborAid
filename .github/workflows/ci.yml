@@ -29,6 +29,8 @@ jobs:
         run: |
           pip install ruff
           ruff check app/ --ignore E501,F401 --exit-zero
+      - name: Run tests
+        run: pip install pytest pytest-asyncio httpx && pytest tests/ -q --tb=short
 
   frontend:
     runs-on: ubuntu-latest

@@ -23,6 +23,8 @@ export interface IntakeAnalyzeResult {
   channel_id?: string | null;
   scenario_id?: string | null;
   action_plan?: IntakeActionPlan | null;
+  intake_mode?: string | null;
+  structured_answers?: Record<string, unknown> | null;
 }
 
 export const intakeApi = {
@@ -33,6 +35,17 @@ export const intakeApi = {
     const res = await apiClient.post<IntakeAnalyzeResult>('/intake/analyze', form, {
       timeout: TIMEOUT.ai,
       headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+
+  structured: async (payload: {
+    channel_id: string;
+    scenario_id: string;
+    answers: Record<string, string>;
+  }): Promise<IntakeAnalyzeResult> => {
+    const res = await apiClient.post<IntakeAnalyzeResult>('/intake/structured', payload, {
+      timeout: TIMEOUT.medium,
     });
     return res.data;
   },

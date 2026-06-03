@@ -46,6 +46,8 @@ def analyzer_result_to_session(
         "inputText": input_text,
         "channelId": result.get("channel_id"),
         "scenarioId": result.get("scenario_id"),
+        "intakeMode": result.get("intake_mode") or "freeform",
+        "structuredAnswers": result.get("structured_answers") or {},
         "actionPlan": result.get("action_plan"),
         "currentStep": (result.get("action_plan") or {}).get("current_step", 1),
         "createdCaseId": None,

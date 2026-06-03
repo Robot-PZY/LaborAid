@@ -1,0 +1,386 @@
+{
+  "channels": {
+    "migrant-worker": {
+      "common_fields": [
+        {
+          "id": "work_region",
+          "label": "工作地区",
+          "type": "text",
+          "required": true,
+          "placeholder": "如：广东省深圳市"
+        },
+        {
+          "id": "industry",
+          "label": "行业/工种",
+          "type": "text",
+          "placeholder": "如：建筑工地钢筋工"
+        }
+      ]
+    },
+    "intern-probation": {
+      "common_fields": [
+        {
+          "id": "student_status",
+          "label": "身份",
+          "type": "select",
+          "required": true,
+          "options": ["在校生实习", "已毕业试用", "不确定"]
+        },
+        {
+          "id": "work_region",
+          "label": "工作地区",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    "female-worker": {
+      "common_fields": [
+        {
+          "id": "work_region",
+          "label": "工作地区",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "pregnancy_stage",
+          "label": "当前阶段",
+          "type": "select",
+          "options": ["备孕期", "孕期", "产期", "哺乳期", "不适用"]
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "migrant-worker:wage_boss": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位 / 包工头名称",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "wage_amount",
+          "label": "欠薪金额（元）",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "wage_period",
+          "label": "欠薪时段",
+          "type": "text",
+          "required": true,
+          "placeholder": "如 2024年3月—6月"
+        },
+        {
+          "id": "has_iou",
+          "label": "是否有欠条/结算单",
+          "type": "select",
+          "required": true,
+          "options": ["有", "无", "不确定"]
+        },
+        {
+          "id": "still_employed",
+          "label": "是否仍在职",
+          "type": "select",
+          "options": ["是", "否"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "migrant-worker:subcontract": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "general_contractor",
+          "label": "总包单位名称",
+          "type": "text"
+        },
+        {
+          "id": "subcontractor",
+          "label": "分包/劳务公司",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "wage_amount",
+          "label": "欠薪金额（元）",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "wage_period",
+          "label": "欠薪时段",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "migrant-worker:project_stop": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位 / 项目方",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "project_status",
+          "label": "项目现状",
+          "type": "select",
+          "required": true,
+          "options": ["停工", "烂尾", "老板跑路", "其他"]
+        },
+        {
+          "id": "wage_amount",
+          "label": "欠薪金额（元）",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "migrant-worker:after_inspection": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位名称",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "complaint_date",
+          "label": "已向监察投诉的时间",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "wage_amount",
+          "label": "仍欠金额（元）",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "detail",
+          "label": "监察处理情况",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "intern-probation:intern_identity": {
+      "cause_type": "no_written_contract",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "实习/用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "has_agreement",
+          "label": "是否有实习/劳动协议",
+          "type": "select",
+          "required": true,
+          "options": ["有书面协议", "仅有口头约定", "无"]
+        },
+        {
+          "id": "dispute_focus",
+          "label": "主要争议",
+          "type": "select",
+          "required": true,
+          "options": ["是否构成劳动关系", "报酬/补贴", "工时/加班", "解除/辞退", "其他"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "intern-probation:probation_fire": {
+      "cause_type": "illegal_termination",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "probation_months",
+          "label": "约定试用期（月）",
+          "type": "text"
+        },
+        {
+          "id": "termination_date",
+          "label": "解除/辞退日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "termination_reason",
+          "label": "单位给出的理由",
+          "type": "text"
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "intern-probation:intern_no_pay": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "实习/用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "pay_type",
+          "label": "报酬类型",
+          "type": "select",
+          "options": ["实习补贴", "试用期工资", "其他"]
+        },
+        {
+          "id": "wage_amount",
+          "label": "欠付金额（元）",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "wage_period",
+          "label": "欠付时段",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "female-worker:pregnancy_transfer": {
+      "cause_type": "illegal_termination",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "action_taken",
+          "label": "单位采取的措施",
+          "type": "select",
+          "required": true,
+          "options": ["调岗", "降薪", "待岗", "口头威胁解除", "其他"]
+        },
+        {
+          "id": "action_date",
+          "label": "发生时间",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "female-worker:maternity_leave": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "issue_type",
+          "label": "争议类型",
+          "type": "select",
+          "required": true,
+          "options": ["产假工资/生育津贴", "拒绝批准产假", "返岗安排", "其他"]
+        },
+        {
+          "id": "wage_amount",
+          "label": "涉及金额（元，如有）",
+          "type": "text"
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "female-worker:illegal_termination": {
+      "cause_type": "illegal_termination",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "termination_date",
+          "label": "解除/辞退日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "pregnancy_stage",
+          "label": "当时所处阶段",
+          "type": "select",
+          "required": true,
+          "options": ["孕期", "产期", "哺乳期"]
+        },
+        {
+          "id": "has_notice",
+          "label": "是否有书面解除通知",
+          "type": "select",
+          "options": ["有", "无", "仅有口头"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    }
+  }
+}

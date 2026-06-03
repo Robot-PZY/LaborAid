@@ -79,6 +79,14 @@ class IntakeAnalyzeResponse(BaseModel):
     channel_id: str | None = None
     scenario_id: str | None = None
     action_plan: IntakeActionPlan | None = None
+    intake_mode: str | None = None
+    structured_answers: dict | None = None
+
+
+class IntakeStructuredRequest(BaseModel):
+    channel_id: str
+    scenario_id: str
+    answers: dict = Field(default_factory=dict)
 
 
 class IntakeCreateCaseRequest(BaseModel):

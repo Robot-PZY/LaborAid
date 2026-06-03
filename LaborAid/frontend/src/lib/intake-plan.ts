@@ -92,6 +92,8 @@ export function resultToSession(data: IntakeAnalyzeResult, caseFacts: string): I
     scenarioId: data.scenario_id ?? null,
     actionPlan: data.action_plan ?? null,
     currentStep: data.action_plan?.current_step ?? 1,
+    intakeMode: data.intake_mode === 'structured' ? 'structured' : 'freeform',
+    structuredAnswers: (data.structured_answers as Record<string, string> | undefined) ?? undefined,
   });
 }
 

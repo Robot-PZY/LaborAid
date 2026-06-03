@@ -19,3 +19,9 @@ def run_schema_migrations(sync_conn) -> None:
             )
         )
         logger.info("Added knowledge_items.is_platform column")
+
+    if "cases" in insp.get_table_names():
+        case_cols = {c["name"] for c in insp.get_columns("cases")}
+        if "ai_snapshot" not in case_cols:
+            sync_conn.execute(text("ALTER TABLE cases ADD COLUMN ai_snapshot JSON"))
+            logger.info("Added cases.ai_snapshot column")

@@ -43,6 +43,9 @@ class Case(Base):
     hearing_dates: Mapped[str | None] = mapped_column(JSON, nullable=True)
     deadline_dates: Mapped[str | None] = mapped_column(JSON, nullable=True)
 
+    # 编排 Agent：下一步建议、问答记录、文书流水线运行摘要
+    ai_snapshot: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 

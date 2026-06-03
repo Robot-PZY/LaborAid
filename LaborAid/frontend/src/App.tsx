@@ -20,8 +20,7 @@ const AdminApis = lazy(() => import('./pages/admin/AdminConfig').then((m) => ({ 
 const AdminSystem = lazy(() => import('./pages/admin/AdminConfig').then((m) => ({ default: () => <m.default section="system" /> })));
 const Guidance = lazy(() => import('./pages/Guidance'));
 const Records = lazy(() => import('./pages/Records'));
-const ChannelHub = lazy(() => import('./pages/channels/ChannelHub'));
-const ChannelDetail = lazy(() => import('./pages/channels/ChannelDetail'));
+const ChannelLegacyRedirect = lazy(() => import('./pages/channels/ChannelLegacyRedirect'));
 const Vault = lazy(() => import('./pages/Vault'));
 const Evidence = lazy(() => import('./pages/Evidence'));
 const Research = lazy(() => import('./pages/Research'));
@@ -96,8 +95,8 @@ function App() {
         <Route path="knowledge" element={<Navigate to="/" replace />} />
         <Route path="guidance" element={<Suspense fallback={<PageLoader />}><Guidance /></Suspense>} />
         <Route path="records" element={<Suspense fallback={<PageLoader />}><Records /></Suspense>} />
-        <Route path="channels" element={<Suspense fallback={<PageLoader />}><ChannelHub /></Suspense>} />
-        <Route path="channels/:channelId" element={<Suspense fallback={<PageLoader />}><ChannelDetail /></Suspense>} />
+        <Route path="channels" element={<Navigate to={{ pathname: '/', search: '?intake=special', hash: 'intake-desk' }} replace />} />
+        <Route path="channels/:channelId" element={<Suspense fallback={<PageLoader />}><ChannelLegacyRedirect /></Suspense>} />
         <Route path="vault" element={<Suspense fallback={<PageLoader />}><Vault /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

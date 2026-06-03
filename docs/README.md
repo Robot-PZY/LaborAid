@@ -27,11 +27,18 @@
 
 ## ⚠️ 目录结构提示
 
-如果你本地出现 `LaborAid/LaborAid` 双层结构，请在仓库根目录运行：
+当前仓库为 **git 根目录 + `LaborAid/` 子目录**（`LaborAid/LaborAid/backend`）。快速启动见根目录 [README](../README.md#-快速开始) 或运行 `scripts/dev.ps1`。
+
+若需扁平化（`backend/`、`frontend/` 直接在根目录），在 git 根目录执行：
 
 ```powershell
 .\scripts\normalize-project-layout.ps1
 ```
+
+## 📌 文档时效说明
+
+- [产品架构](./product-architecture.md) 为 **v1 设计稿**：其中「不做管理员后台」等表述已过时，实际已有完整管理端（见根 README）。
+- 路由与功能以根目录 [README.md](../README.md) 及 `frontend/src/App.tsx` 为准。
 
 ---
 

@@ -1,153 +1,138 @@
-<div align="center">
+# 劳权智助 · LaborAid
 
-# LaborAid
+面向劳动者的维权自助与智能法律工具平台。Slogan：*让劳动者维权更省心*。
 
-**连接法律与普通人的桥梁**
-
-[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-
-*劳动者维权服务 + 法律智能工具箱 —— 以 Nexus 为枢纽连接指引与专业工具*
-
-[双端说明](#-双端架构) · [快速开始](#-快速开始) · [文档](#-文档)
-
-</div>
+技术栈：Python 3.11 · FastAPI · React 19 · TypeScript · Vite。  
+许可：[MIT](./LICENSE) · 维护：Pulse Peng
 
 ---
 
-## 🎯 双端架构
+## 这是什么
 
-LaborAid 分为 **用户端** 与 **管理端**，登录入口分离，职责清晰：
+LaborAid 是 **前后端一体的劳动者维权工具平台**：用户登录后可在同一界面调用多项 AI 法律能力（文书、证据、检索、合同审查、案情分析等），管理端统一配置模型与知识库。
 
-| 端 | 登录入口 | 主要能力 |
-|:---|:---------|:---------|
-| **用户端** | 登录页 → 用户登录 | 维权指引、官方法律服务跳转、AI 工具（文书/证据/检索等）、个人记录 |
-| **管理端** | 登录页 → 管理员登录 | 模型配置、外部 API、系统参数、用户管理、平台统计 |
+**两层结构**（并非一功能一智能体）：
 
-> 普通用户的模型与 API 由平台统一配置；管理员在管理端维护，无需在用户设置中填写 Key。
+| 层次 | 说明 |
+|------|------|
+| **功能模块** | 导航中的独立工具（`agents.ts` 注册），随时可进入使用 |
+| **协作智能体** | 按维权阶段分组（指引 → 证据 → 文书 → 报告 → 记录），Supervisor 根据案件材料推荐主责智能体，并关联多项功能 |
 
----
+- **用户端**：案情 intake、维权指引、专项通道、证据/文书/检索/合同/计算器等工具、案件级协作调度。
+- **管理端**：模型与 API、用户、知识库、统计。普通用户无需填写 Key。
 
-## ✨ 用户端功能
-
-| 模块 | 路由 | 说明 |
-|:-----|:-----|:-----|
-| 🏠 **服务首页** | `/` | 维权入口、官方渠道、常用工具 |
-| 🧭 **维权指引** | `/guidance` | 按案由步骤 + 跳转 12348 / 人社 / 法规库 |
-| 📂 **我的记录** | `/records` | 案件、文书、证据、研究汇总 |
-| 📝 **文墨** | `/documents` | AI 法律文书起草 |
-| 🛡️ **盾律** | `/contracts` | 合同风险审查 |
-| 🔗 **证链** | `/evidence` | 证据 OCR 与分析 |
-| 🔍 **法眼** | `/search` | 法规/案例检索 |
-| 📚 **研法** / **智库** | `/research` `/knowledge` | 研究与知识库 |
-| 📁 **案管** | `/templates` | 案件与模板 |
-| 👤 **个人设置** | `/settings` | 账号信息（不含模型配置） |
+登录入口：`/login`（用户）与 `/login?portal=admin`（管理员）。
 
 ---
 
-## ⚙️ 管理端功能
+## 本地运行
 
-| 模块 | 路由 | 说明 |
-|:-----|:-----|:-----|
-| 📊 **数据概览** | `/admin` | 用户与业务统计、7 日趋势 |
-| 🤖 **模型配置** | `/admin/models` | 文本 LLM、视觉/OCR 模型 |
-| 🔌 **接口管理** | `/admin/apis` | 外部法规/案例 API |
-| 🖥️ **系统参数** | `/admin/system` | 向量库、通用配置 |
-| 👥 **用户管理** | `/admin/users` | 角色、启用状态 |
+**依赖**：Python 3.11+、Node 18+、npm 9+。
 
----
-
-## 📁 目录整理（重要）
-
-从旧仓库克隆后，若存在 **`LaborAid/LaborAid`** 双层目录，请先整理再开发：
-
-1. 关闭 Cursor、停止 `npm run dev` 与 `uvicorn`
-2. 在 **含 `.git` 的文件夹** 中执行：
+**推荐**（在仓库 git 根目录）：
 
 ```powershell
-.\scripts\normalize-project-layout.ps1
+copy .env.example LaborAid\backend\.env   # 填入 LLM_API_KEY 等
+.\scripts\dev.ps1
 ```
 
-脚本会将 `backend`、`frontend` 提升到根目录，并把文件夹重命名为 **`LaborAid`**。完成后用 Cursor 重新打开 `...\LaborAid`。
+浏览器打开 http://127.0.0.1:5320 。后端 API 文档：http://127.0.0.1:8010/api/docs 。
 
----
+> 默认端口 **5320 / 8010**，避免与常见 Vite(5173)、FastAPI(8000) 项目冲突；`dev.ps1` 只会清理这两个端口。
 
-## 🚀 快速开始
-
-### 环境要求
-
-- **Python** 3.12+
-- **Node.js** 18+
-- **npm** 9+
-
-### 启动步骤
+**手动启动**：
 
 ```powershell
-# 1. 进入项目根目录（推荐文件夹名 LaborAid，见下方「目录整理」）
-cd "F:\Undergraduate\Skill Learning\LaborAid"
-# 若仍为旧路径 LaborAid，可先运行 scripts/normalize-project-layout.ps1
-
-# 2. 启动后端
-cd backend
-python -m venv venv
-.\venv\Scripts\activate          # macOS/Linux: source venv/bin/activate
+# 终端 1 — 后端
+cd LaborAid\backend
+python -m venv venv && .\venv\Scripts\activate
 pip install -r requirements.txt
-copy ..\.env.example .env        # 编辑 .env 填入 API Key
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+copy ..\..\.env.example .env
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
 
-# 3. 启动前端（新开终端）
-cd ..\frontend
-npm install
-npm run dev
+# 终端 2 — 前端
+cd LaborAid\frontend
+npm install && npm run dev
 ```
 
-浏览器访问 **http://localhost:5173**
+首次启动会创建默认管理员（可在 `.env` 覆盖）：
 
-**初始管理员**（首次启动自动创建，可在 `.env` 修改）：
-
-| 项目 | 值 |
-|------|-----|
-| 入口 | http://localhost:5173/login?portal=admin |
+| | |
+|---|---|
+| 管理端入口 | http://127.0.0.1:5320/login?portal=admin |
 | 账号 | `Admin` 或 `admin@LaborAid.local` |
 | 密码 | `123456` |
 
 ---
 
-## 🏗️ 项目结构
+## 仓库布局
+
+当前为 **双层目录**（根目录下还有 `LaborAid/` 子目录）：
 
 ```
-LaborAid/
-├── backend/                 # FastAPI 后端
-│   └── app/
-│       ├── api/routers/     # REST API（含 admin、guidance、user）
-│       └── services/        # AI 引擎与业务逻辑
-├── frontend/                # React 前端
-│   └── src/
-│       ├── config/          # 品牌、智能体、劳权配置
-│       ├── pages/           # 用户端页面
-│       └── pages/admin/     # 管理端页面
-├── docs/                    # 使用与架构文档
-└── .env.example             # 环境变量模板
+<git-root>/
+├── docs/                 配置与架构文档
+├── .env.example          → 复制到 LaborAid/backend/.env
+├── scripts/dev.ps1       一键启动
+└── LaborAid/
+    ├── backend/          FastAPI 应用
+    └── frontend/         React 应用
+```
+
+若要扁平化为根目录下的 `backend/`、`frontend/`，先停 dev 服务，再执行 `scripts/normalize-project-layout.ps1`。
+
+核心代码路径：
+
+```
+LaborAid/backend/app/services/agents/     协作智能体 + Supervisor
+LaborAid/backend/app/services/orchestrator/  编排快照、文书流水线
+LaborAid/frontend/src/config/agents.ts    功能模块注册（导航）
 ```
 
 ---
 
-## 📚 文档
+## 路由
 
-| 文档 | 说明 |
+### 用户端
+
+| 路径 | 页面 |
 |------|------|
-| [文档目录](./docs/README.md) | 全部文档索引 |
-| [产品架构](./docs/product-architecture.md) | 服务平台 + 工具箱设计 |
-| [API 配置位置](./docs/api-config-locations.md) | API Key 填哪里 |
-| [模型配置指南](./docs/model-config-guide.md) | 国内 LLM 推荐 |
-| [代码风格](./docs/code-style.md) | 命名与规范 |
+| `/` | 服务首页 |
+| `/guidance` | 维权指引 |
+| `/channels` | 专项维权 |
+| `/records` | 我的记录 |
+| `/cases` | 管理案件 |
+| `/documents` | 生成文书（含助手流水线） |
+| `/contracts` | 审查合同 |
+| `/evidence` | 整理证据 |
+| `/search` | 检索法规 |
+| `/research` | 分析案情 |
+| `/vault` | 我的材料 |
+| `/templates` | 文书模板 |
+| `/enterprise` | 查询企业 |
+| `/tools/limitation` | 时效计算 |
+| `/tools/compensation` | 赔偿计算 |
+| `/settings` | 个人设置 |
+
+`/knowledge` 已重定向至首页；法律知识库在管理端维护。
+
+### 管理端（前缀 `/admin`）
+
+| 路径 | 页面 |
+|------|------|
+| `/admin/overview` | 数据概览 |
+| `/admin/models` | 模型配置 |
+| `/admin/apis` | 接口管理 |
+| `/admin/system` | 系统参数 |
+| `/admin/users` | 用户管理 |
+| `/admin/knowledge` | 知识库 |
+| `/admin/templates` | 文书模板 |
 
 ---
 
-## 🔌 AI 模型（简要）
+## 配置要点
+
+环境变量模板见 [.env.example](./.env.example)，说明见 [docs/api-config-locations.md](./docs/api-config-locations.md)。
 
 ```env
 LLM_API_KEY=
@@ -158,25 +143,35 @@ VISION_LLM_API_KEY=
 VISION_LLM_MODEL=qwen-vl-ocr-latest
 ```
 
-管理端配置后全平台生效。详见 [docs/model-config-guide.md](./docs/model-config-guide.md)。
+管理端保存后全平台生效，详见 [docs/model-config-guide.md](./docs/model-config-guide.md)。
+
+案件级协作 API（Supervisor + 阶段智能体 + 四步工作流）：
+
+- `GET /cases/{id}/workflow` — 四步工作流状态（生成案件 → 审查材料 → 生成文书 → 案件报告）
+- `GET /cases/{id}/agents` — 各协作智能体状态
+- `GET /cases/{id}/agent/next-step` — 调度推荐下一步
+- `POST /cases/{id}/agent/ask` — 案情问答
+- `POST /cases/{id}/agent/doc-pipeline-stream`（SSE）
 
 ---
 
-## 📖 API 文档
+## 文档
 
-- Swagger: http://localhost:8000/api/docs
-- ReDoc: http://localhost:8000/api/redoc
-
----
-
-## 📄 许可证
-
-[MIT License](LICENSE) — LaborAid Contributors
+| | |
+|---|---|
+| [docs/README.md](./docs/README.md) | 文档索引 |
+| [docs/product-architecture.md](./docs/product-architecture.md) | 产品架构（v1 设计稿，部分已演进） |
+| [LaborAid/docs/special-channels-and-material-vault.md](./LaborAid/docs/special-channels-and-material-vault.md) | 专项通道与材料库 |
+| [docs/code-style.md](./docs/code-style.md) | 代码风格 |
 
 ---
 
-<div align="center">
+## 声明
 
-**LaborAid** — 连接法律与普通人的桥梁
+本软件提供信息整理与工具辅助，**不构成法律意见或代理服务**。具体维权策略请咨询执业律师或当地劳动监察、仲裁机构。
 
-</div>
+---
+
+## 许可
+
+本项目采用 [MIT License](./LICENSE)，Copyright © 2025–2026 Pulse Peng。

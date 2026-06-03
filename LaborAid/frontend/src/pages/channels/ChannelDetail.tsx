@@ -8,7 +8,7 @@ import {
 } from '@/lib/channels';
 import { buildSearchLink } from '@/lib/channel-nav';
 import ReportDialog from '@/components/channels/ReportDialog';
-import OfficialPlatformStrip from '@/components/channels/OfficialPlatformStrip';
+import OfficialEntryHint from '@/components/channels/OfficialEntryHint';
 import ChannelScenarioPanel from '@/components/channels/ChannelScenarioPanel';
 import { Button, Surface, SectionTitle, Badge } from '@/components/ui/primitives';
 import type { PlatformCategoryId } from '@/lib/channels';
@@ -65,11 +65,11 @@ export default function ChannelDetail() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        维权专区
+        专项维权
       </Link>
 
       <div>
-        <Badge tone="accent">专项通道</Badge>
+        <Badge tone="accent">专项维权</Badge>
         <h1 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">{channel.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{channel.subtitle}</p>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{channel.audience}</p>
@@ -167,10 +167,7 @@ export default function ChannelDetail() {
         </section>
       )}
 
-      <OfficialPlatformStrip
-        onOpenPlatform={openPlatform}
-        emphasizeWomenResources={channel.id === 'female-worker'}
-      />
+      <OfficialEntryHint />
 
       <p className="text-[11px] text-muted-foreground">{getChannelsDisclaimer()}</p>
 

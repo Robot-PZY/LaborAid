@@ -84,6 +84,8 @@ export interface IntakeSession {
   createdCaseId?: number;
   /** 用户原始描述，用于回到咨询方案页时恢复 */
   inputText?: string;
+  intakeMode?: 'structured' | 'freeform';
+  structuredAnswers?: Record<string, string>;
   createdAt: string;
   updatedAt?: string;
 }

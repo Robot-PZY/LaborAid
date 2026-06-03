@@ -16,6 +16,7 @@ from app.schemas.intake import (
     IntakeCreateCaseRequest,
     IntakeSessionSaveRequest,
     IntakeSessionStoredOut,
+    IntakeStructuredRequest,
 )
 from app.services.intake.session_store import (
     analyzer_result_to_session,
@@ -24,8 +25,10 @@ from app.services.intake.session_store import (
     session_has_plan,
     upsert_user_intake_session,
 )
+from app.services.intake.case_binding import bind_intake_to_new_case
 from app.schemas.case import CaseOut
 from app.services.intake.analyzer import analyze_intake
+from app.services.intake.structured_builder import build_structured_intake
 from app.services.llm_resolver import resolve_user_llm, resolve_vision_llm
 from app.services.evidence.ocr import extract_text
 from app.api.routers.cases import _case_to_out, ALLOWED_CASE_TYPES
@@ -140,6 +143,39 @@ async def clear_intake_session(
     return {"deleted": deleted}
 
 
+@router.post("/structured", response_model=IntakeAnalyzeResponse)
+async def structured_intake_endpoint(
+    data: IntakeStructuredRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """专项通道：结构化表单 → 维权计划（规则构建，不调用 LLM）。"""
+    try:
+        result = build_structured_intake(
+            channel_id=data.channel_id.strip(),
+            scenario_id=data.scenario_id.strip(),
+            answers=data.answers or {},
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except Exception as exc:
+        logger.error("Structured intake failed: %s", exc)
+        raise HTTPException(500, "生成维权方案失败") from exc
+
+    validated = IntakeAnalyzeResponse.model_validate(result)
+    try:
+        session_payload = analyzer_result_to_session(
+            validated.model_dump(mode="json"),
+            input_text="",
+            case_facts=validated.summary,
+        )
+        await upsert_user_intake_session(db, current_user.id, session_payload)
+    except Exception as exc:
+        logger.warning("Persist intake session after structured failed: %s", exc)
+
+    return validated
+
+
 @router.post("/create-case", response_model=CaseOut, status_code=201)
 async def create_case_from_intake(
     data: IntakeCreateCaseRequest,
@@ -163,6 +199,13 @@ async def create_case_from_intake(
             status="active",
         )
         db.add(case)
+        await db.flush()
+        await bind_intake_to_new_case(
+            db,
+            case,
+            current_user.id,
+            cause_type_override=data.cause_type,
+        )
         await db.flush()
         await db.refresh(case)
         return CaseOut.model_validate(_case_to_out(case, 0))

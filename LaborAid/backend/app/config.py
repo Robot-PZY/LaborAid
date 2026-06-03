@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     APP_DEBUG: bool = True
     APP_SECRET_KEY: str = "dev-secret-key"
     APP_HOST: str = "0.0.0.0"
-    APP_PORT: int = 8000
+    APP_PORT: int = 8010
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./laboraid.db"
     DATABASE_URL_SYNC: str = "sqlite:///./laboraid.db"
@@ -90,7 +90,7 @@ class Settings(BaseSettings):
     VAULT_QUOTA_MB: int = 500
     VAULT_MAX_FILES: int = 500
 
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:5320,http://127.0.0.1:5320,http://localhost:3000"
 
     # 知识库官方法规定时同步（默认每周日 03:00 UTC+本地时区）
     KNOWLEDGE_CRAWL_SCHEDULE_ENABLED: bool = True

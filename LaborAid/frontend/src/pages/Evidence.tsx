@@ -357,9 +357,11 @@ export default function Evidence() {
 
   const intakeChecklistFromUrl = searchParams.get('checklist')?.split('|').filter(Boolean);
   const intakeChecklist =
-    intakeChecklistFromUrl?.length
-      ? intakeChecklistFromUrl
-      : intakeSession?.evidenceChecklist;
+    readiness?.intake_checklist?.length
+      ? readiness.intake_checklist
+      : intakeChecklistFromUrl?.length
+        ? intakeChecklistFromUrl
+        : intakeSession?.evidenceChecklist;
 
   useEffect(() => {
     if (selectedCase) loadEvidence();

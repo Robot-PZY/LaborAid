@@ -36,6 +36,11 @@ _CHECKLIST_KEYWORDS: dict[str, list[str]] = {
 
 
 def infer_cause_type(case: Case, intake_cause_type: str | None = None) -> str:
+    from app.services.intake.case_binding import get_case_intake
+
+    snap_cause = get_case_intake(case).get("cause_type")
+    if snap_cause and snap_cause in get_evidence_checklists():
+        return snap_cause
     if intake_cause_type and intake_cause_type in get_evidence_checklists():
         return intake_cause_type
     text = "\n".join(
@@ -101,6 +106,24 @@ def build_evidence_suggestions(
     return out
 
 
+def build_evidence_suggestions_from_checklist(
+    items: list[str],
+    evidences: list[Evidence],
+    case: Case,
+) -> list[CaseEvidenceSuggestion]:
+    if not items:
+        return []
+    corpus = _evidence_corpus(case, evidences)
+    return [
+        CaseEvidenceSuggestion(
+            item=item,
+            status="covered" if _item_covered(item, corpus) else "missing",
+            priority="required",
+        )
+        for item in items
+    ]
+
+
 def build_case_readiness(
     case: Case,
     *,
@@ -109,6 +132,7 @@ def build_case_readiness(
     evidence_with_ocr_count: int,
     evidences: list[Evidence] | None = None,
     intake_cause_type: str | None = None,
+    intake_checklist: list[str] | None = None,
     chain_completeness_score: int | None = None,
 ) -> CaseReadinessOut:
     evidences = evidences or []
@@ -122,7 +146,11 @@ def build_case_readiness(
     missing_items: list[str] = []
     actions: list[CaseReadinessAction] = []
 
-    suggestions = build_evidence_suggestions(cause_type, evidences, case)
+    custom_checklist = [x for x in (intake_checklist or []) if x]
+    if custom_checklist:
+        suggestions = build_evidence_suggestions_from_checklist(custom_checklist, evidences, case)
+    else:
+        suggestions = build_evidence_suggestions(cause_type, evidences, case)
     required_missing = [s.item for s in suggestions if s.priority == "required" and s.status == "missing"]
 
     if (case.description or "").strip():
@@ -283,6 +311,7 @@ def build_case_readiness(
         docgen_blockers=docgen_blockers[:4],
         chain_completeness_score=chain_score,
         combined_score=combined_score,
+        intake_checklist=custom_checklist,
     )
 
 

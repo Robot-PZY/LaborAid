@@ -1,3 +1,4 @@
+import json
 import logging
 import io
 import zipfile
@@ -21,7 +22,17 @@ from app.schemas.case import (
     CaseReportRequest,
     CaseReadinessOut,
 )
+from app.schemas.orchestrator import (
+    CaseAgentAskIn,
+    CaseAgentAskOut,
+    CaseAgentNextStepOut,
+    CaseAgentSnapshotOut,
+    CaseAgentsListOut,
+    CaseDocPipelineIn,
+    CaseWorkflowOut,
+)
 from app.services.case_readiness import build_case_readiness
+from app.services.intake.case_binding import resolve_intake_context
 from app.services.intake.session_store import get_user_intake_session
 from app.schemas.research import ResearchReportOut
 
@@ -276,12 +287,13 @@ async def get_case_readiness(
         await db.execute(select(Evidence).where(Evidence.case_id == case.id))
     ).scalars().all()
 
-    intake_cause: str | None = None
     intake_row = await get_user_intake_session(db, current_user.id)
-    if intake_row and isinstance(intake_row.session_data, dict):
-        session = intake_row.session_data
-        if session.get("createdCaseId") == case.id:
-            intake_cause = session.get("causeType") or None
+    session = (
+        intake_row.session_data
+        if intake_row and isinstance(intake_row.session_data, dict)
+        else None
+    )
+    ctx = resolve_intake_context(case, session)
 
     return build_case_readiness(
         case,
@@ -289,8 +301,194 @@ async def get_case_readiness(
         evidence_count=int(evid_count_q.scalar() or 0),
         evidence_with_ocr_count=int(evid_ocr_count_q.scalar() or 0),
         evidences=list(evid_rows),
-        intake_cause_type=intake_cause,
+        intake_cause_type=ctx["cause_type"],
+        intake_checklist=ctx["evidence_checklist"] or None,
         chain_completeness_score=chain_score,
+    )
+
+
+@router.get("/{case_id}/agent/next-step", response_model=CaseAgentNextStepOut)
+async def get_case_agent_next_step(
+    case_id: int,
+    chain_score: int | None = Query(None, ge=0, le=100),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """维权编排 Agent：根据案件材料状态推荐下一步操作。"""
+    from app.services.orchestrator.gather import build_case_work_context
+    from app.services.orchestrator import compute_case_next_step
+
+    case = await _get_accessible_case(case_id, current_user, db)
+    ctx = await build_case_work_context(
+        db,
+        case,
+        user_id=current_user.id,
+        chain_completeness_score=chain_score,
+    )
+    result = compute_case_next_step(ctx)
+    from app.services.orchestrator.snapshot import record_next_step
+
+    record_next_step(case, result)
+    await db.flush()
+    return CaseAgentNextStepOut.model_validate(result)
+
+
+@router.get("/{case_id}/agents", response_model=CaseAgentsListOut)
+async def get_case_agents(
+    case_id: int,
+    chain_score: int | None = Query(None, ge=0, le=100),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """列出案件关联的专项智能体状态（Supervisor 聚合）。"""
+    from app.services.agents import build_agents_list_payload
+    from app.services.orchestrator.gather import build_case_work_context
+    from app.services.orchestrator.snapshot import record_agent_evaluations
+
+    case = await _get_accessible_case(case_id, current_user, db)
+    ctx = await build_case_work_context(
+        db,
+        case,
+        user_id=current_user.id,
+        chain_completeness_score=chain_score,
+    )
+    payload = build_agents_list_payload(ctx)
+    record_agent_evaluations(case, payload)
+    await db.flush()
+    return CaseAgentsListOut.model_validate(payload)
+
+
+@router.get("/{case_id}/workflow", response_model=CaseWorkflowOut)
+async def get_case_workflow(
+    case_id: int,
+    chain_score: int | None = Query(None, ge=0, le=100),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """案件四步工作流：生成案件 → 审查材料 → 生成文书 → 案件报告。"""
+    from app.services.orchestrator.gather import build_case_work_context
+    from app.services.orchestrator.snapshot import record_workflow
+    from app.services.workflow import build_case_workflow_payload
+
+    case = await _get_accessible_case(case_id, current_user, db)
+    ctx = await build_case_work_context(
+        db,
+        case,
+        user_id=current_user.id,
+        chain_completeness_score=chain_score,
+    )
+    payload = build_case_workflow_payload(ctx)
+    record_workflow(case, payload)
+    await db.flush()
+    return CaseWorkflowOut.model_validate(payload)
+
+
+@router.get("/{case_id}/agent/snapshot", response_model=CaseAgentSnapshotOut)
+async def get_case_agent_snapshot(
+    case_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """读取案件 AI 编排快照（下一步记录、流水线历史）。"""
+    from app.services.orchestrator.snapshot import get_snapshot
+
+    case = await _get_accessible_case(case_id, current_user, db)
+    return CaseAgentSnapshotOut(case_id=case.id, snapshot=get_snapshot(case))
+
+
+@router.post("/{case_id}/agent/doc-pipeline-stream")
+async def case_doc_pipeline_stream(
+    case_id: int,
+    data: CaseDocPipelineIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """文书助手流水线 SSE：检索 → 生成 → 审校 → 质检，并写入 ai_snapshot。"""
+    from app.core.security import check_rate_limit
+    from app.services.orchestrator.doc_pipeline import run_doc_pipeline_stream
+
+    if not check_rate_limit(f"case_doc_pipeline:{current_user.id}", max_requests=6, window_seconds=3600):
+        raise HTTPException(429, "文书流水线请求过于频繁，请一小时后再试")
+
+    case = await _get_accessible_case(case_id, current_user, db)
+
+    async def event_stream():
+        async for event in run_doc_pipeline_stream(
+            db,
+            case,
+            current_user,
+            doc_type=data.doc_type,
+            case_facts=data.case_facts,
+            extra_instructions=data.extra_instructions,
+            skip_research=data.skip_research,
+            research_report_ids=data.research_report_ids,
+        ):
+            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.post("/{case_id}/agent/ask", response_model=CaseAgentAskOut)
+async def ask_case_agent(
+    case_id: int,
+    data: CaseAgentAskIn,
+    chain_score: int | None = Query(None, ge=0, le=100),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """就当前案件向维权助手提问（基于材料状态 + 可选 LLM）。"""
+    from app.core.security import check_rate_limit
+    from app.services.llm_resolver import resolve_user_llm
+    from app.services.orchestrator.ask import answer_case_question
+    from app.services.orchestrator.gather import build_case_work_context
+
+    if not check_rate_limit(f"case_agent_ask:{current_user.id}", max_requests=40, window_seconds=3600):
+        raise HTTPException(429, "提问过于频繁，请稍后再试")
+
+    case = await _get_accessible_case(case_id, current_user, db)
+    ctx = await build_case_work_context(
+        db,
+        case,
+        user_id=current_user.id,
+        chain_completeness_score=chain_score,
+    )
+
+    llm = None
+    try:
+        llm = await resolve_user_llm(db, current_user)
+    except Exception:
+        llm = None
+
+    result = await answer_case_question(ctx, data.question, llm=llm)
+    from app.services.orchestrator.snapshot import merge_snapshot
+
+    merge_snapshot(
+        case,
+        {
+            "last_ask": {
+                "question": data.question[:200],
+                "answer": result["answer"][:500],
+                "suggested_route": result["suggested_route"],
+                "used_llm": bool(result.get("used_llm")),
+            },
+        },
+    )
+    await db.flush()
+    return CaseAgentAskOut(
+        case_id=case.id,
+        answer=result["answer"],
+        suggested_route=result["suggested_route"],
+        suggested_label=result.get("suggested_label", ""),
+        pipeline_stage=result.get("pipeline_stage", ""),
+        used_llm=bool(result.get("used_llm")),
     )
 
 

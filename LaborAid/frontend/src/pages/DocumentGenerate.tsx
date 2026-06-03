@@ -24,9 +24,17 @@ import {
   Layers,
   History,
   Trash2,
+  Bot,
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
-import { documentApi, caseApi, researchApi, templateApi, type CaseReadinessSummary } from '@/lib/api';
+import {
+  documentApi,
+  caseApi,
+  researchApi,
+  templateApi,
+  type CaseReadinessSummary,
+  type DocPipelineProgressEvent,
+} from '@/lib/api';
 import CaseReadinessHint from '@/components/cases/CaseReadinessHint';
 import { useToast } from '@/lib/toast';
 import type { Document, Case, CaseCreate, ResearchReport, Template } from '@/lib/api';
@@ -47,7 +55,17 @@ import {
   normalizeDocType,
 } from '@/config/doc-types';
 
-const MAX_CASE_FACT_WORDS = 200;
+const MAX_CASE_FACT_CHARS = 200;
+
+const AGENT_PIPELINE_ORDER = ['prepare', 'research', 'generate', 'review', 'quality'] as const;
+
+const AGENT_PIPELINE_LABELS: Record<string, string> = {
+  prepare: '准备案情与材料',
+  research: '检索法规与争点',
+  generate: 'AI 生成文书',
+  review: 'AI 审校润色',
+  quality: '质量核查',
+};
 
 /** Count Chinese chars + alphanumeric tokens as "words". */
 function countWords(text: string): { chars: number; words: number } {
@@ -56,17 +74,12 @@ function countWords(text: string): { chars: number; words: number } {
   return { chars, words: tokens.length };
 }
 
-function trimToWordLimit(text: string, limit: number): string {
+function trimToCharLimit(text: string, limit: number): string {
   if (!text) return '';
-  const tokenRe = /[一-鿿]|[A-Za-z0-9]+/g;
   let count = 0;
-  let lastEnd = text.length;
-  for (const match of text.matchAll(tokenRe)) {
-    count += 1;
-    if (count > limit) {
-      lastEnd = match.index ?? 0;
-      return text.slice(0, lastEnd).trimEnd();
-    }
+  for (let i = 0; i < text.length; i += 1) {
+    if (!/\s/.test(text[i]!)) count += 1;
+    if (count > limit) return text.slice(0, i).trimEnd();
   }
   return text;
 }
@@ -228,9 +241,18 @@ export default function DocumentGenerate() {
   const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
   const [caseReadiness, setCaseReadiness] = useState<CaseReadinessSummary | null>(null);
   const [readinessLoading, setReadinessLoading] = useState(false);
+  const [pipelineLoading, setPipelineLoading] = useState(false);
+  const [pipelineSteps, setPipelineSteps] = useState<
+    Record<string, 'pending' | 'running' | 'done' | 'skipped'>
+  >({});
+  const [lastPipelineHint, setLastPipelineHint] = useState<string | null>(null);
+  const pipelineAbortRef = useRef<AbortController | null>(null);
 
   // Character / word counter
-  const wordCount = useMemo(() => countWords(caseFacts), [caseFacts]);
+  const caseFactCharCount = useMemo(
+    () => caseFacts.replace(/\s+/g, '').length,
+    [caseFacts],
+  );
 
   // Estimated remaining time
   const estimatedRemaining = useMemo(() => {
@@ -261,6 +283,36 @@ export default function DocumentGenerate() {
       .then(setCaseReadiness)
       .catch(() => setCaseReadiness(null))
       .finally(() => setReadinessLoading(false));
+  }, [selectedCaseId]);
+
+  useEffect(() => {
+    const caseId = selectedCaseId ? Number(selectedCaseId) : null;
+    if (!caseId || !Number.isFinite(caseId)) {
+      setLastPipelineHint(null);
+      return;
+    }
+    caseApi
+      .getAgentSnapshot(caseId)
+      .then((snap) => {
+        const runs = snap.snapshot?.doc_pipeline_runs;
+        if (!runs?.length) {
+          setLastPipelineHint(null);
+          return;
+        }
+        const last = runs[runs.length - 1];
+        if (last.error) {
+          setLastPipelineHint('上次助手流水线未完成，可重试');
+          return;
+        }
+        const score = last.quality_check?.quality_score;
+        const when = last.completed_at
+          ? new Date(last.completed_at).toLocaleString()
+          : '';
+        setLastPipelineHint(
+          `上次流水线${when ? `（${when}）` : ''}已生成文书${score != null ? `，质检 ${score} 分` : ''}`,
+        );
+      })
+      .catch(() => setLastPipelineHint(null));
   }, [selectedCaseId]);
 
   const refreshRecentDocuments = useCallback(() => {
@@ -325,7 +377,7 @@ export default function DocumentGenerate() {
 
     const session = loadIntakeSession();
     if (session) {
-      if (session.caseFacts) setCaseFacts(trimToWordLimit(session.caseFacts, MAX_CASE_FACT_WORDS));
+      if (session.caseFacts) setCaseFacts(trimToCharLimit(session.caseFacts, MAX_CASE_FACT_CHARS));
       const docType =
         searchParams.get('docType') ||
         session.recommendedTools.find((t) => t.agent_id === 'docgen')?.prefill.docType;
@@ -361,16 +413,16 @@ export default function DocumentGenerate() {
 
     // Load auto-saved form data
     const savedCaseFacts = loadAutoSave('doc_gen_caseFacts');
-    if (savedCaseFacts?.value) setCaseFacts(trimToWordLimit(savedCaseFacts.value, MAX_CASE_FACT_WORDS));
+    if (savedCaseFacts?.value) setCaseFacts(trimToCharLimit(savedCaseFacts.value, MAX_CASE_FACT_CHARS));
     const savedExtra = loadAutoSave('doc_gen_extraInstructions');
     if (savedExtra?.value) setExtraInstructions(savedExtra.value);
 
     if (prefillParam) {
       try {
         const decoded = decodeURIComponent(prefillParam);
-        setCaseFacts(trimToWordLimit(decoded, MAX_CASE_FACT_WORDS));
+        setCaseFacts(trimToCharLimit(decoded, MAX_CASE_FACT_CHARS));
       } catch {
-        setCaseFacts(trimToWordLimit(prefillParam, MAX_CASE_FACT_WORDS));
+        setCaseFacts(trimToCharLimit(prefillParam, MAX_CASE_FACT_CHARS));
       }
     }
 
@@ -565,6 +617,97 @@ export default function DocumentGenerate() {
     refreshRecentDocuments,
   ]);
 
+  const handleDocPipeline = useCallback(() => {
+    if (!docType || !caseFacts.trim()) return;
+    const caseId = selectedCaseId ? Number(selectedCaseId) : null;
+    if (!caseId || !Number.isFinite(caseId)) {
+      toast({ type: 'warning', title: '请先关联案件', description: '助手流水线需绑定案件以保存记录' });
+      return;
+    }
+
+    setPipelineLoading(true);
+    setLoading(false);
+    setError('');
+    setGeneratedDoc(null);
+    setReviewResult(null);
+    setEditMode(false);
+
+    const initial: Record<string, 'pending' | 'running' | 'done' | 'skipped'> = {};
+    AGENT_PIPELINE_ORDER.forEach((k) => {
+      initial[k] = 'pending';
+    });
+    setPipelineSteps(initial);
+
+    pipelineAbortRef.current?.abort();
+    pipelineAbortRef.current = caseApi.runDocPipelineStream(
+      caseId,
+      {
+        doc_type: docType,
+        case_facts: caseFacts.trim(),
+        extra_instructions: extraInstructions.trim() || undefined,
+        research_report_ids: selectedReportIds.length > 0 ? selectedReportIds : undefined,
+      },
+      (event: DocPipelineProgressEvent) => {
+        const key = event.step;
+        if (!AGENT_PIPELINE_ORDER.includes(key as (typeof AGENT_PIPELINE_ORDER)[number])) return;
+        setPipelineSteps((prev) => {
+          const next = { ...prev };
+          if (event.status === 'running') next[key] = 'running';
+          else if (event.status === 'done') next[key] = 'done';
+          else if (event.status === 'skipped') next[key] = 'skipped';
+          return next;
+        });
+      },
+      (errMsg) => {
+        setError(errMsg);
+        toast({ type: 'error', title: '助手流水线失败', description: errMsg });
+        setPipelineLoading(false);
+      },
+      async (payload) => {
+        try {
+          const doc = await documentApi.get(payload.document_id);
+          setGeneratedDoc(doc);
+          setEditedContent(doc.content);
+          setEditedTitle(doc.title);
+          setDocVersions([
+            { version: doc.version, updated_at: doc.updated_at, title: doc.title },
+          ]);
+          refreshRecentDocuments();
+          addToolHistory({
+            kind: 'docgen',
+            title: doc.title || '助手流水线文书',
+            subtitle: docTypeLabel(docType),
+            route: '/documents',
+            query: String(doc.id),
+          });
+          const hint =
+            payload.quality_summary ||
+            (payload.quality_score != null ? `质检得分 ${payload.quality_score}` : '');
+          toast({
+            type: 'success',
+            title: '助手流水线完成',
+            description: hint || '文书已审校并完成质量核查',
+          });
+          if (payload.quality_score != null) {
+            setLastPipelineHint(`本次流水线质检 ${payload.quality_score} 分`);
+          }
+        } catch {
+          toast({ type: 'warning', title: '文书已生成', description: '请从最近文书中打开查看' });
+        } finally {
+          setPipelineLoading(false);
+        }
+      },
+    );
+  }, [
+    docType,
+    caseFacts,
+    selectedCaseId,
+    extraInstructions,
+    selectedReportIds,
+    toast,
+    refreshRecentDocuments,
+  ]);
+
   const handleExport = useCallback(async (format: 'word' | 'markdown' | 'html' | 'pdf') => {
     if (!generatedDoc) return;
     setExportLoading(format);
@@ -686,9 +829,9 @@ export default function DocumentGenerate() {
       if (result.text && !result.text.startsWith('[')) {
         setCaseFacts((prev) => {
           const merged = prev ? `${prev}\n\n${result.text}` : result.text;
-          const limited = trimToWordLimit(merged, MAX_CASE_FACT_WORDS);
+          const limited = trimToCharLimit(merged, MAX_CASE_FACT_CHARS);
           if (limited !== merged) {
-            toast({ type: 'warning', title: `案情描述最多 ${MAX_CASE_FACT_WORDS} 词，已自动截断` });
+            toast({ type: 'warning', title: `案情描述最多 ${MAX_CASE_FACT_CHARS} 字，已自动截断` });
           }
           return limited;
         });
@@ -727,7 +870,7 @@ export default function DocumentGenerate() {
 
   const handleLoadDraft = useCallback((draft: Draft) => {
     setDocType(draft.docType);
-    setCaseFacts(trimToWordLimit(draft.caseFacts, MAX_CASE_FACT_WORDS));
+    setCaseFacts(trimToCharLimit(draft.caseFacts, MAX_CASE_FACT_CHARS));
     setExtraInstructions(draft.extraInstructions);
     setSelectedCaseId(draft.selectedCaseId);
     setSelectedReportIds(draft.selectedReportIds);
@@ -1157,6 +1300,13 @@ export default function DocumentGenerate() {
               />
             )}
 
+            {lastPipelineHint && (
+              <p className="rounded-lg border border-violet-500/25 bg-violet-500/8 px-3 py-2 text-xs text-muted-foreground">
+                <Bot className="mr-1 inline h-3.5 w-3.5 text-violet-600" />
+                {lastPipelineHint}
+              </p>
+            )}
+
             {/* Case Facts */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
@@ -1179,7 +1329,7 @@ export default function DocumentGenerate() {
                 value={caseFacts}
                 onChange={(e) => {
                   const next = e.target.value;
-                  const limited = trimToWordLimit(next, MAX_CASE_FACT_WORDS);
+                  const limited = trimToCharLimit(next, MAX_CASE_FACT_CHARS);
                   setCaseFacts(limited);
                 }}
                 required
@@ -1188,12 +1338,12 @@ export default function DocumentGenerate() {
                 rows={8}
                 className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm leading-relaxed placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20 disabled:opacity-50"
               />
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-muted-foreground">
-                  描述越详细，生成的文书越准确（上限 {MAX_CASE_FACT_WORDS} 词）。
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+                <p className="min-w-0 text-xs text-muted-foreground">
+                  描述越详细，生成的文书越准确
                 </p>
-                <span className="text-xs text-muted-foreground">
-                  {wordCount.chars} 字 / {wordCount.words} 词（上限 {MAX_CASE_FACT_WORDS}）
+                <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+                  {caseFactCharCount}/{MAX_CASE_FACT_CHARS} 字
                 </span>
               </div>
             </div>
@@ -1260,7 +1410,7 @@ export default function DocumentGenerate() {
               <textarea
                 value={extraInstructions}
                 onChange={(e) => setExtraInstructions(e.target.value)}
-                disabled={loading}
+                disabled={loading || pipelineLoading}
                 placeholder="例如：请侧重违约金计算部分、适用简易程序、增加某项诉讼请求等..."
                 rows={3}
                 className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20 disabled:opacity-50"
@@ -1269,10 +1419,10 @@ export default function DocumentGenerate() {
 
             {/* Action buttons - single mode */}
             {mode === 'single' && (
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <button
                   type="submit"
-                  disabled={loading || !docType || !caseFacts.trim()}
+                  disabled={loading || pipelineLoading || !docType || !caseFacts.trim()}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? (
@@ -1281,7 +1431,20 @@ export default function DocumentGenerate() {
                     <><Sparkles className="h-4 w-4" /> 生成文书</>
                   )}
                 </button>
-                {!loading && caseFacts.trim() && (
+                <button
+                  type="button"
+                  disabled={loading || pipelineLoading || !docType || !caseFacts.trim() || !selectedCaseId}
+                  onClick={handleDocPipeline}
+                  title={selectedCaseId ? '自动检索、生成、审校与质检' : '需先关联案件'}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-900 transition-colors hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-violet-100"
+                >
+                  {pipelineLoading ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> 流水线运行中...</>
+                  ) : (
+                    <><Bot className="h-4 w-4" /> 助手流水线</>
+                  )}
+                </button>
+                {!loading && !pipelineLoading && caseFacts.trim() && (
                   <button
                     type="button"
                     onClick={handleSaveDraft}
@@ -1344,19 +1507,59 @@ export default function DocumentGenerate() {
         {mode === 'single' && (
           <div id="doc-preview-panel" className="lg:col-span-3 scroll-mt-20">
             {/* Loading State */}
-            {loading && (
+            {(loading || pipelineLoading) && (
               <div className="rounded-xl border bg-card p-6 sm:p-8 shadow-sm">
                 <div className="mb-6 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+                    {pipelineLoading ? (
+                      <Bot className="h-5 w-5 text-violet-600 animate-pulse" />
+                    ) : (
+                      <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+                    )}
                   </div>
                   <div>
-                    <p className="font-semibold">AI 正在生成文书</p>
-                    <p className="text-xs text-muted-foreground">正在为您生成{selectedDocLabel}，请稍候</p>
+                    <p className="font-semibold">
+                      {pipelineLoading ? '维权助手流水线运行中' : 'AI 正在生成文书'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {pipelineLoading
+                        ? '检索法规 → 生成 → 审校 → 质检，请耐心等待'
+                        : `正在为您生成${selectedDocLabel}，请稍候`}
+                    </p>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {progressSteps.map((step, idx) => (
+                  {pipelineLoading
+                    ? AGENT_PIPELINE_ORDER.map((key) => {
+                        const status = pipelineSteps[key] || 'pending';
+                        const label = AGENT_PIPELINE_LABELS[key] || key;
+                        return (
+                          <div
+                            key={key}
+                            className={cn(
+                              'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition-all duration-500',
+                              status === 'done' || status === 'skipped'
+                                ? 'bg-green-50 text-green-700'
+                                : status === 'running'
+                                  ? 'bg-violet-500/10 text-violet-800 font-medium dark:text-violet-200'
+                                  : 'text-muted-foreground',
+                            )}
+                          >
+                            {status === 'done' || status === 'skipped' ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : status === 'running' ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <div className="h-4 w-4 rounded-full border-2 border-muted" />
+                            )}
+                            {label}
+                            {status === 'skipped' && (
+                              <span className="text-[10px] text-muted-foreground">（跳过）</span>
+                            )}
+                          </div>
+                        );
+                      })
+                    : progressSteps.map((step, idx) => (
                     <div
                       key={idx}
                       className={cn(
@@ -1379,15 +1582,17 @@ export default function DocumentGenerate() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>已用时 {elapsedSeconds} 秒 | 预计剩余 {estimatedRemaining}</span>
-                </div>
+                {!pipelineLoading && (
+                  <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span>已用时 {elapsedSeconds} 秒 | 预计剩余 {estimatedRemaining}</span>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Generated Document */}
-            {generatedDoc && !loading && (
+            {generatedDoc && !loading && !pipelineLoading && (
               <div className="space-y-4">
                 <div className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">

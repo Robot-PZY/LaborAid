@@ -102,6 +102,7 @@ const platformsData = officialPlatforms as {
   categories: PlatformCategoryMeta[];
   national: Record<string, PlatformLink>;
   by_province: Record<string, ProvincePlatformSet>;
+  province_order?: string[];
   fallback: Record<Exclude<PlatformCategoryId, 'wage_clue' | 'women_federation' | 'union_hotline'>, PlatformLink>;
 };
 
@@ -109,8 +110,17 @@ export function listPlatformCategories(): PlatformCategoryMeta[] {
   return platformsData.categories;
 }
 
+/** 31 个省级行政区，按国家标准顺序 */
 export function listOfficialPlatformProvinces(): string[] {
-  return Object.keys(platformsData.by_province || {});
+  const configured = Object.keys(platformsData.by_province || {});
+  const order = platformsData.province_order || [];
+  const sorted = order.filter((p) => configured.includes(p));
+  const rest = configured.filter((p) => !order.includes(p)).sort();
+  return [...sorted, ...rest];
+}
+
+export function hasProvincePlatformData(province: string): boolean {
+  return Boolean(province && platformsData.by_province[province]);
 }
 
 export function getNationalPlatform(key: string): PlatformLink | undefined {
@@ -126,7 +136,19 @@ export function getProvincePlatform(
   category: Exclude<PlatformCategoryId, 'wage_clue' | 'women_federation' | 'union_hotline'>,
 ): PlatformLink {
   const set = platformsData.by_province[province];
-  return set?.[category] || platformsData.fallback[category];
+  if (!set) {
+    return platformsData.fallback[category];
+  }
+  if (set[category]) {
+    return set[category]!;
+  }
+  if (category === 'labor_inspection' && set.hrss_portal) {
+    return {
+      ...set.hrss_portal,
+      hint: set.hrss_portal.hint || `进入${province}人社厅官网，搜索「劳动保障监察」`,
+    };
+  }
+  return platformsData.fallback[category];
 }
 
 export function getProvincePlatformSet(province: string): ProvincePlatformSet | undefined {
@@ -148,7 +170,7 @@ type ProvincialCategory = Exclude<PlatformCategoryId, 'wage_clue' | 'women_feder
 export function resolvePlatformLink(
   category: PlatformCategoryId,
   province?: string,
-): PlatformLink {
+): PlatformLink & { province?: string; usedFallback?: boolean } {
   if (isNationalPlatformCategory(category)) {
     return (
       platformsData.national[category] || {
@@ -158,8 +180,12 @@ export function resolvePlatformLink(
     );
   }
   const provincial = category as ProvincialCategory;
+  if (province && hasProvincePlatformData(province)) {
+    const link = getProvincePlatform(province, provincial);
+    return { ...link, province };
+  }
   if (province) {
-    return getProvincePlatform(province, provincial);
+    return { ...platformsData.fallback[provincial], province, usedFallback: true };
   }
   return platformsData.fallback[provincial];
 }

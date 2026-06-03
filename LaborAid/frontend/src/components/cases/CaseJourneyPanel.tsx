@@ -1,15 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Briefcase,
-  CheckCircle2,
   ChevronDown,
-  FileText,
-  BookOpen,
   Loader2,
   Plus,
   RefreshCw,
-  Upload,
   X,
 } from 'lucide-react';
 import { caseApi, documentApi, evidenceApi, researchApi } from '@/lib/api';
@@ -23,37 +17,10 @@ import { withCaseTitleDatePrefix } from '@/lib/case-title';
 import { loadIntakeSession } from '@/lib/intake-session';
 import { CHART_COLORS, ProgressRing } from '@/components/charts/SimpleCharts';
 import { Button } from '@/components/ui/primitives';
-
-const JOURNEY_STEPS = [
-  {
-    key: 'case' as const,
-    title: '选定案件',
-    hint: '先创建或选择要维权的案件',
-    route: '/cases',
-    icon: Briefcase,
-  },
-  {
-    key: 'evidence' as const,
-    title: '整理证据',
-    hint: '上传工资条、合同等材料',
-    route: '/evidence',
-    icon: Upload,
-  },
-  {
-    key: 'documents' as const,
-    title: '生成文书',
-    hint: '仲裁申请、投诉书等',
-    route: '/documents',
-    icon: FileText,
-  },
-  {
-    key: 'analysis' as const,
-    title: '分析案情',
-    hint: '汇总材料；结论达“可仲裁/可起诉”才算完成',
-    route: '/research',
-    icon: BookOpen,
-  },
-];
+import CaseAgentCoach from '@/components/cases/CaseAgentCoach';
+import CaseWorkflowStepper from '@/components/cases/CaseWorkflowStepper';
+import { useCaseAgentStep } from '@/hooks/useCaseAgentStep';
+import { useCaseWorkflow } from '@/hooks/useCaseWorkflow';
 
 const statusLabel: Record<string, string> = {
   draft: '草稿',
@@ -76,7 +43,6 @@ const ACTIONABLE_CONCLUSION_LEVELS = new Set([
 ]);
 
 export default function CaseJourneyPanel() {
-  const navigate = useNavigate();
   const [cases, setCases] = useState<Case[]>([]);
   const [activeId, setActiveId] = useState<number | null>(() => getActiveCaseId());
   const [stats, setStats] = useState<CaseStats>({
@@ -202,36 +168,27 @@ export default function CaseJourneyPanel() {
     }
   };
 
-  const journeyScore = useMemo(() => {
-    if (!activeCase) return 0;
-    let done = 0;
-    if (activeCase) done += 1;
-    if (stats.evidence > 0) done += 1;
-    if (stats.documents > 0) done += 1;
-    if (stats.actionableReports > 0) done += 1;
-    return done;
-  }, [activeCase, stats]);
+  const {
+    step: agentStep,
+    loading: agentLoading,
+    error: agentError,
+    refresh: refreshAgent,
+  } = useCaseAgentStep(activeId);
 
-  const stepDone = (key: (typeof JOURNEY_STEPS)[number]['key']) => {
-    if (key === 'case') return !!activeCase;
-    if (key === 'evidence') return stats.evidence > 0;
-    if (key === 'documents') return stats.documents > 0;
-    if (key === 'analysis') return stats.actionableReports > 0;
-    return false;
+  const {
+    workflow,
+    loading: workflowLoading,
+    error: workflowError,
+    refresh: refreshWorkflow,
+  } = useCaseWorkflow(activeId);
+
+  const refreshAll = () => {
+    refreshAgent();
+    refreshWorkflow();
   };
 
-  const goStep = (step: (typeof JOURNEY_STEPS)[number]) => {
-    if (step.key === 'case') {
-      navigate(activeCase ? `/cases?open=${activeCase.id}` : '/cases?worker=1');
-      return;
-    }
-    if (!activeCase) {
-      setShowCreate(true);
-      return;
-    }
-    const q = `caseId=${activeCase.id}&worker=1`;
-    navigate(`${step.route}?${q}`);
-  };
+  const journeyScore = workflow?.progress ?? 0;
+  const journeyMax = workflow?.total_steps ?? 4;
 
   return (
     <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
@@ -244,7 +201,7 @@ export default function CaseJourneyPanel() {
         </div>
         <ProgressRing
           value={journeyScore}
-          max={4}
+          max={journeyMax}
           label="本案进度"
           color={CHART_COLORS.documents}
         />
@@ -305,6 +262,23 @@ export default function CaseJourneyPanel() {
           <RefreshCw className="h-3.5 w-3.5" />
         </button>
       </div>
+
+      {activeId && (
+        <div className="mt-4 space-y-4">
+          <CaseWorkflowStepper
+            workflow={workflow}
+            loading={workflowLoading}
+            error={workflowError}
+          />
+          <CaseAgentCoach
+            step={agentStep}
+            caseId={activeId}
+            loading={agentLoading}
+            error={agentError}
+            onRefresh={refreshAll}
+          />
+        </div>
+      )}
 
       {activeCase && (
         <p className="mt-2 text-xs text-muted-foreground">
@@ -368,55 +342,6 @@ export default function CaseJourneyPanel() {
           </div>
         </form>
       )}
-
-      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {JOURNEY_STEPS.map((step, i) => {
-          const done = stepDone(step.key);
-          const Icon = step.icon;
-          const count =
-            step.key === 'evidence'
-              ? stats.evidence
-              : step.key === 'documents'
-                ? stats.documents
-                : step.key === 'analysis'
-                  ? stats.reports
-                  : activeCase
-                    ? 1
-                    : 0;
-          return (
-            <button
-              key={step.key}
-              type="button"
-              onClick={() => goStep(step)}
-              className={`rounded-lg border p-3 text-left transition-all hover:shadow-sm ${
-                done
-                  ? 'border-emerald-500/30 bg-emerald-500/5'
-                  : 'border-border/70 bg-muted/20'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                    done ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
-                </span>
-                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-sm font-medium">{step.title}</span>
-              </div>
-              <p className="mt-1 pl-8 text-[11px] text-muted-foreground">{step.hint}</p>
-              {activeCase && step.key !== 'case' && (
-                <p className="mt-1 pl-8 text-xs tabular-nums text-muted-foreground">
-                  {step.key === 'analysis'
-                    ? `本案 ${stats.reports} 份报告${stats.latestConclusion ? ` · 最新结论：${stats.latestConclusion}` : ''}`
-                    : `本案 ${count} 条`}
-                </p>
-              )}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }

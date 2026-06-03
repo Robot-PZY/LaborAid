@@ -112,3 +112,4 @@ class CaseReadinessOut(BaseModel):
     docgen_blockers: list[str] = []
     chain_completeness_score: int | None = None
     combined_score: int | None = None
+    intake_checklist: list[str] = []

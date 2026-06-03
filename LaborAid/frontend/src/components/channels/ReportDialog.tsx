@@ -1,13 +1,21 @@
-import { useEffect, useState } from 'react';
-import { ExternalLink, Phone, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, ExternalLink, MapPin, Phone, X } from 'lucide-react';
 import {
   getReportProvinces,
+  hasProvincePlatformData,
   isNationalPlatformCategory,
   listPlatformCategories,
   resolvePlatformLink,
   type PlatformCategoryId,
 } from '@/lib/channels';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { Button } from '@/components/ui/primitives';
+
+const PROVINCIAL_CATEGORIES: PlatformCategoryId[] = [
+  'labor_inspection',
+  'arbitration',
+  'legal_aid',
+];
 
 export interface ReportDialogProps {
   open: boolean;
@@ -15,6 +23,24 @@ export interface ReportDialogProps {
   buttonLabel?: string;
   /** 打开时默认选中的办事类型 */
   initialCategory?: PlatformCategoryId;
+}
+
+function loadSavedProvince(provinces: string[]): string {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.reportProvince);
+    if (saved && provinces.includes(saved)) return saved;
+  } catch {
+    // ignore
+  }
+  return provinces[0] || '';
+}
+
+function saveProvince(province: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.reportProvince, province);
+  } catch {
+    // ignore
+  }
 }
 
 export default function ReportDialog({
@@ -26,28 +52,34 @@ export default function ReportDialog({
   const categories = listPlatformCategories();
   const provinces = getReportProvinces();
   const [category, setCategory] = useState<PlatformCategoryId>(initialCategory);
-  const [province, setProvince] = useState(provinces[0] || '');
+  const [province, setProvince] = useState(() => loadSavedProvince(provinces));
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     if (open) {
       setCategory(initialCategory);
+      setProvince(loadSavedProvince(provinces));
       setConfirmed(false);
     }
-  }, [open, initialCategory]);
-
-  if (!open) return null;
+  }, [open, initialCategory, provinces]);
 
   const needsProvince = !isNationalPlatformCategory(category);
-  const link = resolvePlatformLink(category, needsProvince ? province : undefined);
+  const link = useMemo(
+    () => resolvePlatformLink(category, needsProvince ? province : undefined),
+    [category, needsProvince, province],
+  );
   const activeMeta = categories.find((c) => c.id === category);
+  const provinceReady = !needsProvince || (province && hasProvincePlatformData(province));
 
   const handleOpen = () => {
-    if (!confirmed) return;
+    if (!confirmed || !provinceReady) return;
+    if (needsProvince && province) saveProvince(province);
     window.open(link.url, '_blank', 'noopener,noreferrer');
     onClose();
     setConfirmed(false);
   };
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -72,27 +104,34 @@ export default function ReportDialog({
             {buttonLabel || '官方办事入口'}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            本站不受理业务，仅跳转至政府官方渠道。请先选择办事类型{needsProvince ? '与属地' : ''}。
+            本站不受理业务，仅跳转至政府官方渠道。{needsProvince ? '请先选择用工所在省份。' : '全国入口，无需选省。'}
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => {
-                  setCategory(cat.id);
-                  setConfirmed(false);
-                }}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  category === cat.id
-                    ? 'border-accent bg-accent/10 text-foreground'
-                    : 'border-border text-muted-foreground hover:bg-muted/50'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {categories.map((cat) => {
+              const active = category === cat.id;
+              const provincial = PROVINCIAL_CATEGORIES.includes(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    setCategory(cat.id);
+                    setConfirmed(false);
+                  }}
+                  className={`rounded-[var(--radius-md)] border px-3 py-2.5 text-left text-sm transition-colors ${
+                    active
+                      ? 'border-accent bg-accent/10 text-foreground'
+                      : 'border-border text-muted-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <span className="font-medium">{cat.label}</span>
+                  {provincial && (
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">需选省份</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
           {activeMeta && (
             <p className="mt-2 text-xs text-muted-foreground">{activeMeta.description}</p>
@@ -101,15 +140,19 @@ export default function ReportDialog({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           {needsProvince && (
-            <>
-              <label className="block text-xs font-medium text-foreground">用工所在地（省级）</label>
+            <div className="space-y-2">
+              <label htmlFor="report-province" className="flex items-center gap-1.5 text-sm font-medium">
+                <MapPin className="h-4 w-4 text-accent" />
+                用工所在地（省级）
+              </label>
               <select
+                id="report-province"
                 value={province}
                 onChange={(e) => {
                   setProvince(e.target.value);
                   setConfirmed(false);
                 }}
-                className="input-field mt-1.5"
+                className="input-field w-full text-sm"
               >
                 {provinces.map((p) => (
                   <option key={p} value={p}>
@@ -117,10 +160,25 @@ export default function ReportDialog({
                   </option>
                 ))}
               </select>
-            </>
+              <p className="text-xs text-muted-foreground">
+                监察、仲裁、法援实行属地管辖，请按<strong className="font-medium text-foreground">实际用工省份</strong>选择。
+              </p>
+            </div>
           )}
 
-          <div className="mt-4 rounded-[var(--radius-md)] border border-border/80 bg-muted/40 p-3 text-sm">
+          {'usedFallback' in link && link.usedFallback && (
+            <div className="mt-3 flex items-start gap-2 rounded-[var(--radius-md)] border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              暂未配置「{province}」的专属链接，将跳转全国人社政务平台，请在平台内再选属地。
+            </div>
+          )}
+
+          <div className="mt-4 rounded-[var(--radius-md)] border border-border/80 bg-muted/40 p-4 text-sm">
+            {needsProvince && province && !link.usedFallback && (
+              <p className="mb-2 text-xs font-medium text-accent">
+                已匹配 {province} · {activeMeta?.label}
+              </p>
+            )}
             <p className="font-medium">{link.label}</p>
             {link.hint && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{link.hint}</p>}
             {link.phone && (
@@ -134,17 +192,17 @@ export default function ReportDialog({
 
           {category === 'wage_clue' && (
             <p className="mt-3 text-xs text-muted-foreground">
-              💡 工程建设领域欠薪建议选「工程建设领域」填报，系统可关联项目总包信息。
+              工程建设领域欠薪建议选「工程建设领域」填报，系统可关联项目总包信息。
             </p>
           )}
           {category === 'women_federation' && (
             <p className="mt-3 text-xs text-muted-foreground">
-              💡 妇联提供女职工权益保护咨询与反映渠道，可与劳动监察、仲裁配合使用；全国入口，不限定省份。
+              妇联提供女职工权益保护咨询与反映渠道，可与劳动监察、仲裁配合使用；全国入口，不限定省份。
             </p>
           )}
           {category === 'union_hotline' && (
             <p className="mt-3 text-xs text-muted-foreground">
-              💡 可先联系用人单位工会；无工会或需上级协助时，可拨打 12351 或通过全国总工会网站求助。
+              可先联系用人单位工会；无工会或需上级协助时，可拨打 12351 或通过全国总工会网站求助。
             </p>
           )}
         </div>
@@ -164,9 +222,14 @@ export default function ReportDialog({
             <Button variant="outline" className="flex-1" onClick={onClose}>
               取消
             </Button>
-            <Button variant="secondary" className="flex-1" disabled={!confirmed} onClick={handleOpen}>
+            <Button
+              variant="secondary"
+              className="flex-1"
+              disabled={!confirmed || !provinceReady}
+              onClick={handleOpen}
+            >
               <ExternalLink className="h-4 w-4" />
-              前往：{activeMeta?.label || '官方平台'}
+              前往{needsProvince && province ? `（${province}）` : ''}
             </Button>
           </div>
         </div>

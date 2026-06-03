@@ -14,6 +14,8 @@ import {
   Upload,
 } from 'lucide-react';
 import CaseJourneyPanel from '@/components/cases/CaseJourneyPanel';
+import CaseAgentCoach from '@/components/cases/CaseAgentCoach';
+import { useCaseAgentStep } from '@/hooks/useCaseAgentStep';
 import DashboardHeroBanner from '@/components/dashboard/DashboardHeroBanner';
 import ServiceStrip from '@/components/service/ServiceStrip';
 import { caseApi, userPortalApi, type CaseReadinessSummary } from '@/lib/api';
@@ -29,6 +31,7 @@ import CalculatorToolRow from '@/components/dashboard/CalculatorToolRow';
 import GuidanceHubPanel from '@/components/guidance/GuidanceHubPanel';
 import { formatBytes } from '@/lib/format';
 import IntakeDesk from '@/components/intake/IntakeDesk';
+import EntryGate from '@/components/intake/EntryGate';
 import PageSkeleton from '@/components/ui/PageSkeleton';
 import { Button, SectionTitle, Surface } from '@/components/ui/primitives';
 import { CHART_COLORS, MiniBarCompare } from '@/components/charts/SimpleCharts';
@@ -74,10 +77,10 @@ const STAT_META = {
 
 const FLOW_STEPS = [
   {
-    title: '判断维权路径',
-    description: '输入案情后明确可走渠道，避免直接进入错误流程。',
-    cta: '开始维权诊断',
-    route: '/guidance',
+    title: '选择维权方式',
+    description: '专项通道按身份填表，普通入口自由描述案情。',
+    cta: '开始填写',
+    route: '/#intake-desk',
     icon: Compass,
   },
   {
@@ -166,6 +169,13 @@ function Dashboard() {
   const [activeFlowStep, setActiveFlowStep] = useState(0);
   const [activeCaseReadiness, setActiveCaseReadiness] = useState<CaseReadinessSummary | null>(null);
   const [readinessLoading, setReadinessLoading] = useState(false);
+  const [activeCaseId, setActiveCaseId] = useState<number | null>(() => getActiveCaseId());
+  const {
+    step: agentStep,
+    loading: agentLoading,
+    error: agentError,
+    refresh: refreshAgent,
+  } = useCaseAgentStep(activeCaseId);
 
   const hubAgents = useMemo(() => getHubAgents(), []);
   const recentAgents = useMemo(() => {
@@ -186,16 +196,22 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
+    setActiveCaseId(getActiveCaseId());
+    const unsub = subscribeActiveCase(() => setActiveCaseId(getActiveCaseId()));
+    return unsub;
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     const loadReadiness = async () => {
-      const activeCaseId = getActiveCaseId();
-      if (!activeCaseId) {
+      const caseId = getActiveCaseId();
+      if (!caseId) {
         setActiveCaseReadiness(null);
         return;
       }
       setReadinessLoading(true);
       try {
-        const readiness = await caseApi.getReadiness(activeCaseId);
+        const readiness = await caseApi.getReadiness(caseId);
         if (!cancelled) setActiveCaseReadiness(readiness);
       } catch {
         if (!cancelled) setActiveCaseReadiness(null);
@@ -315,7 +331,13 @@ function Dashboard() {
                 <p className="mt-2 text-sm text-muted-foreground">{step.description}</p>
                 <button
                   type="button"
-                  onClick={() => navigate(step.route)}
+                  onClick={() => {
+                    if (step.route.startsWith('/#')) {
+                      document.getElementById(step.route.slice(2))?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate(step.route);
+                    }
+                  }}
                   className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
                 >
                   {step.cta}
@@ -327,7 +349,7 @@ function Dashboard() {
         </div>
       </section>
 
-      <IntakeDesk />
+      <EntryGate />
 
       {error && (
         <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
@@ -339,13 +361,21 @@ function Dashboard() {
       <section className="grid gap-4 lg:grid-cols-[1fr_auto]">
         <CaseJourneyPanel />
         <div className="min-w-[260px] space-y-4">
+          <CaseAgentCoach
+            step={agentStep}
+            caseId={activeCaseId}
+            loading={agentLoading}
+            error={agentError}
+            onRefresh={activeCaseId ? refreshAgent : undefined}
+            compact
+          />
           <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
-            <h2 className="text-sm font-semibold">当前案件 AI 完整度</h2>
+            <h2 className="text-sm font-semibold">材料完整度</h2>
             {readinessLoading ? (
               <p className="mt-2 text-xs text-muted-foreground">正在计算…</p>
             ) : !activeCaseReadiness ? (
               <p className="mt-2 text-xs text-muted-foreground">
-                请选择一个案件作为当前案件，即可显示智能评估。
+                请选择一个案件作为当前案件，即可显示评估。
               </p>
             ) : (
               <>
@@ -359,21 +389,19 @@ function Dashboard() {
                           ? 'bg-amber-500'
                           : 'bg-rose-500',
                     )}
-                    style={{ width: `${Math.max(0, Math.min(100, activeCaseReadiness.readiness_score))}%` }}
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(
+                          100,
+                          activeCaseReadiness.combined_score ??
+                            activeCaseReadiness.readiness_score,
+                        ),
+                      )}%`,
+                    }}
                   />
                 </div>
-                <p className="mt-2 text-xs font-medium">
-                  完整度 {activeCaseReadiness.readiness_score}% · {activeCaseReadiness.summary}
-                </p>
-                {activeCaseReadiness.next_actions.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => navigate(activeCaseReadiness.next_actions[0].route)}
-                    className="mt-3 inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs font-medium transition-colors hover:bg-accent"
-                  >
-                    {activeCaseReadiness.next_actions[0].label}
-                  </button>
-                )}
+                <p className="mt-2 text-xs text-muted-foreground">{activeCaseReadiness.summary}</p>
               </>
             )}
           </div>

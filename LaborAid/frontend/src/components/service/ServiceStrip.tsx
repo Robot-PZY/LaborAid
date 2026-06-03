@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Compass, HeartHandshake, Archive, History } from 'lucide-react';
+import { Compass, Archive, History } from 'lucide-react';
 
 const LINKS = [
-  { to: '/guidance', label: '维权指引', icon: Compass },
-  { to: '/channels', label: '维权专区', icon: HeartHandshake },
+  { to: '/guidance', label: '办事资源', icon: Compass },
   { to: '/vault', label: '材料库', icon: Archive },
   { to: '/records', label: '我的记录', icon: History },
 ] as const;

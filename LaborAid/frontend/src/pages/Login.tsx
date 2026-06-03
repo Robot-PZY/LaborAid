@@ -273,14 +273,6 @@ export default function Login() {
             </div>
           )}
 
-          {isAdminPortal && import.meta.env.DEV && (
-            <p className="mt-4 rounded-[var(--radius-md)] border border-dashed border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-              管理员账号 <strong className="text-foreground">Admin</strong> 或{' '}
-              <strong className="text-foreground">admin@laboraid.local</strong>，密码{' '}
-              <strong className="text-foreground">123456</strong>
-            </p>
-          )}
-
           <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
             {isRegister && !isAdminPortal && (
               <div>

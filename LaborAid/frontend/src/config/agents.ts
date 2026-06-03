@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { migrateRecentAgentsKey } from '@/lib/storage-keys';
 
+/** 导航与工具注册（每项 = 一个可独立调用的功能页面）。协作智能体按阶段分组，见 backend capabilities.py。 */
+
 export type AgentCategory =
   | 'hub'
   | 'service'
@@ -71,9 +73,9 @@ export const AGENTS: AgentConfig[] = [
   },
   {
     id: 'guidance',
-    name: '维权指引',
-    shortName: '指引',
-    description: '按案由查看维权步骤，跳转官方办事与援助渠道',
+    name: '办事资源',
+    shortName: '资源',
+    description: '申诉网站、热线电话与属地官方办事入口',
     icon: Compass,
     route: '/guidance',
     color: 'text-rose-600',
@@ -101,14 +103,14 @@ export const AGENTS: AgentConfig[] = [
     id: 'channels',
     name: '专项维权',
     shortName: '专项',
-    description: '农民工、实习生、女职工等人群的分情形指引与官方渠道',
+    description: '已并入首页专项通道入口',
     icon: HeartHandshake,
-    route: '/channels',
+    route: '/?intake=special#intake-desk',
     color: 'text-amber-700',
     bgColor: 'bg-amber-600',
     category: 'special',
     enabled: true,
-    showInNav: true,
+    showInNav: false,
     showInHub: false,
   },
   {
@@ -345,7 +347,7 @@ export function getRouteLabelMap(): Record<string, string> {
   AGENTS.forEach((a) => {
     map[a.route] = a.id === 'hub' ? '服务首页' : a.name;
   });
-  map['/channels'] = '专项维权';
+  map['/guidance'] = '办事资源';
   return map;
 }
 
