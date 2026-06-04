@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="480" viewBox="0 0 880 480">
+  <rect width="880" height="480" fill="#eef2ff"/>
+  <rect x="36" y="28" width="808" height="424" rx="10" fill="#ffffff" stroke="#c7d2fe"/>
+  <text x="440" y="72" text-anchor="middle" font-size="24" font-family="Microsoft YaHei, Arial" fill="#1e3a8a">???? APP · ??????</text>
+  <text x="56" y="118" font-size="17" font-family="Microsoft YaHei, Arial" fill="#374151">???????</text>
+  <text x="56" y="148" font-size="17" font-family="Microsoft YaHei, Arial" fill="#374151">???????????????????</text>
+  <text x="56" y="178" font-size="17" font-family="Microsoft YaHei, Arial" fill="#374151">??????????</text>
+  <rect x="56" y="200" width="768" height="40" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="72" y="226" font-size="16" font-family="Microsoft YaHei, Arial">??</text>
+  <text x="320" y="226" font-size="16" font-family="Microsoft YaHei, Arial">2026-03</text>
+  <text x="520" y="226" font-size="16" font-family="Microsoft YaHei, Arial">2026-04</text>
+  <text x="72" y="268" font-size="16" font-family="Microsoft YaHei, Arial">??/??/??/??/??</text>
+  <text x="320" y="268" font-size="16" font-family="Microsoft YaHei, Arial" fill="#059669">????</text>
+  <text x="520" y="268" font-size="16" font-family="Microsoft YaHei, Arial" fill="#059669">????</text>
+  <text x="56" y="420" font-size="14" font-family="Microsoft YaHei, Arial" fill="#64748b">?????2026-04-22 10:15</text>
+</svg>

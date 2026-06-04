@@ -18,6 +18,8 @@ import type { ChainAnalysisResult } from '@/lib/api';
 import { loadIntakeSession } from '@/lib/intake-session';
 import { getActiveCaseId, setActiveCaseId, subscribeActiveCase } from '@/lib/active-case';
 import CredibilityBar from '@/components/ui/CredibilityBar';
+import EvidenceAnalysisSummary from '@/components/evidence/EvidenceAnalysisSummary';
+import MarkdownRenderer from '@/lib/markdown';
 import { addToolHistory } from '@/lib/tool-history';
 import {
   clearChainAnalysis,
@@ -245,7 +247,9 @@ function ChainVisualization({ result, evidenceList }: { result: ChainAnalysisRes
       {result.chain_report && (
         <div className="rounded-lg border p-4">
           <h4 className="text-sm font-semibold mb-2">详细分析报告</h4>
-          <div className="text-sm whitespace-pre-wrap max-h-80 overflow-y-auto">{result.chain_report}</div>
+          <div className="max-h-96 overflow-y-auto rounded-md bg-muted/20 p-3 text-sm prose prose-sm max-w-none dark:prose-invert">
+            <MarkdownRenderer content={result.chain_report} />
+          </div>
         </div>
       )}
     </div>
@@ -276,8 +280,6 @@ export default function Evidence() {
   const [chainResult, setChainResult] = useState<ChainAnalysisResult | null>(null);
   const [chainCachedAt, setChainCachedAt] = useState<string | null>(null);
   const [analyzingChain, setAnalyzingChain] = useState(false);
-  const [crossExamId, setCrossExamId] = useState<number | null>(null);
-  const [crossExamText, setCrossExamText] = useState<Record<number, string>>({});
   const [casesLoading, setCasesLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
@@ -675,19 +677,6 @@ export default function Evidence() {
     } finally { setAnalyzingChain(false); }
   }, [selectedCase, loadReadiness, toast]);
 
-  const handleCrossExamination = useCallback(async (id: number) => {
-    setCrossExamId(id);
-    try {
-      const result = await evidenceChainApi.crossExamination(id);
-      setCrossExamText(prev => ({ ...prev, [id]: result.cross_examination }));
-      toast({ type: 'success', title: '质证意见已生成' });
-    } catch (e: unknown) {
-      const msg = e instanceof AxiosError ? (e.response?.data?.detail || '质证意见生成失败') : '质证意见生成失败';
-      setError(msg);
-      toast({ type: 'error', title: '质证意见生成失败' });
-    } finally { setCrossExamId(null); }
-  }, [toast]);
-
   /** Export evidence list as CSV */
   const handleExportEvidenceList = useCallback(() => {
     if (evidenceList.length === 0) return;
@@ -928,8 +917,8 @@ export default function Evidence() {
                 )}
                 {ev.analysis && (
                   <div>
-                    <h4 className="text-sm font-medium mb-1">AI分析</h4>
-                    <div className="rounded-md bg-blue-50 p-3 text-sm whitespace-pre-wrap max-h-80 overflow-y-auto">{ev.analysis}</div>
+                    <h4 className="text-sm font-medium mb-2">AI分析</h4>
+                    <EvidenceAnalysisSummary analysis={ev.analysis} />
                   </div>
                 )}
               </div>
@@ -1058,21 +1047,8 @@ export default function Evidence() {
                     )}
                     {ev.analysis && (
                       <div>
-                        <h4 className="text-sm font-medium mb-1">AI分析</h4>
-                        <div className="rounded-md bg-blue-50 p-3 text-sm whitespace-pre-wrap max-h-80 overflow-y-auto">{ev.analysis}</div>
-                      </div>
-                    )}
-                    {ev.ocr_text && ev.ocr_status === 'success' && (
-                      <button onClick={() => handleCrossExamination(ev.id)} disabled={crossExamId === ev.id}
-                        className="flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs hover:bg-accent disabled:opacity-50">
-                        {crossExamId === ev.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <MessageSquare className="h-3 w-3" />}
-                        生成质证意见
-                      </button>
-                    )}
-                    {crossExamText[ev.id] && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">质证意见</h4>
-                        <div className="rounded-md bg-amber-50 p-3 text-sm whitespace-pre-wrap max-h-80 overflow-y-auto">{crossExamText[ev.id]}</div>
+                        <h4 className="text-sm font-medium mb-2">AI分析</h4>
+                        <EvidenceAnalysisSummary analysis={ev.analysis} />
                       </div>
                     )}
                     {ev.tags && ev.tags.length > 0 && (

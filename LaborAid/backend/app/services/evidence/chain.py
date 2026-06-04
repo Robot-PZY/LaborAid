@@ -113,10 +113,10 @@ async def analyze_evidence_chain(
     {{"date": "YYYY-MM-DD或描述", "event": "事件描述", "evidence_id": null, "confidence": "high|medium|low"}}
   ],
   "suggested_order": [证据ID的举证顺序],
-  "summary": "整体分析摘要（300字以内）"
+  "summary": "整体分析摘要（200字以内）"
 }}
 
-请直接返回JSON，不要包含其他文字。""")
+请直接返回JSON，不要包含其他文字。chain_report 将由系统根据 JSON 生成，summary 务必简洁。""")
 
     raw = ""
     try:
@@ -267,9 +267,11 @@ def _build_chain_report(result: dict) -> str:
     score = result.get("completeness_score")
     status = result.get("chain_status", "未知")
     if score is not None:
-        parts.append(f"# 证据链分析报告\n")
-        parts.append(f"**完整度**: {score}/100 — {status}\n")
-    parts.append(f"\n{result.get('summary', '')}\n")
+        parts.append(f"# 证据链分析报告\n\n")
+        parts.append(f"**完整度**：{score}/100 · {status}\n\n")
+    summary = (result.get("summary") or "").strip()
+    if summary:
+        parts.append(f"{summary[:400]}\n")
 
     facts = result.get("facts_to_prove", [])
     if facts:

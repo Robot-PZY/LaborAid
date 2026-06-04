@@ -1,0 +1,14 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="720" height="560" viewBox="0 0 720 560">
+  <rect width="720" height="560" fill="#ededed"/>
+  <rect x="0" y="0" width="720" height="56" fill="#393a3e"/>
+  <text x="360" y="36" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, Arial" fill="#ffffff">南讯智联-入职手续&amp;人事</text>
+  <rect x="24" y="80" width="420" height="72" rx="8" fill="#ffffff"/>
+  <text x="40" y="108" font-size="14" font-family="Microsoft YaHei, Arial" fill="#6b7280">陈磊 14:26</text>
+  <text x="40" y="132" font-size="15" font-family="Microsoft YaHei, Arial" fill="#111827">@林晓晨 今天把工作交接一下，试用期不符合要求，今天不用再来了。</text>
+  <rect x="276" y="168" width="420" height="88" rx="8" fill="#95ec69"/>
+  <text x="292" y="196" font-size="14" font-family="Microsoft YaHei, Arial" fill="#374151">林晓晨 14:28</text>
+  <text x="292" y="220" font-size="15" font-family="Microsoft YaHei, Arial" fill="#111827">能否出具书面解除通知？有没有考核表？有没有培训或调岗？</text>
+  <rect x="24" y="272" width="480" height="72" rx="8" fill="#ffffff"/>
+  <text x="40" y="300" font-size="14" font-family="Microsoft YaHei, Arial" fill="#6b7280">王静(HR) 14:31</text>
+  <text x="40" y="324" font-size="15" font-family="Microsoft YaHei, Arial" fill="#111827">解除理由是不胜任，工资结算到15号。部门有评估记录，请配合交接。</text>
+</svg>

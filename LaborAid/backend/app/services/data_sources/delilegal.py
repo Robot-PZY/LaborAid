@@ -24,6 +24,13 @@ from app.services.data_sources.base import (
 logger = logging.getLogger(__name__)
 
 
+def _truncate(text: str, max_len: int = 2400) -> str:
+    t = (text or "").strip()
+    if len(t) <= max_len:
+        return t
+    return t[:max_len].rstrip() + "…"
+
+
 def _pick(data: dict[str, Any], *keys: str, default: str = "") -> str:
     for k in keys:
         v = data.get(k)
@@ -145,7 +152,10 @@ class DeliLegalAdapter(LegalDataSourceAdapter):
                         court=_pick(row, "court"),
                         date=_pick(row, "judgementDate", "judgmentDate"),
                         judgment_type=_pick(row, "documentName", "judgmentType"),
-                        content=_pick(row, "summary", "courtView", "content"),
+                        content=_truncate(
+                            _pick(row, "summary")
+                            or _pick(row, "courtView", "content")
+                        ),
                         relevance_score=0.76,
                         metadata={
                             "queryId": _pick(body, "queryId"),

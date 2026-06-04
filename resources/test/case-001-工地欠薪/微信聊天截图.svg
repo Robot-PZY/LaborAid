@@ -1,0 +1,11 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="720" height="520" viewBox="0 0 720 520">
+  <rect width="720" height="520" fill="#ededed"/>
+  <rect x="0" y="0" width="720" height="56" fill="#393a3e"/>
+  <text x="360" y="36" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, Arial" fill="#ffffff">赵建国（班组长）</text>
+  <rect x="24" y="80" width="380" height="64" rx="8" fill="#ffffff"/>
+  <text x="40" y="118" font-size="15" font-family="Microsoft YaHei, Arial">工程款还没下来，先等等，月底给你们结一部分。</text>
+  <rect x="316" y="160" width="380" height="64" rx="8" fill="#95ec69"/>
+  <text x="332" y="198" font-size="15" font-family="Microsoft YaHei, Arial">1-3月都没结，能不能给个准确时间？</text>
+  <rect x="24" y="240" width="400" height="64" rx="8" fill="#ffffff"/>
+  <text x="40" y="278" font-size="15" font-family="Microsoft YaHei, Arial">你先别搞那么大，我这边明天再对账。</text>
+</svg>

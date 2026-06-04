@@ -59,6 +59,11 @@ export const vaultApi = {
 
   remove: (id: number) => apiClient.delete(`/vault/${id}`, { timeout: TIMEOUT.short }),
 
+  bulkRemove: (ids: number[]) =>
+    apiClient
+      .post<{ deleted: number }>('/vault/bulk-delete', { ids }, { timeout: TIMEOUT.medium })
+      .then((r) => r.data),
+
   download: (id: number) =>
     apiClient
       .get<Blob>(`/vault/${id}/download`, { responseType: 'blob', timeout: TIMEOUT.long })

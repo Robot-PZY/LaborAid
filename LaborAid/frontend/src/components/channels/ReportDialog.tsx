@@ -50,17 +50,16 @@ export default function ReportDialog({
   initialCategory = 'labor_inspection',
 }: ReportDialogProps) {
   const categories = listPlatformCategories();
-  const provinces = getReportProvinces();
+  const provinces = useMemo(() => getReportProvinces(), []);
   const [category, setCategory] = useState<PlatformCategoryId>(initialCategory);
   const [province, setProvince] = useState(() => loadSavedProvince(provinces));
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      setCategory(initialCategory);
-      setProvince(loadSavedProvince(provinces));
-      setConfirmed(false);
-    }
+    if (!open) return;
+    setCategory(initialCategory);
+    setProvince(loadSavedProvince(provinces));
+    setConfirmed(false);
   }, [open, initialCategory, provinces]);
 
   const needsProvince = !isNationalPlatformCategory(category);
@@ -207,13 +206,17 @@ export default function ReportDialog({
           )}
         </div>
 
-        <div className="shrink-0 border-t border-border/60 p-6 pt-4">
-          <label className="flex cursor-pointer items-start gap-2 text-xs text-muted-foreground">
+        <div className="relative z-20 shrink-0 border-t border-border/60 bg-card p-6 pt-4">
+          <label
+            htmlFor="report-external-confirm"
+            className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted-foreground"
+          >
             <input
+              id="report-external-confirm"
               type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-0.5 rounded border-input"
+              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border border-input text-accent focus:ring-accent"
             />
             我已知悉将离开劳权智助，前往第三方官方网站，办理结果以该网站为准。
           </label>

@@ -542,14 +542,38 @@ async def delete_case(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """删除案件（关联证据一并删除；文书/报告仅解除关联）。"""
+    """删除案件（证据及关联材料库条目一并清理；文书/报告仅解除关联）。"""
     case = await db.get(Case, case_id)
     if not case or case.owner_id != current_user.id:
         raise HTTPException(404, "案件不存在或无权删除")
     try:
+        settings = get_settings()
+        ev_result = await db.execute(select(Evidence).where(Evidence.case_id == case_id))
+        evidences = list(ev_result.scalars().all())
+        evidence_ids = [e.id for e in evidences]
+
+        for ev in evidences:
+            if ev.file_path:
+                fp = settings.upload_path / ev.file_path
+                if fp.is_file():
+                    fp.unlink(missing_ok=True)
+
+        from app.services.vault import soft_delete_materials_for_case
+
+        vault_removed = await soft_delete_materials_for_case(
+            db,
+            user_id=current_user.id,
+            case_id=case_id,
+            evidence_ids=evidence_ids,
+        )
+
         await db.delete(case)
         await db.flush()
-        return {"message": "案件已删除", "id": case_id}
+        return {
+            "message": "案件已删除",
+            "id": case_id,
+            "vault_materials_removed": vault_removed,
+        }
     except Exception as e:
         logger.exception("Delete case failed: %s", e)
         await db.rollback()

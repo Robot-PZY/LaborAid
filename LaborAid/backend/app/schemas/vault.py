@@ -35,3 +35,11 @@ class VaultStatsOut(BaseModel):
     total_bytes: int
     quota_bytes: int
     by_stage: dict[str, int]
+
+
+class VaultBulkDeleteIn(BaseModel):
+    ids: list[int] = Field(..., min_length=1, max_length=100)
+
+
+class VaultBulkDeleteOut(BaseModel):
+    deleted: int

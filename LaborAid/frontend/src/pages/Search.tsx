@@ -99,6 +99,34 @@ function removeSavedResult(id: string) {
   localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
 }
 
+/** 列表摘要：避免外部案例库返回整段判决书撑满卡片 */
+function previewText(text: string, maxLen = 200): string {
+  const normalized = sanitizeSearchText(text).replace(/\s+/g, ' ');
+  if (normalized.length <= maxLen) return normalized;
+  return `${normalized.slice(0, maxLen)}…`;
+}
+
+/** 将长正文按常见裁判文书小节分段展示 */
+function splitLegalSections(text: string): { heading: string; body: string }[] {
+  const clean = sanitizeSearchText(text);
+  if (!clean) return [];
+  const markers = ['当事人信息', '基本事实', '审理经过', '本院认为', '裁判结果', '诉讼请求', '裁判要旨'];
+  const pattern = new RegExp(`(?=(${markers.join('|')}))`, 'g');
+  const parts = clean.split(pattern).map((p) => p.trim()).filter(Boolean);
+  if (parts.length <= 1) return [{ heading: '正文', body: clean }];
+  return parts.map((part) => {
+    const hit = markers.find((m) => part.startsWith(m));
+    if (!hit) return { heading: '正文', body: part };
+    return { heading: hit, body: part.slice(hit.length).trim() || part };
+  });
+}
+
+function dataSourceLabel(item: { source?: string; _kind?: string }): string {
+  const raw = sanitizeSearchText(item.source || '');
+  if (raw && raw !== 'law' && raw !== 'case') return raw;
+  return item._kind === 'case' ? '案例库' : '法规库';
+}
+
 /** Highlight occurrences of query terms in text */
 function highlightText(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
@@ -194,7 +222,7 @@ function RelevanceBar({ score }: { score: number }) {
 function Search() {
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [source, setSource] = useState<SearchSource>('all');
+  const [source, setSource] = useState<SearchSource>('laws');
   const [searchData, setSearchData] = useState<SearchResults | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -211,6 +239,7 @@ function Search() {
   const abortRef = useRef<AbortController | null>(null);
   // Debounce timer ref
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sourceEffectBoot = useRef(true);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -221,20 +250,20 @@ function Search() {
   // Combine laws and cases into a flat result list
   const allResults = useMemo(() => searchData
     ? [
-        ...(searchData.laws || []).map((item: any) => ({ ...item, source: 'law' })),
-        ...(searchData.cases || []).map((item: any) => ({ ...item, source: 'case' })),
+        ...(searchData.laws || []).map((item: any) => ({ ...item, _kind: 'law' as const })),
+        ...(searchData.cases || []).map((item: any) => ({ ...item, _kind: 'case' as const })),
       ]
         .filter((item) => {
-          if (source === 'laws') return item.source === 'law';
-          if (source === 'cases') return item.source === 'case';
+          if (source === 'laws') return item._kind === 'law';
+          if (source === 'cases') return item._kind === 'case';
           return true;
         })
         .map((item) => ({
           ...item,
           title: sanitizeSearchText(item.title || ''),
           content: sanitizeSearchText(item.content || item.snippet || ''),
-          uid: `${item.source || 'unknown'}::${item.document_id || item.case_id || item.id || item.title || ''}`,
-          relevance: computeRelevance(item, query),
+          uid: `${item._kind}::${item.document_id || item.case_id || item.id || item.title || ''}`,
+          relevance: computeRelevance({ ...item, source: item._kind }, query),
         }))
         .sort((a, b) => b.relevance - a.relevance)
     : [], [searchData, source, query]);
@@ -245,7 +274,7 @@ function Search() {
     currentPage * PAGE_SIZE,
   );
 
-  const isSavedResult = useCallback((result: any) => {
+  const isSavedResult = useCallback((result: { title: string; source: string }) => {
     return savedResults.some((s) => s.title === result.title && s.source === result.source);
   }, [savedResults]);
 
@@ -303,6 +332,17 @@ function Search() {
     }
   }, [query, source]);
 
+  // 切换「法规 / 案例 / 全部」时，若已有查询则重新检索（跳过首次挂载）
+  useEffect(() => {
+    if (sourceEffectBoot.current) {
+      sourceEffectBoot.current = false;
+      return;
+    }
+    if (!searched || !query.trim()) return;
+    void handleSearch(query);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅随 source 切换重搜
+  }, [source]);
+
   useEffect(() => {
     const q = searchParams.get('q');
     if (searchParams.get('from') === 'intake' && q?.trim()) {
@@ -339,8 +379,9 @@ function Search() {
 
   const handleSaveToResearch = (result: any) => {
     const contentText = result.content || result.snippet || '';
+    const kind = result._kind || result.source;
     const saved = getSavedResults();
-    const existing = saved.find((s) => s.title === result.title && s.source === result.source);
+    const existing = saved.find((s) => s.title === result.title && s.source === kind);
     if (existing) {
       removeSavedResult(existing.id);
       setSavedResults(getSavedResults());
@@ -349,7 +390,7 @@ function Search() {
     const didSave = saveResult({
       title: result.title,
       content: contentText,
-      source: result.source,
+      source: kind,
     });
     if (didSave) setSavedResults(getSavedResults());
   };
@@ -555,12 +596,15 @@ function Search() {
           </div>
           {paginatedResults.map((result: any, idx: number) => {
             const globalIdx = (currentPage - 1) * PAGE_SIZE + idx;
-            const badge = sourceBadge[result.source] || {
-              label: result.source,
+            const kind = result._kind as 'law' | 'case';
+            const badge = sourceBadge[kind] || {
+              label: kind === 'case' ? '司法案例' : '法律法规',
               color: 'bg-gray-100 text-gray-700',
             };
             const contentText = result.content || result.snippet || '';
-            const isSaved = isSavedResult(result);
+            const preview = previewText(contentText);
+            const sections = splitLegalSections(contentText);
+            const isSaved = isSavedResult({ ...result, source: kind });
             const isExpanded = expandedSet.has(result.uid);
             return (
               <div
@@ -615,23 +659,71 @@ function Search() {
                     </button>
                   </div>
                 </div>
-                <h3 className="mb-2 text-sm font-semibold leading-snug">
+                <h3 className={cn('mb-2 font-semibold leading-snug', isExpanded ? 'text-base' : 'text-sm line-clamp-2')}>
                   {highlightText(result.title, query)}
                 </h3>
-                <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">
-                  {highlightText(contentText, query)}
-                </p>
+                {kind === 'law' && result.provision_ref && (
+                  <p className="mb-2 text-xs font-medium text-primary">
+                    {result.provision_ref}
+                  </p>
+                )}
+                {!isExpanded && (
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {highlightText(preview, query)}
+                  </p>
+                )}
                 {isExpanded && (
-                  <div className="mt-3 rounded-lg border bg-muted/20 p-3 text-xs text-muted-foreground space-y-1">
-                    {result.provision_ref && <p><span className="font-medium text-foreground">条款：</span>{result.provision_ref}</p>}
-                    {result.case_number && <p><span className="font-medium text-foreground">案号：</span>{result.case_number}</p>}
-                    {result.court && <p><span className="font-medium text-foreground">法院：</span>{result.court}</p>}
-                    {result.date && <p><span className="font-medium text-foreground">日期：</span>{result.date}</p>}
-                    {result.judgment_type && <p><span className="font-medium text-foreground">裁判类型：</span>{result.judgment_type}</p>}
-                    <p><span className="font-medium text-foreground">来源：</span>{result.source || '未知'}</p>
-                    {!result.provision_ref && !result.case_number && !result.court && !result.date && !result.judgment_type && (
-                      <p className="text-muted-foreground">该结果暂无更多结构化字段，可复制正文进一步分析。</p>
-                    )}
+                  <div className="mt-4 space-y-3 border-t border-border/60 pt-4">
+                    <div className="grid gap-2 rounded-lg border bg-muted/15 p-3 text-xs sm:grid-cols-2">
+                      {result.provision_ref && (
+                        <p className="sm:col-span-2">
+                          <span className="font-medium text-foreground">条款：</span>
+                          {result.provision_ref}
+                        </p>
+                      )}
+                      {result.case_number && (
+                        <p>
+                          <span className="font-medium text-foreground">案号：</span>
+                          {result.case_number}
+                        </p>
+                      )}
+                      {result.court && (
+                        <p>
+                          <span className="font-medium text-foreground">法院：</span>
+                          {result.court}
+                        </p>
+                      )}
+                      {result.date && (
+                        <p>
+                          <span className="font-medium text-foreground">日期：</span>
+                          {result.date}
+                        </p>
+                      )}
+                      {result.judgment_type && (
+                        <p>
+                          <span className="font-medium text-foreground">文书类型：</span>
+                          {result.judgment_type}
+                        </p>
+                      )}
+                      <p className="sm:col-span-2">
+                        <span className="font-medium text-foreground">数据来源：</span>
+                        {dataSourceLabel(result)}
+                      </p>
+                    </div>
+                    <div className="max-h-[min(420px,50vh)] overflow-y-auto rounded-lg border bg-background p-4 text-sm leading-relaxed">
+                      {sections.map((sec, si) => (
+                        <div key={si} className={si > 0 ? 'mt-4 border-t border-border/40 pt-4' : ''}>
+                          {sec.heading !== '正文' && (
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-accent">
+                              {sec.heading}
+                            </p>
+                          )}
+                          <p className="whitespace-pre-wrap text-foreground/90">
+                            {highlightText(sec.body, query)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -710,7 +802,7 @@ function Search() {
 
           {/* Suggested tags */}
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {['民间借贷', '劳动合同纠纷', '知识产权侵权', '合同违约'].map((tag) => (
+            {['劳动合同解除', '拖欠工资', '试用期', '工伤认定'].map((tag) => (
               <button
                 key={tag}
                 onClick={() => handleSearch(tag)}

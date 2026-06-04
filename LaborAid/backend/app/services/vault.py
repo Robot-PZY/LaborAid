@@ -48,6 +48,16 @@ def vault_dest_path(user_id: int, original_filename: str) -> tuple[Path, str]:
     return dest, rel
 
 
+def _soft_delete_rows(rows: list[UserMaterial]) -> int:
+    now = datetime.now(timezone.utc)
+    n = 0
+    for row in rows:
+        if row.deleted_at is None:
+            row.deleted_at = now
+            n += 1
+    return n
+
+
 async def mark_vault_source_deleted(
     db: AsyncSession,
     *,
@@ -64,9 +74,39 @@ async def mark_vault_source_deleted(
             UserMaterial.deleted_at.is_(None),
         )
     )
-    now = datetime.now(timezone.utc)
-    for row in result.scalars().all():
-        row.deleted_at = now
+    _soft_delete_rows(list(result.scalars().all()))
+
+
+async def soft_delete_materials_for_case(
+    db: AsyncSession,
+    *,
+    user_id: int,
+    case_id: int,
+    evidence_ids: list[int] | None = None,
+) -> int:
+    """删除案件时：软删除关联材料库条目（按 case_id 及证据 source_id）。"""
+    deleted = 0
+    by_case = await db.execute(
+        select(UserMaterial).where(
+            UserMaterial.user_id == user_id,
+            UserMaterial.case_id == case_id,
+            UserMaterial.deleted_at.is_(None),
+        )
+    )
+    deleted += _soft_delete_rows(list(by_case.scalars().all()))
+
+    if evidence_ids:
+        by_evidence = await db.execute(
+            select(UserMaterial).where(
+                UserMaterial.user_id == user_id,
+                UserMaterial.source == "evidence",
+                UserMaterial.source_id.in_(evidence_ids),
+                UserMaterial.deleted_at.is_(None),
+            )
+        )
+        deleted += _soft_delete_rows(list(by_evidence.scalars().all()))
+
+    return deleted
 
 
 async def archive_file_to_vault(

@@ -47,6 +47,8 @@ export default function Vault() {
   const [query, setQuery] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(query.trim()), 300);
@@ -133,9 +135,48 @@ export default function Vault() {
     try {
       await vaultApi.remove(id);
       toast('已删除', 'success');
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       load();
     } catch {
       toast('删除失败', 'error');
+    }
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((i) => i.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    if (!ids.length) return;
+    if (!confirm(`确定删除选中的 ${ids.length} 个材料？删除后不可恢复。`)) return;
+    setBulkDeleting(true);
+    try {
+      const { deleted } = await vaultApi.bulkRemove(ids);
+      toast(`已删除 ${deleted} 个材料`, 'success');
+      setSelectedIds(new Set());
+      load();
+    } catch {
+      toast('批量删除失败', 'error');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -266,7 +307,45 @@ export default function Vault() {
       </div>
 
       <section>
-        <SectionTitle title={`材料列表${items.length ? `（${items.length}）` : ''}`} />
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SectionTitle
+            title={`材料列表${items.length ? `（${items.length}）` : ''}`}
+            className="mb-0"
+          />
+          {items.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-input"
+                  checked={items.length > 0 && selectedIds.size === items.length}
+                  onChange={toggleSelectAll}
+                  aria-label="全选当前列表"
+                />
+                全选
+              </label>
+              {selectedIds.size > 0 && (
+                <>
+                  <span className="text-xs text-muted-foreground">已选 {selectedIds.size} 项</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={bulkDeleting}
+                    onClick={handleBulkDelete}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    {bulkDeleting ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                    批量删除
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -284,6 +363,13 @@ export default function Vault() {
                 className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 gap-3">
+                  <input
+                    type="checkbox"
+                    className="mt-2 h-4 w-4 shrink-0 rounded border-input"
+                    checked={selectedIds.has(item.id)}
+                    onChange={() => toggleSelect(item.id)}
+                    aria-label={`选择 ${item.title}`}
+                  />
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-border bg-muted/40">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                   </div>

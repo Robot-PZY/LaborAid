@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+  <rect width="900" height="520" fill="#f3f4f6"/>
+  <rect x="40" y="30" width="820" height="460" rx="12" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="450" y="75" text-anchor="middle" font-size="26" font-family="Microsoft YaHei, Arial" fill="#111827">???? ? ????????</text>
+  <text x="60" y="115" font-size="18" font-family="Microsoft YaHei, Arial" fill="#6b7280">??????  ?????3186</text>
+  <rect x="60" y="140" width="780" height="44" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="80" y="170" font-size="17" font-family="Microsoft YaHei, Arial">??</text>
+  <text x="220" y="170" font-size="17" font-family="Microsoft YaHei, Arial">??</text>
+  <text x="520" y="170" font-size="17" font-family="Microsoft YaHei, Arial">??</text>
+  <rect x="60" y="184" width="780" height="52" fill="#fff" stroke="#e5e7eb"/>
+  <text x="80" y="216" font-size="17" font-family="Microsoft YaHei, Arial">2026-03-10</text>
+  <text x="220" y="216" font-size="17" font-family="Microsoft YaHei, Arial">??</text>
+  <text x="520" y="216" font-size="17" font-family="Microsoft YaHei, Arial" fill="#059669">+6,180.00</text>
+  <rect x="60" y="236" width="780" height="52" fill="#fff" stroke="#e5e7eb"/>
+  <text x="80" y="268" font-size="17" font-family="Microsoft YaHei, Arial">2026-04-10</text>
+  <text x="220" y="268" font-size="17" font-family="Microsoft YaHei, Arial">??</text>
+  <text x="520" y="268" font-size="17" font-family="Microsoft YaHei, Arial" fill="#059669">+6,180.00</text>
+  <rect x="60" y="288" width="780" height="52" fill="#fff" stroke="#e5e7eb"/>
+  <text x="80" y="320" font-size="17" font-family="Microsoft YaHei, Arial">2026-04-20</text>
+  <text x="220" y="320" font-size="17" font-family="Microsoft YaHei, Arial">4?????</text>
+  <text x="520" y="320" font-size="17" font-family="Microsoft YaHei, Arial" fill="#059669">+2,840.00</text>
+  <text x="60" y="400" font-size="16" font-family="Microsoft YaHei, Arial" fill="#6b7280">??????????????????</text>
+</svg>

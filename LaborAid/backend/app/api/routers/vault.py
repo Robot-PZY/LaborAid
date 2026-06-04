@@ -14,7 +14,13 @@ from app.core.database import get_db
 from app.core.security import get_current_user, validate_upload
 from app.models.user import User
 from app.models.user_material import UserMaterial
-from app.schemas.vault import UserMaterialOut, UserMaterialUpdate, VaultStatsOut
+from app.schemas.vault import (
+    UserMaterialOut,
+    UserMaterialUpdate,
+    VaultBulkDeleteIn,
+    VaultBulkDeleteOut,
+    VaultStatsOut,
+)
 from app.services.vault import (
     ALLOWED_STAGES,
     assert_vault_quota,
@@ -183,6 +189,31 @@ async def update_material(
     await db.commit()
     await db.refresh(row)
     return row
+
+
+@router.post("/bulk-delete", response_model=VaultBulkDeleteOut)
+async def bulk_delete_materials(
+    data: VaultBulkDeleteIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """批量软删除材料（最多 100 条）。"""
+    from datetime import datetime, timezone
+
+    unique_ids = list(dict.fromkeys(data.ids))
+    result = await db.execute(
+        select(UserMaterial).where(
+            UserMaterial.id.in_(unique_ids),
+            UserMaterial.user_id == current_user.id,
+            _active_filter(),
+        )
+    )
+    rows = list(result.scalars().all())
+    now = datetime.now(timezone.utc)
+    for row in rows:
+        row.deleted_at = now
+    await db.commit()
+    return VaultBulkDeleteOut(deleted=len(rows))
 
 
 @router.delete("/{material_id}", status_code=204)
