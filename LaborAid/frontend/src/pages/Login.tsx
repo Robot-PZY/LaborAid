@@ -177,12 +177,14 @@ export default function Login() {
       announceToScreenReader('登录成功');
       setTimeout(() => navigate(target, { replace: true }), 350);
     } catch (err: unknown) {
-      const detail =
-        err instanceof AxiosError ? err.response?.data?.detail || err.response?.data?.message : null;
-      const msg =
-        detail ||
-        (isRegister ? '注册失败' : isAdminPortal ? '账号或密码错误' : '登录失败，请检查邮箱和密码');
-      setError(msg);
+      const ax = err instanceof AxiosError ? err : null;
+      const detail = ax?.response?.data?.detail || ax?.response?.data?.message;
+      const isNetwork = !ax?.response && (ax?.code === 'ERR_NETWORK' || ax?.message?.includes('Network'));
+      const msg = isNetwork
+        ? '无法连接服务器。请确认已运行 scripts\\dev.ps1，且后端(8010)与前端(5320)两个窗口均无报错。'
+        : detail ||
+          (isRegister ? '注册失败' : isAdminPortal ? '账号或密码错误' : '登录失败，请检查邮箱和密码');
+      setError(typeof msg === 'string' ? msg : String(msg));
     } finally {
       setLoading(false);
     }
