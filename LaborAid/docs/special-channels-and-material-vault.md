@@ -1,8 +1,23 @@
-﻿# 特定群体维权专区通道 & 个人材料库 — 设计方案
+﻿# 特定群体专项维权 intake & 个人材料库
 
-> **版本**：v1.0  
-> **状态**：**已落地 v1**（专项通道页面 + 一键举报弹层 + 材料库 API/页面；整理证据上传自动归档）  
-> **关联**：[产品架构](../../docs/product-architecture.md) · [维权指引配置](../frontend/src/config/labor/guidance.json) · [专项通道配置](../frontend/src/config/labor/special-channels.json)
+> **版本**：v2.0（相对 v1 专区页面收敛）  
+> **状态**：**已落地** — 首页专项 intake、结构化 API、材料库、办事资源页、案件 intake 快照  
+> **关联**：[产品架构](../../docs/product-architecture.md) · [办事资源配置](../frontend/src/config/labor/official-platforms.json) · [专项配置](../frontend/src/config/labor/special-channels.json) · [表单字段](../frontend/src/config/labor/intake-scenarios.json)
+
+---
+
+## 0. 当前实现摘要（2026）
+
+| 能力 | 实现方式 |
+|------|----------|
+| 专项维权入口 | 首页 `EntryGate` → `ChannelIntakeWizard`（`?intake=special`） |
+| 三大身份 | `migrant-worker` / `intern-probation` / `female-worker`，每身份多情形 |
+| 结构化建案 | `POST /intake/structured` → 维权计划 → `POST /intake/create-case` |
+| 官方办事外链 | **`/guidance` 办事资源**（`OfficialPlatformStrip` + `ReportDialog`，31 省） |
+| 旧专区 URL | `/channels` → 首页专项 intake；`/channels/:id` → `ChannelLegacyRedirect` |
+| 数据闭环 | 建案写入 `case.ai_snapshot.intake`；`/cases/{id}/readiness` 返回 `intake_checklist` |
+
+**不再维护**：独立 `ChannelHub` / `ChannelDetail` 长页（配置 `special-channels.json` 仍驱动情形文案与 checklist）。
 
 ---
 
@@ -17,33 +32,112 @@
 
 ---
 
-## 2. 信息架构（服务层扩展）
-
-在现有 **服务首页 → 维权指引 → 我的记录** 之上，增加 **维权专区通道** 子域：
+## 2. 信息架构（当前）
 
 ```
 服务首页 (/)
     │
-    ├── 维权专区通道 (/channels)          ← 新增：群体入口总览
-    │       ├── 农民工维权 (/channels/migrant-worker)
-    │       ├── 实习生·试用期 (/channels/intern-probation)
-    │       └── 女职工维权 (/channels/female-worker)
+    ├── 开始维权 · EntryGate
+    │       ├── 专项维权 (?intake=special)
+    │       │     └── ChannelIntakeWizard → intake-scenarios.json 表单
+    │       └── 普通入口 (?intake=general)
+    │             └── IntakeDesk → POST /intake/analyze
     │
-    ├── 维权指引 (/guidance)              ← 已有：通用案由步骤
-    ├── 我的记录 (/records)               ← 已有：统计聚合
-    └── 我的材料 (/vault)               ← 新增：跨模块文件归档
+    ├── 办事资源 (/guidance)              ← 官方平台、热线、省级链接
+    ├── 我的记录 (/records)
+    └── 我的材料 (/vault)                 ← 跨模块文件归档
+
+（兼容）/channels、/channels/:id → 重定向首页专项 intake
 ```
 
-**侧栏建议**（`agents.ts` 服务分组下）：
+**侧栏（服务分组）**：首页、我的记录、**办事资源**（原「维权指引」文案已调整）
 
-| 名称 | 路由 | 优先级 |
-|------|------|--------|
-| 维权专区 | `/channels` | P1 |
-| 我的材料 | `/vault` | P1.5 |
+| 名称 | 路由 | 说明 |
+|------|------|------|
+| 开始维权 | `/` | 含专项 / 普通 intake |
+| 办事资源 | `/guidance` | 非案由向导，仅权威外链 |
+| 我的材料 | `/vault` | 个人级归档 |
 
 ---
 
-## 3. 特定群体维权专区通道（P1）
+## 2.1 信息架构（v1 设计稿，已收敛）
+
+<details>
+<summary>展开：原独立 /channels 专区页面设计</summary>
+
+```
+服务首页 (/)
+    ├── 维权专区通道 (/channels)          ← 已收敛至首页 intake
+    │       ├── 农民工维权 (/channels/migrant-worker)
+    │       ├── 实习生·试用期 (/channels/intern-probation)
+    │       └── 女职工维权 (/channels/female-worker)
+    ├── 办事资源 (/guidance)
+    └── 我的材料 (/vault)
+```
+
+</details>
+
+---
+
+## 3. 特定群体专项 intake（当前）
+
+### 3.1 配置与代码
+
+| 文件 | 作用 |
+|------|------|
+| `config/labor/special-channels.json` | 身份标题、情形摘要、证据 checklist 模板 |
+| `config/labor/intake-scenarios.json` | 各情形 **动态表单字段** |
+| `components/intake/EntryGate.tsx` | 专项 / 普通分流 |
+| `components/intake/ChannelIntakeWizard.tsx` | 选身份 → 情形 → 填表 → 生成计划 |
+| `backend/.../structured_builder.py` | 规则构建 analyze 同构结果 |
+| `backend/.../case_binding.py` | 建案绑定 ai_snapshot |
+
+### 3.2 三大身份要点（评审话术）
+
+（内容与下表相同，入口改为首页专项向导而非独立频道页。）
+
+#### A. 农民工维权 `migrant-worker`
+
+| 模块 | 内容要点 |
+|------|----------|
+| 典型情形 | 包工头欠薪、工地劳务等（`intake-scenarios.json`） |
+| 结构化字段 | 用工地区、用人单位、欠薪金额与期间等 |
+| 工具联动 | 计划内链整理证据、生成文书 |
+| 官方办事 | **办事资源页** + 举报弹层（按省跳转） |
+
+#### B. 实习生 / 试用期 `intern-probation`
+
+| 模块 | 内容要点 |
+|------|----------|
+| 身份界定 | 在校生实习 vs 已毕业试用 |
+| 常见争议 | 试用期违法解除、实习协议、社保 |
+| 样例验证 | [附录-样例案情-实习生试用](../../resources/verification/附录-样例案情-实习生试用.md) |
+
+#### C. 女职工维权 `female-worker`
+
+| 模块 | 内容要点 |
+|------|----------|
+| 典型场景 | 三期保护、违法解除、产假工资等 |
+| 材料建议 | 合同、生育证明、工资流水等（写入 checklist） |
+
+### 3.3 「一键办事 / 举报」
+
+交互仍由 `ReportDialog.tsx` 实现：选择省份 → 免责声明 → 跳转 `official-platforms.json` 中属地 URL。  
+专项表单中的 **用工地区**（`work_region`）会解析省份并写入 `localStorage`（`reportProvince`），与办事弹窗默认省份一致。
+
+### 3.4 前端页面（历史 v1，仅供参考）
+
+| 文件 | 状态 |
+|------|------|
+| `pages/channels/ChannelHub.tsx` | 路由已移除，文件可删 |
+| `pages/channels/ChannelDetail.tsx` | 同上 |
+| `pages/channels/ChannelLegacyRedirect.tsx` | **保留**：旧链接兼容 |
+| `components/channels/ReportDialog.tsx` | **使用中**（guidance + intake 计划） |
+| `components/channels/OfficialPlatformStrip.tsx` | **使用中**（`/guidance`） |
+
+---
+
+## 3.x 特定群体维权专区通道（v1 页面模板，已收敛）
 
 ### 3.1 三大专区内容结构（配置驱动）
 
