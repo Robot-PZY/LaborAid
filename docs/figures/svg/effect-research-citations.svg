@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" fill="none">
+  <text x="360" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Effect: Research Engine with Graph-RAG Citations</text>
+  <rect x="40" y="48" width="640" height="220" rx="12" fill="#FFF" stroke="#E8E4DD"/>
+  <rect x="56" y="64" width="608" height="32" rx="6" fill="#7C3AED" fill-opacity="0.1" stroke="#7C3AED"/>
+  <text x="72" y="84" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#7C3AED">Research Agent - Probation unlawful dismissal analysis</text>
+  <rect x="56" y="108" width="380" height="140" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="72" y="128" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#1C2433">Analysis summary</text>
+  <text x="72" y="146" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Employer must prove lawful grounds during probation.</text>
+  <text x="72" y="162" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Vague performance claims without documented criteria</text>
+  <text x="72" y="178" font-family="Arial,sans-serif" font-size="8" fill="#64748B">may constitute unlawful dismissal...</text>
+  <rect x="72" y="192" width="200" height="18" rx="4" fill="#FEF3C7"/>
+  <text x="172" y="204" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#92400E">Art.39(1) Labor Contract Law</text>
+  <rect x="280" y="192" width="140" height="18" rx="4" fill="#FEF3C7"/>
+  <text x="350" y="204" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#92400E">Art.40 probation rules</text>
+  <rect x="452" y="108" width="212" height="140" rx="8" fill="#FFF" stroke="#D97706"/>
+  <text x="468" y="128" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#D97706">Recommended evidence</text>
+  <text x="468" y="148" font-family="Arial,sans-serif" font-size="8" fill="#64748B">[x] Dismissal notice</text>
+  <text x="468" y="164" font-family="Arial,sans-serif" font-size="8" fill="#64748B">[x] Performance records</text>
+  <text x="468" y="180" font-family="Arial,sans-serif" font-size="8" fill="#059669">[ ] Social insurance proof</text>
+  <text x="468" y="196" font-family="Arial,sans-serif" font-size="8" fill="#64748B">[ ] Written eval criteria</text>
+  <text x="468" y="216" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Graph-RAG ranked | Chroma semantic</text>
+  <rect x="40" y="280" width="640" height="24" rx="6" fill="#F5F3FF" stroke="#7C3AED" stroke-opacity="0.3"/>
+  <text x="360" y="296" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#5B21B6">Cited statutes + checklist - not hallucinated law references</text>
+</svg>

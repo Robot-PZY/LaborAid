@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>LaborAid Figures Gallery</title>
+  <style>
+    :root { --bg:#FAF9F6; --ink:#1C2433; --accent:#D97706; --border:#E8E4DD; --muted:#64748B; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--ink); }
+    header { padding:24px 32px; background:#fff; border-bottom:1px solid var(--border); }
+    header h1 { margin:0 0 4px; font-size:1.4rem; }
+    header p { margin:0; color:var(--muted); font-size:.9rem; }
+    nav { padding:12px 32px; background:#fff; border-bottom:1px solid var(--border); display:flex; flex-wrap:wrap; gap:8px; }
+    nav a { font-size:.85rem; color:var(--accent); text-decoration:none; padding:4px 10px; border-radius:999px; border:1px solid var(--border); }
+    nav a:hover { background:#FEF3C7; }
+    section { padding:24px 32px 8px; }
+    section h2 { font-size:1rem; margin:0 0 16px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); gap:20px; padding-bottom:24px; }
+    figure { margin:0; background:#fff; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    figcaption { padding:10px 14px; font-size:.85rem; font-weight:600; border-top:1px solid var(--border); background:var(--bg); }
+    .canvas { padding:16px; background:repeating-conic-gradient(#f0ede8 0% 25%, transparent 0% 50%) 0 0/16px 16px; }
+    .canvas img { width:100%; height:auto; display:block; }
+    code { font-size:.8rem; color:var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LaborAid Figures Gallery</h1>
+    <p>English-only | transparent PNG | run <code>scripts/export-figures.ps1</code></p>
+  </header>
+  <nav id="nav"></nav>
+  <div id="root"></div>
+  <script>
+    const CATALOG = {
+      Architecture: [
+        ['arch-six-layers-rich','Six-Layer Architecture (rich)'],
+        ['arch-six-layers','Six-Layer Architecture (compact)'],
+        ['arch-deployment','Deployment Architecture'],
+        ['arch-api-overview','REST API Overview'],
+        ['arch-agent-topology','Agent Topology'],
+      ],
+      'Tech stack': [
+        ['arch-tech-stack','Technology Stack Overview'],
+        ['arch-tech-selection','Technology Selection Rationale'],
+        ['arch-ai-stack','AI and Intelligence Stack'],
+        ['arch-frontend-stack','Frontend Stack'],
+        ['arch-backend-stack','Backend Stack'],
+        ['arch-data-stack','Data and Storage'],
+        ['arch-external-integrations','External Integrations'],
+        ['arch-security','Security Architecture'],
+        ['arch-monorepo','Monorepo Structure'],
+      ],
+      'User portal': [
+        ['ui-user-portal','User Portal Map'],
+        ['ui-user-intake','Intake Flow'],
+        ['sec-rbac','Role-Based Access'],
+      ],
+      'Admin portal': [
+        ['ui-admin-portal','Admin Portal Map'],
+      ],
+      'Flows': [
+        ['flow-end-to-end','End-to-End Flow'],
+        ['flow-sdad-pipeline','SDAD Pipeline'],
+        ['flow-leap','LEAP'],
+        ['flow-mice','MICE'],
+        ['flow-graph-rag','Graph-RAG'],
+        ['flow-demo-case002','Demo case-002'],
+      ],
+      Sequences: [
+        ['seq-evidence-mice','Evidence to MICE'],
+        ['seq-auth-request','Auth and JWT'],
+      ],
+      'Experiments': [
+        ['exp-ablation-bars','Ablation Study'],
+        ['exp-metrics-bars','Evaluation Metrics'],
+        ['exp-test-matrix','Test Case Matrix'],
+        ['exp-test-strategy','Test Strategy'],
+        ['matrix-algorithm-tools','Algorithm Matrix'],
+      ],
+      'Effect mockups': [
+        ['effect-mice-panel','MICE Before/After'],
+        ['effect-case-workflow','Case Workflow Stepper'],
+        ['effect-compensation-ui','Compensation Calculator'],
+        ['effect-research-citations','Research Citations'],
+      ],
+    };
+    const nav = document.getElementById('nav');
+    const root = document.getElementById('root');
+    for (const cat of Object.keys(CATALOG)) {
+      nav.innerHTML += `<a href="#${cat.replace(/\s+/g,'-')}">${cat}</a>`;
+      const sec = document.createElement('section');
+      sec.id = cat.replace(/\s+/g,'-');
+      sec.innerHTML = `<h2>${cat}</h2><div class="grid"></div>`;
+      const grid = sec.querySelector('.grid');
+      for (const [slug, title] of CATALOG[cat]) {
+        const fig = document.createElement('figure');
+        fig.innerHTML = `<div class="canvas"><img src="png/${slug}.png" alt="${title}" onerror="this.src='svg/${slug}.svg'"/></div><figcaption>${title}</figcaption>`;
+        grid.appendChild(fig);
+      }
+      root.appendChild(sec);
+    }
+  </script>
+</body>
+</html>

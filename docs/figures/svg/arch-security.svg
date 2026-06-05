@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" fill="none">
+  <text x="400" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Security Architecture</text>
+
+  <rect x="40" y="52" width="720" height="64" rx="10" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="400" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#1C2433">Authentication Flow</text>
+  <text x="400" y="96" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">POST /auth/login - JWT (HS256) - stored in browser localStorage - Bearer header on API calls</text>
+  <text x="400" y="108" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Token expiry: 480 min | passlib bcrypt for password hash</text>
+
+  <rect x="40" y="132" width="340" height="100" rx="10" fill="#FAF9F6" stroke="#059669" stroke-width="1.5"/>
+  <text x="210" y="156" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#059669">User role</text>
+  <text x="60" y="176" font-family="Arial,sans-serif" font-size="9" fill="#64748B">ProtectedRoute - requires valid JWT</text>
+  <text x="60" y="192" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Case data scoped to owner user_id</text>
+  <text x="60" y="208" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Vault quota per account</text>
+  <text x="60" y="224" font-family="Arial,sans-serif" font-size="9" fill="#64748B">No API keys in user settings</text>
+
+  <rect x="420" y="132" width="340" height="100" rx="10" fill="#FAF9F6" stroke="#D97706" stroke-width="1.5"/>
+  <text x="590" y="156" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">Admin role</text>
+  <text x="440" y="176" font-family="Arial,sans-serif" font-size="9" fill="#64748B">AdminRoute - JWT + role=admin</text>
+  <text x="440" y="192" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Separate /admin/* layout</text>
+  <text x="440" y="208" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Central LLM/OCR key management</text>
+  <text x="440" y="224" font-family="Arial,sans-serif" font-size="9" fill="#64748B">User management CRUD</text>
+
+  <rect x="40" y="248" width="220" height="88" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="150" y="272" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">CORS</text>
+  <text x="150" y="292" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Whitelist origins</text>
+  <text x="150" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">:5320 dev SPA</text>
+  <text x="150" y="324" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#64748B">CORS_ORIGINS in .env</text>
+
+  <rect x="290" y="248" width="220" height="88" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="400" y="272" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">Upload limits</text>
+  <text x="400" y="292" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">MAX_UPLOAD_SIZE_MB=50</text>
+  <text x="400" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">File type validation</text>
+  <text x="400" y="324" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Evidence and vault paths</text>
+
+  <rect x="540" y="248" width="220" height="88" rx="8" fill="#FEE2E2" stroke="#EF4444" stroke-opacity="0.5"/>
+  <text x="650" y="272" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#B91C1C">Production</text>
+  <text x="650" y="292" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Reject insecure JWT secrets</text>
+  <text x="650" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">ENVIRONMENT=production</text>
+  <text x="650" y="324" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Pydantic settings validator</text>
+</svg>

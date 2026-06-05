@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" fill="none">
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#059669"/></marker></defs>
+  <text x="260" y="26" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">MICE - Evidence Integrity Engine</text>
+  <rect x="180" y="44" width="160" height="40" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="260" y="70" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#1C2433">Image / scanned PDF</text>
+  <line x1="260" y1="84" x2="260" y2="108" stroke="#059669" marker-end="url(#arr)"/>
+  <rect x="160" y="108" width="200" height="44" rx="8" fill="#FFF" stroke="#059669" stroke-width="1.5"/><text x="260" y="128" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#059669">VL-OCR (Qwen-VL)</text>
+  <line x1="260" y1="152" x2="260" y2="176" stroke="#059669" marker-end="url(#arr)"/>
+  <rect x="140" y="176" width="240" height="44" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="260" y="196" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">Labor-domain NER</text><text x="260" y="212" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">name | amount | date | employer</text>
+  <line x1="200" y1="220" x2="120" y2="252" stroke="#64748B"/><line x1="320" y1="220" x2="400" y2="252" stroke="#64748B"/>
+  <rect x="40" y="252" width="160" height="52" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="120" y="282" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">Rule checks</text>
+  <rect x="320" y="252" width="160" height="52" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="400" y="282" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">Checklist match</text>
+  <rect x="60" y="316" width="120" height="36" rx="6" fill="#FEE2E2" stroke="#EF4444" stroke-opacity="0.5"/><text x="120" y="339" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#B91C1C">Conflict alerts</text>
+  <rect x="160" y="332" width="200" height="48" rx="8" fill="#059669"/><text x="260" y="356" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#FFF">MICE consistency report</text>
+  <rect x="340" y="316" width="120" height="36" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.5"/><text x="400" y="339" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#92400E">Readiness score</text>
+</svg>

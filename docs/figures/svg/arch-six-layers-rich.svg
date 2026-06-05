@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 780" fill="none">
+  <defs>
+    <filter id="sh" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1C2433" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="tab" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#243044"/>
+      <stop offset="100%" stop-color="#1C2433"/>
+    </linearGradient>
+    <marker id="ad" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#D97706"/>
+    </marker>
+    <marker id="au" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#D97706"/>
+    </marker>
+  </defs>
+
+  <text x="480" y="32" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1C2433">LaborAid Six-Layer Software Architecture</text>
+
+  <!-- L1 Users -->
+  <rect x="8" y="52" width="76" height="86" rx="6" fill="url(#tab)"/>
+  <text transform="rotate(-90 46 95)" x="46" y="95" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF">User Layer</text>
+
+  <rect x="96" y="52" width="848" height="86" rx="10" fill="#FFFFFF" stroke="#E8E4DD" stroke-width="1.5" filter="url(#sh)"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="120" y="68" width="240" height="54" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <circle cx="152" cy="95" r="10" fill="none" stroke="#D97706" stroke-width="1.5"/>
+    <path d="M142 108 Q152 100 162 108" fill="none" stroke="#D97706" stroke-width="1.5"/>
+    <text x="176" y="92" font-size="11" font-weight="600" fill="#1C2433">Workers</text>
+    <text x="176" y="108" font-size="9" fill="#64748B">Self-service intake</text>
+
+    <rect x="380" y="68" width="240" height="54" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <circle cx="412" cy="95" r="10" fill="none" stroke="#059669" stroke-width="1.5"/>
+    <path d="M402 108 Q412 100 422 108" fill="none" stroke="#059669" stroke-width="1.5"/>
+    <text x="436" y="92" font-size="11" font-weight="600" fill="#1C2433">Legal Aid Staff</text>
+    <text x="436" y="108" font-size="9" fill="#64748B">Case assistance</text>
+
+    <rect x="640" y="68" width="240" height="54" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <circle cx="672" cy="95" r="10" fill="none" stroke="#7C3AED" stroke-width="1.5"/>
+    <path d="M662 108 Q672 100 682 108" fill="none" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="696" y="92" font-size="11" font-weight="600" fill="#1C2433">Platform Admin</text>
+    <text x="696" y="108" font-size="9" fill="#64748B">Scenarios and config</text>
+  </g>
+
+  <line x1="920" y1="138" x2="920" y2="152" stroke="#D97706" stroke-width="2" marker-start="url(#au)" marker-end="url(#ad)"/>
+
+  <!-- L2 Presentation -->
+  <rect x="8" y="152" width="76" height="108" rx="6" fill="url(#tab)"/>
+  <text transform="rotate(-90 46 206)" x="46" y="206" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF">Presentation</text>
+
+  <rect x="96" y="152" width="848" height="108" rx="10" fill="#FFFFFF" stroke="#E8E4DD" stroke-width="1.5" filter="url(#sh)"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="9">
+    <rect x="120" y="168" width="250" height="76" rx="8" fill="#FAF9F6" stroke="#D97706" stroke-opacity="0.5"/>
+    <text x="136" y="186" font-size="10" font-weight="700" fill="#D97706">Web Portal</text>
+    <rect x="136" y="194" width="68" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="170" y="209" text-anchor="middle" fill="#1C2433">Home</text>
+    <rect x="212" y="194" width="68" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="246" y="209" text-anchor="middle" fill="#1C2433">Intake</text>
+    <rect x="288" y="194" width="68" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="322" y="209" text-anchor="middle" fill="#1C2433">My Cases</text>
+
+    <rect x="390" y="168" width="250" height="76" rx="8" fill="#FAF9F6" stroke="#059669" stroke-opacity="0.5"/>
+    <text x="406" y="186" font-size="10" font-weight="700" fill="#059669">Case Workspace</text>
+    <rect x="406" y="194" width="68" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="440" y="209" text-anchor="middle" fill="#1C2433">Evidence</text>
+    <rect x="482" y="194" width="68" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="516" y="209" text-anchor="middle" fill="#1C2433">Documents</text>
+    <rect x="558" y="194" width="68" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="592" y="209" text-anchor="middle" fill="#1C2433">Reports</text>
+
+    <rect x="660" y="168" width="250" height="76" rx="8" fill="#FAF9F6" stroke="#7C3AED" stroke-opacity="0.5"/>
+    <text x="676" y="186" font-size="10" font-weight="700" fill="#7C3AED">Tools Hub</text>
+    <rect x="676" y="194" width="100" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="726" y="209" text-anchor="middle" fill="#1C2433">Guidance</text>
+    <rect x="784" y="194" width="110" height="22" rx="4" fill="#FFFFFF" stroke="#E8E4DD"/><text x="839" y="209" text-anchor="middle" fill="#1C2433">Compensation</text>
+  </g>
+
+  <line x1="920" y1="260" x2="920" y2="274" stroke="#D97706" stroke-width="2" marker-start="url(#au)" marker-end="url(#ad)"/>
+
+  <!-- L3 Business -->
+  <rect x="8" y="274" width="76" height="108" rx="6" fill="url(#tab)"/>
+  <text transform="rotate(-90 46 328)" x="46" y="328" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF">Business</text>
+
+  <rect x="96" y="274" width="848" height="108" rx="10" fill="#FFFFFF" stroke="#E8E4DD" stroke-width="1.5" filter="url(#sh)"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#1C2433">
+    <rect x="120" y="290" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="199" y="308" text-anchor="middle" font-weight="600">Scenario Intake</text><text x="199" y="324" text-anchor="middle" fill="#64748B">SDAD entry</text>
+    <rect x="290" y="290" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="369" y="308" text-anchor="middle" font-weight="600">Smart Case Build</text><text x="369" y="324" text-anchor="middle" fill="#64748B">ai_snapshot</text>
+    <rect x="460" y="290" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="539" y="308" text-anchor="middle" font-weight="600">Advocacy Pipeline</text><text x="539" y="324" text-anchor="middle" fill="#64748B">5-stage loop</text>
+    <rect x="630" y="290" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="709" y="308" text-anchor="middle" font-weight="600">Material Vault</text><text x="709" y="324" text-anchor="middle" fill="#64748B">Upload and OCR</text>
+    <rect x="120" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="199" y="360" text-anchor="middle" font-weight="600">Agent Orchestration</text><text x="199" y="376" text-anchor="middle" fill="#64748B">Supervisor dispatch</text>
+    <rect x="290" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="369" y="360" text-anchor="middle" font-weight="600">Research Engine</text><text x="369" y="376" text-anchor="middle" fill="#64748B">Graph-RAG query</text>
+    <rect x="460" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="539" y="360" text-anchor="middle" font-weight="600">Doc Generation</text><text x="539" y="376" text-anchor="middle" fill="#64748B">SAGD templates</text>
+    <rect x="630" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="709" y="360" text-anchor="middle" font-weight="600">Records Export</text><text x="709" y="376" text-anchor="middle" fill="#64748B">Material pack</text>
+  </g>
+
+  <line x1="920" y1="382" x2="920" y2="396" stroke="#D97706" stroke-width="2" marker-start="url(#au)" marker-end="url(#ad)"/>
+
+  <!-- L4 Scenarios -->
+  <rect x="8" y="396" width="76" height="72" rx="6" fill="url(#tab)"/>
+  <text transform="rotate(-90 46 432)" x="46" y="432" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF">Scenarios</text>
+
+  <rect x="96" y="396" width="848" height="72" rx="10" fill="#FFFFFF" stroke="#E8E4DD" stroke-width="1.5" filter="url(#sh)"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="10">
+    <rect x="130" y="416" width="180" height="32" rx="16" fill="#FEF3C7" stroke="#D97706"/><text x="220" y="437" text-anchor="middle" font-weight="600" fill="#92400E">Wage Arrears</text>
+    <rect x="330" y="416" width="180" height="32" rx="16" fill="#FEF3C7" stroke="#D97706"/><text x="420" y="437" text-anchor="middle" font-weight="600" fill="#92400E">Probation Dismissal</text>
+    <rect x="530" y="416" width="180" height="32" rx="16" fill="#FEF3C7" stroke="#D97706"/><text x="620" y="437" text-anchor="middle" font-weight="600" fill="#92400E">Maternity Protection</text>
+    <rect x="730" y="416" width="180" height="32" rx="16" fill="#FEF3C7" stroke="#D97706"/><text x="820" y="437" text-anchor="middle" font-weight="600" fill="#92400E">General Dispute</text>
+  </g>
+
+  <line x1="920" y1="468" x2="920" y2="482" stroke="#D97706" stroke-width="2" marker-start="url(#au)" marker-end="url(#ad)"/>
+
+  <!-- L5 Technology -->
+  <rect x="8" y="482" width="76" height="132" rx="6" fill="url(#tab)"/>
+  <text transform="rotate(-90 46 548)" x="46" y="548" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF">Technology</text>
+
+  <rect x="96" y="482" width="848" height="132" rx="10" fill="#FAF9F6" stroke="#D97706" stroke-width="2" filter="url(#sh)"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="120" y="498" width="200" height="96" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="1.5"/>
+    <text x="220" y="520" text-anchor="middle" font-size="11" font-weight="700" fill="#D97706">LEAP</text>
+    <text x="132" y="538" font-size="9" fill="#64748B">- STDE extraction</text>
+    <text x="132" y="554" font-size="9" fill="#64748B">- Cause routing</text>
+    <text x="132" y="570" font-size="9" fill="#64748B">- Pipeline tasks</text>
+    <rect x="132" y="578" width="176" height="18" rx="4" fill="#FEF3C7"/><text x="220" y="590" text-anchor="middle" font-size="8" fill="#92400E">Language-Enhanced Advocacy Planning</text>
+
+    <rect x="336" y="498" width="200" height="96" rx="8" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="436" y="520" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">MICE</text>
+    <text x="348" y="538" font-size="9" fill="#64748B">- Qwen-VL OCR</text>
+    <text x="348" y="554" font-size="9" fill="#64748B">- Labor NER</text>
+    <text x="348" y="570" font-size="9" fill="#64748B">- Consistency report</text>
+    <rect x="348" y="578" width="176" height="18" rx="4" fill="#D1FAE5"/><text x="436" y="590" text-anchor="middle" font-size="8" fill="#047857">Multimodal Integrity Engine</text>
+
+    <rect x="552" y="498" width="120" height="96" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="612" y="522" text-anchor="middle" font-size="10" font-weight="700" fill="#7C3AED">Graph-RAG</text>
+    <text x="564" y="542" font-size="9" fill="#64748B">Legal graph</text>
+    <text x="564" y="558" font-size="9" fill="#64748B">+ Chroma</text>
+    <text x="564" y="574" font-size="9" fill="#64748B">Hybrid rank</text>
+
+    <rect x="686" y="498" width="120" height="96" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="1.5"/>
+    <text x="746" y="522" text-anchor="middle" font-size="10" font-weight="700" fill="#D97706">SAGD</text>
+    <text x="698" y="542" font-size="9" fill="#64748B">Template</text>
+    <text x="698" y="558" font-size="9" fill="#64748B">binding</text>
+    <text x="698" y="574" font-size="9" fill="#64748B">DocgenAgent</text>
+
+    <rect x="820" y="498" width="100" height="96" rx="8" fill="#FFFFFF" stroke="#1C2433" stroke-width="1.5"/>
+    <text x="870" y="522" text-anchor="middle" font-size="9" font-weight="700" fill="#1C2433">Supervisor</text>
+    <text x="832" y="542" font-size="8" fill="#64748B">5 agents</text>
+    <text x="832" y="556" font-size="8" fill="#64748B">next-step</text>
+    <text x="832" y="570" font-size="8" fill="#64748B">evaluate</text>
+    <text x="832" y="584" font-size="8" fill="#64748B">pick proposal</text>
+  </g>
+
+  <line x1="920" y1="614" x2="920" y2="628" stroke="#D97706" stroke-width="2" marker-start="url(#au)" marker-end="url(#ad)"/>
+
+  <!-- L6 Data -->
+  <rect x="8" y="628" width="76" height="108" rx="6" fill="url(#tab)"/>
+  <text transform="rotate(-90 46 682)" x="46" y="682" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF">Data Layer</text>
+
+  <rect x="96" y="628" width="848" height="108" rx="10" fill="#FFFFFF" stroke="#E8E4DD" stroke-width="1.5" filter="url(#sh)"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#1C2433">
+    <g transform="translate(150,652)">
+      <ellipse cx="40" cy="12" rx="40" ry="10" fill="#E8E4DD"/>
+      <rect x="0" y="12" width="80" height="36" fill="#FAF9F6" stroke="#E8E4DD"/>
+      <ellipse cx="40" cy="48" rx="40" ry="10" fill="#E8E4DD"/>
+      <text x="40" y="34" text-anchor="middle" font-weight="600">Case DB</text>
+    </g>
+    <g transform="translate(290,652)">
+      <ellipse cx="40" cy="12" rx="40" ry="10" fill="#E8E4DD"/>
+      <rect x="0" y="12" width="80" height="36" fill="#FAF9F6" stroke="#E8E4DD"/>
+      <ellipse cx="40" cy="48" rx="40" ry="10" fill="#E8E4DD"/>
+      <text x="40" y="34" text-anchor="middle" font-weight="600">Evidence</text>
+    </g>
+    <g transform="translate(430,652)">
+      <ellipse cx="40" cy="12" rx="40" ry="10" fill="#7C3AED" fill-opacity="0.2" stroke="#7C3AED"/>
+      <rect x="0" y="12" width="80" height="36" fill="#F5F3FF" stroke="#7C3AED"/>
+      <ellipse cx="40" cy="48" rx="40" ry="10" fill="#7C3AED" fill-opacity="0.2" stroke="#7C3AED"/>
+      <text x="40" y="34" text-anchor="middle" font-weight="600" fill="#7C3AED">Chroma</text>
+    </g>
+    <g transform="translate(570,652)">
+      <ellipse cx="40" cy="12" rx="40" ry="10" fill="#E8E4DD"/>
+      <rect x="0" y="12" width="80" height="36" fill="#FAF9F6" stroke="#E8E4DD"/>
+      <ellipse cx="40" cy="48" rx="40" ry="10" fill="#E8E4DD"/>
+      <text x="40" y="34" text-anchor="middle" font-weight="600">Templates</text>
+    </g>
+    <rect x="680" y="660" width="120" height="52" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="740" y="682" text-anchor="middle" font-weight="600">OCR Artifacts</text>
+    <text x="740" y="698" text-anchor="middle" fill="#64748B">Parsed fields</text>
+    <rect x="816" y="660" width="120" height="52" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="876" y="682" text-anchor="middle" font-weight="600">Official Links</text>
+    <text x="876" y="698" text-anchor="middle" fill="#64748B">Guidance URLs</text>
+  </g>
+
+  <rect x="96" y="748" width="848" height="24" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.35"/>
+  <text x="520" y="764" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#92400E">Bidirectional flow: UI calls business services, agents read/write data stores, scenarios configure intake templates</text>
+</svg>

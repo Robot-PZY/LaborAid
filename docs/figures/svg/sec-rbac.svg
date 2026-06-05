@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" fill="none">
+  <text x="360" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Role-Based Access Control</text>
+  <rect x="40" y="52" width="280" height="300" rx="10" fill="#FAF9F6" stroke="#059669" stroke-width="2"/>
+  <text x="180" y="80" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#059669">Role: user</text>
+  <text x="60" y="104" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#64748B">CAN ACCESS</text>
+  <text x="60" y="124" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/  User dashboard and intake</text>
+  <text x="60" y="142" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/cases  Own cases only</text>
+  <text x="60" y="160" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/evidence  Upload and MICE panel</text>
+  <text x="60" y="178" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/documents  Generate personal docs</text>
+  <text x="60" y="196" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/vault  Personal material vault</text>
+  <text x="60" y="214" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/tools/*  Calculators</text>
+  <text x="60" y="240" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#64748B">BLOCKED</text>
+  <text x="60" y="260" font-family="Arial,sans-serif" font-size="9" fill="#B91C1C">/admin/*  Redirect to login</text>
+  <text x="60" y="278" font-family="Arial,sans-serif" font-size="9" fill="#B91C1C">Other users cases</text>
+  <rect x="60" y="296" width="240" height="40" rx="6" fill="#D1FAE5"/>
+  <text x="180" y="320" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#047857">Guard: ProtectedRoute + JWT</text>
+
+  <rect x="400" y="52" width="280" height="300" rx="10" fill="#FAF9F6" stroke="#D97706" stroke-width="2"/>
+  <text x="540" y="80" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#D97706">Role: admin</text>
+  <text x="420" y="104" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#64748B">CAN ACCESS</text>
+  <text x="420" y="124" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/overview  Metrics</text>
+  <text x="420" y="142" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/users  User CRUD</text>
+  <text x="420" y="160" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/models  LLM config</text>
+  <text x="420" y="178" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/knowledge  Corpus</text>
+  <text x="420" y="196" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/templates  SAGD tpl</text>
+  <text x="420" y="214" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Can also use user portal</text>
+  <text x="420" y="240" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#64748B">LOGIN</text>
+  <text x="420" y="260" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/login?portal=admin</text>
+  <text x="420" y="278" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Separate AdminLayout shell</text>
+  <rect x="420" y="296" width="240" height="40" rx="6" fill="#FEF3C7"/>
+  <text x="540" y="320" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Guard: AdminRoute role=admin</text>
+
+  <rect x="40" y="368" width="640" height="24" rx="6" fill="#E8E4DD"/>
+  <text x="360" y="384" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Auth: JWT in localStorage | Backend validates token on every API call</text>
+</svg>

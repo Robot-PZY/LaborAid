@@ -28,10 +28,8 @@ export const authApi = {
   login: async (email: string, password: string): Promise<{ access_token: string; user: User }> => {
     const res = await apiClient.post('/auth/login', { email, password }, { timeout: TIMEOUT.medium });
     const token = res.data.access_token;
-    const userRes = await apiClient.get('/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-      timeout: TIMEOUT.short,
-    });
+    localStorage.setItem('token', token);
+    const userRes = await apiClient.get('/auth/me', { timeout: TIMEOUT.short });
     return { access_token: token, user: userRes.data };
   },
 
@@ -46,10 +44,8 @@ export const authApi = {
       password: data.password,
     }, { timeout: TIMEOUT.medium });
     const token = loginRes.data.access_token;
-    const userRes = await apiClient.get('/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-      timeout: TIMEOUT.short,
-    });
+    localStorage.setItem('token', token);
+    const userRes = await apiClient.get('/auth/me', { timeout: TIMEOUT.short });
     return { access_token: token, user: userRes.data };
   },
 

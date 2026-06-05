@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" fill="none">
+  <text x="440" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">REST API Overview (FastAPI)</text>
+  <rect x="24" y="48" width="260" height="320" rx="10" fill="#FAF9F6" stroke="#D97706"/>
+  <text x="154" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#D97706">Auth</text>
+  <text x="40" y="100" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">POST /auth/login</text>
+  <text x="40" y="116" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">POST /auth/register</text>
+  <text x="40" y="132" font-family="Arial,sans-serif" font-size="9" fill="#64748B">JWT bearer token</text>
+  <text x="154" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#64748B">Admin</text>
+  <text x="40" y="184" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">GET /admin/stats</text>
+  <text x="40" y="200" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">CRUD /admin/users</text>
+  <text x="40" y="216" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Config /admin/settings</text>
+
+  <rect x="308" y="48" width="260" height="320" rx="10" fill="#FAF9F6" stroke="#059669"/>
+  <text x="438" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#059669">Cases and Agents</text>
+  <text x="324" y="100" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">POST /cases  create case</text>
+  <text x="324" y="116" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">GET /cases/{id}</text>
+  <text x="324" y="132" font-family="Arial,sans-serif" font-size="9" fill="#059669">GET /cases/{id}/consistency-report</text>
+  <text x="324" y="148" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">GET /cases/{id}/agent/next-step</text>
+  <text x="324" y="164" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">POST /intake/*  LEAP intake</text>
+  <text x="324" y="180" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Evidence upload endpoints</text>
+  <text x="324" y="196" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Research and docgen APIs</text>
+
+  <rect x="592" y="48" width="264" height="320" rx="10" fill="#FAF9F6" stroke="#7C3AED"/>
+  <text x="724" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#7C3AED">Knowledge and Tools</text>
+  <text x="608" y="100" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">POST /search  law search</text>
+  <text x="608" y="116" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Graph-RAG retrieval</text>
+  <text x="608" y="132" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Templates and doc render</text>
+  <text x="608" y="148" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Guidance resource links</text>
+  <text x="608" y="164" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Vault file storage</text>
+  <text x="608" y="180" font-family="Arial,sans-serif" font-size="9" fill="#64748B">OpenAPI /docs on :8010</text>
+
+  <rect x="24" y="384" width="832" height="28" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.35"/>
+  <text x="440" y="403" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Frontend axios client | CORS enabled | All protected routes require Authorization header</text>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 320" fill="none">
+  <text x="280" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Ablation Study - Component Contribution</text>
+  <text x="280" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748B">Higher is better (normalized task success score)</text>
+  <line x1="60" y1="260" x2="520" y2="260" stroke="#E8E4DD" stroke-width="1.5"/><line x1="60" y1="70" x2="60" y2="260" stroke="#E8E4DD"/>
+  <rect x="88" y="212" width="56" height="48" rx="4" fill="#CBD5E1"/><rect x="168" y="188" width="56" height="72" rx="4" fill="#94A3B8"/>
+  <rect x="248" y="156" width="56" height="104" rx="4" fill="#059669"/><rect x="328" y="124" width="56" height="136" rx="4" fill="#7C3AED"/>
+  <rect x="408" y="92" width="56" height="168" rx="4" fill="#D97706"/>
+  <g font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">
+    <text x="116" y="204" text-anchor="middle">42</text><text x="196" y="180" text-anchor="middle">58</text><text x="276" y="148" text-anchor="middle">71</text>
+    <text x="356" y="116" text-anchor="middle">83</text><text x="436" y="84" text-anchor="middle">91</text>
+  </g>
+  <g font-family="Arial,sans-serif" font-size="9" fill="#64748B">
+    <text x="116" y="280" text-anchor="middle">Baseline</text><text x="196" y="280" text-anchor="middle">+ LEAP</text>
+    <text x="276" y="280" text-anchor="middle">+ MICE</text><text x="356" y="280" text-anchor="middle">+ Graph-RAG</text>
+    <text x="436" y="280" text-anchor="middle">Full stack</text>
+  </g>
+</svg>

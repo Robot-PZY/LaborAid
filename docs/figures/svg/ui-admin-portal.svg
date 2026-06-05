@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 480" fill="none">
+  <defs><filter id="sh"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#1C2433" flood-opacity="0.06"/></filter></defs>
+  <text x="440" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Admin Portal - Page Map</text>
+
+  <rect x="24" y="48" width="180" height="400" rx="10" fill="#1C2433" filter="url(#sh)"/>
+  <text x="114" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#FFF">Admin Sidebar</text>
+  <g font-family="Arial,sans-serif" font-size="9">
+    <text x="40" y="100" fill="#64748B" font-weight="600">OPS</text>
+    <rect x="36" y="108" width="156" height="22" rx="4" fill="#D97706"/><text x="48" y="123" fill="#FFF">/admin/overview</text>
+    <rect x="36" y="134" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="149" fill="#E8E4DD">/admin/users</text>
+    <text x="40" y="174" fill="#64748B" font-weight="600">PLATFORM CONFIG</text>
+    <rect x="36" y="182" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="197" fill="#E8E4DD">/admin/models</text>
+    <rect x="36" y="208" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="223" fill="#E8E4DD">/admin/apis</text>
+    <rect x="36" y="234" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="249" fill="#E8E4DD">/admin/system</text>
+    <text x="40" y="274" fill="#64748B" font-weight="600">CONTENT</text>
+    <rect x="36" y="282" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="297" fill="#E8E4DD">/admin/knowledge</text>
+    <rect x="36" y="308" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="323" fill="#E8E4DD">/admin/templates</text>
+  </g>
+  <rect x="36" y="360" width="156" height="36" rx="6" fill="#243044" stroke="#64748B"/>
+  <text x="114" y="378" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Back to user portal</text>
+  <text x="114" y="390" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Login ?portal=admin</text>
+
+  <rect x="220" y="48" width="636" height="400" rx="10" fill="#FAF9F6" stroke="#E8E4DD" filter="url(#sh)"/>
+  <rect x="240" y="68" width="280" height="88" rx="8" fill="#FFF" stroke="#D97706"/>
+  <text x="256" y="90" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">Overview Dashboard</text>
+  <text x="256" y="108" font-family="Arial,sans-serif" font-size="9" fill="#64748B">User counts | Case stats | API health</text>
+  <text x="256" y="124" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Usage metrics for competition demo</text>
+  <text x="256" y="140" font-family="Arial,sans-serif" font-size="9" fill="#64748B">BarChart3 widgets</text>
+
+  <rect x="540" y="68" width="280" height="88" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="556" y="90" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1C2433">User Management</text>
+  <text x="556" y="108" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Create / disable accounts</text>
+  <text x="556" y="124" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Role: admin | user</text>
+  <text x="556" y="140" font-family="Arial,sans-serif" font-size="9" fill="#64748B">AdminRoute guard (role check)</text>
+
+  <rect x="240" y="172" width="180" height="72" rx="8" fill="#FFF" stroke="#7C3AED"/>
+  <text x="256" y="194" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#7C3AED">Model Config</text>
+  <text x="256" y="212" font-family="Arial,sans-serif" font-size="9" fill="#64748B">LLM provider keys</text>
+  <text x="256" y="228" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Qwen-VL OCR settings</text>
+
+  <rect x="440" y="172" width="180" height="72" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="456" y="194" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1C2433">API Management</text>
+  <text x="456" y="212" font-family="Arial,sans-serif" font-size="9" fill="#64748B">External law search URLs</text>
+  <text x="456" y="228" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Health check endpoints</text>
+
+  <rect x="640" y="172" width="180" height="72" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="656" y="194" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1C2433">System Params</text>
+  <text x="656" y="212" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Feature flags</text>
+  <text x="656" y="228" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Global defaults</text>
+
+  <rect x="240" y="260" width="280" height="72" rx="8" fill="#FFF" stroke="#059669"/>
+  <text x="256" y="282" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#059669">Knowledge Base</text>
+  <text x="256" y="300" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Legal corpus ingestion</text>
+  <text x="256" y="316" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Chroma index maintenance</text>
+
+  <rect x="540" y="260" width="280" height="72" rx="8" fill="#FFF" stroke="#D97706"/>
+  <text x="556" y="282" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">Doc Templates</text>
+  <text x="556" y="300" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SAGD Jinja2 templates</text>
+  <text x="556" y="316" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Admin edit mode on /admin/templates</text>
+
+  <rect x="240" y="348" width="580" height="84" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="530" y="374" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#92400E">Access control: AdminRoute requires JWT + role=admin</text>
+  <text x="530" y="392" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Separate layout (AdminLayout) | No end-user case workflow in admin shell</text>
+  <text x="530" y="410" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Config changes propagate to all user sessions via backend settings API</text>
+</svg>

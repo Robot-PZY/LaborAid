@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
+  <text x="320" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Algorithm and Tool Matrix</text>
+  <rect x="24" y="44" width="592" height="36" rx="6" fill="#1C2433"/>
+  <text x="120" y="67" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Module</text>
+  <text x="300" y="67" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Core capability</text>
+  <text x="500" y="67" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Stack / API</text>
+  <g font-family="Arial,sans-serif" font-size="10">
+    <rect x="24" y="80" width="592" height="48" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="102" text-anchor="middle" font-weight="700" fill="#D97706">LEAP</text>
+    <text x="300" y="102" text-anchor="middle" fill="#1C2433">STDE + cause routing + dispatch</text>
+    <text x="500" y="102" text-anchor="middle" fill="#64748B">Supervisor pipeline</text>
+    <rect x="24" y="128" width="592" height="48" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="120" y="150" text-anchor="middle" font-weight="700" fill="#059669">MICE</text>
+    <text x="300" y="150" text-anchor="middle" fill="#1C2433">OCR | NER | rules | readiness</text>
+    <text x="500" y="150" text-anchor="middle" fill="#64748B">/consistency-report</text>
+    <rect x="24" y="176" width="592" height="48" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="198" text-anchor="middle" font-weight="700" fill="#7C3AED">Graph-RAG</text>
+    <text x="300" y="198" text-anchor="middle" fill="#1C2433">Graph + vector hybrid retrieval</text>
+    <text x="500" y="198" text-anchor="middle" fill="#64748B">Chroma + legal graph</text>
+    <rect x="24" y="224" width="592" height="48" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="120" y="246" text-anchor="middle" font-weight="700" fill="#D97706">SAGD</text>
+    <text x="300" y="246" text-anchor="middle" fill="#1C2433">Template binding + docgen</text>
+    <text x="500" y="246" text-anchor="middle" fill="#64748B">DocgenAgent + Jinja2</text>
+    <rect x="24" y="272" width="592" height="48" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="294" text-anchor="middle" font-weight="700" fill="#1C2433">Supervisor</text>
+    <text x="300" y="294" text-anchor="middle" fill="#1C2433">5 agents + next-step ranking</text>
+    <text x="500" y="294" text-anchor="middle" fill="#64748B">/agent/next-step</text>
+  </g>
+  <rect x="24" y="332" width="592" height="24" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="320" y="348" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">SDAD ties scenarios to this stack via 5-stage advocacy pipeline</text>
+</svg>

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 480" fill="none">
+  <text x="440" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Technology Selection Rationale</text>
+
+  <rect x="24" y="44" width="832" height="32" rx="6" fill="#1C2433"/>
+  <text x="120" y="65" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Layer</text>
+  <text x="300" y="65" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Chosen</text>
+  <text x="500" y="65" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Alternatives considered</text>
+  <text x="700" y="65" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Why chosen</text>
+
+  <g font-family="Arial,sans-serif" font-size="9">
+    <rect x="24" y="76" width="832" height="40" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="100" text-anchor="middle" font-weight="600" fill="#D97706">Frontend</text>
+    <text x="300" y="100" text-anchor="middle" fill="#1C2433">React + Vite + TS</text>
+    <text x="500" y="100" text-anchor="middle" fill="#64748B">Vue, Next.js</text>
+    <text x="700" y="100" text-anchor="middle" fill="#64748B">SPA fits tool-hub UX; fast HMR for demo</text>
+
+    <rect x="24" y="116" width="832" height="40" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="120" y="140" text-anchor="middle" font-weight="600" fill="#059669">Backend</text>
+    <text x="300" y="140" text-anchor="middle" fill="#1C2433">FastAPI async</text>
+    <text x="500" y="140" text-anchor="middle" fill="#64748B">Django, Flask</text>
+    <text x="700" y="140" text-anchor="middle" fill="#64748B">OpenAPI native; SSE for doc stream</text>
+
+    <rect x="24" y="156" width="832" height="40" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="180" text-anchor="middle" font-weight="600" fill="#7C3AED">Text LLM</text>
+    <text x="300" y="180" text-anchor="middle" fill="#1C2433">DeepSeek API</text>
+    <text x="500" y="180" text-anchor="middle" fill="#64748B">GPT-4, local LLM</text>
+    <text x="700" y="180" text-anchor="middle" fill="#64748B">Cost-effective CN legal reasoning</text>
+
+    <rect x="24" y="196" width="832" height="40" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="120" y="220" text-anchor="middle" font-weight="600" fill="#059669">Vision OCR</text>
+    <text x="300" y="220" text-anchor="middle" fill="#1C2433">Qwen-VL OCR</text>
+    <text x="500" y="220" text-anchor="middle" fill="#64748B">Tesseract, PaddleOCR</text>
+    <text x="700" y="220" text-anchor="middle" fill="#64748B">Strong CN doc layout + multimodal</text>
+
+    <rect x="24" y="236" width="832" height="40" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="260" text-anchor="middle" font-weight="600" fill="#7C3AED">Vector DB</text>
+    <text x="300" y="260" text-anchor="middle" fill="#1C2433">ChromaDB</text>
+    <text x="500" y="260" text-anchor="middle" fill="#64748B">Milvus, Pinecone</text>
+    <text x="700" y="260" text-anchor="middle" fill="#64748B">Embedded dev-friendly; LangChain fit</text>
+
+    <rect x="24" y="276" width="832" height="40" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="120" y="300" text-anchor="middle" font-weight="600" fill="#64748B">Relational DB</text>
+    <text x="300" y="300" text-anchor="middle" fill="#1C2433">SQLite / Postgres</text>
+    <text x="500" y="300" text-anchor="middle" fill="#64748B">MySQL, MongoDB</text>
+    <text x="700" y="300" text-anchor="middle" fill="#64748B">Zero-config demo; prod scale path</text>
+
+    <rect x="24" y="316" width="832" height="40" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="340" text-anchor="middle" font-weight="600" fill="#D97706">Doc engine</text>
+    <text x="300" y="340" text-anchor="middle" fill="#1C2433">Jinja2 + docxtpl</text>
+    <text x="500" y="340" text-anchor="middle" fill="#64748B">Pure LLM output</text>
+    <text x="700" y="340" text-anchor="middle" fill="#64748B">Structured SAGD; court-style export</text>
+
+    <rect x="24" y="356" width="832" height="40" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <text x="120" y="380" text-anchor="middle" font-weight="600" fill="#1C2433">Agent design</text>
+    <text x="300" y="380" text-anchor="middle" fill="#1C2433">Supervisor-Worker</text>
+    <text x="500" y="380" text-anchor="middle" fill="#64748B">Single chatbot</text>
+    <text x="700" y="380" text-anchor="middle" fill="#64748B">Stage-specific tools; auditable steps</text>
+
+    <rect x="24" y="396" width="832" height="40" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="120" y="420" text-anchor="middle" font-weight="600" fill="#64748B">Auth</text>
+    <text x="300" y="420" text-anchor="middle" fill="#1C2433">JWT + RBAC</text>
+    <text x="500" y="420" text-anchor="middle" fill="#64748B">Session cookies</text>
+    <text x="700" y="420" text-anchor="middle" fill="#64748B">SPA-friendly; admin/user split</text>
+  </g>
+
+  <rect x="24" y="448" width="832" height="24" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.35"/>
+  <text x="440" y="464" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">All external keys managed in admin panel - aligns with legal-aid deployment (centralized IT)</text>
+</svg>

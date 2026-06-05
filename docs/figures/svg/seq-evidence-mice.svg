@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" fill="none">
+  <text x="400" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Sequence: Evidence Upload to MICE Report</text>
+  <g font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">
+    <text x="40" y="72">User</text><line x1="80" y1="68" x2="760" y2="68" stroke="#E8E4DD"/>
+    <text x="40" y="112">React UI</text><line x1="80" y1="108" x2="760" y2="108" stroke="#E8E4DD"/>
+    <text x="40" y="152">FastAPI</text><line x1="80" y1="148" x2="760" y2="148" stroke="#E8E4DD"/>
+    <text x="40" y="192">MICE svc</text><line x1="80" y1="188" x2="760" y2="188" stroke="#E8E4DD"/>
+    <text x="40" y="232">Qwen-VL</text><line x1="80" y1="228" x2="760" y2="228" stroke="#E8E4DD"/>
+    <text x="40" y="272">Case DB</text><line x1="80" y1="268" x2="760" y2="268" stroke="#E8E4DD"/>
+  </g>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#D97706"/></marker></defs>
+  <line x1="120" y1="68" x2="120" y2="108" stroke="#64748B"/><line x1="120" y1="108" x2="280" y2="108" stroke="#D97706" marker-end="url(#arr)"/>
+  <text x="200" y="100" font-family="Arial,sans-serif" font-size="9" fill="#64748B">POST upload file</text>
+  <line x1="280" y1="108" x2="280" y2="148" stroke="#64748B"/><line x1="280" y1="148" x2="440" y2="148" stroke="#D97706" marker-end="url(#arr)"/>
+  <text x="360" y="140" font-family="Arial,sans-serif" font-size="9" fill="#64748B">store evidence</text>
+  <line x1="440" y1="148" x2="440" y2="188" stroke="#64748B"/><line x1="440" y1="188" x2="600" y2="188" stroke="#059669" marker-end="url(#arr)"/>
+  <text x="520" y="180" font-family="Arial,sans-serif" font-size="9" fill="#059669">run OCR + NER</text>
+  <line x1="600" y1="188" x2="600" y2="228" stroke="#64748B"/><line x1="600" y1="228" x2="440" y2="228" stroke="#059669" marker-end="url(#arr)"/>
+  <text x="520" y="220" font-family="Arial,sans-serif" font-size="9" fill="#059669">VL multimodal</text>
+  <line x1="440" y1="228" x2="440" y2="268" stroke="#64748B"/><line x1="440" y1="268" x2="280" y2="268" stroke="#64748B" marker-end="url(#arr)"/>
+  <text x="360" y="260" font-family="Arial,sans-serif" font-size="9" fill="#64748B">save parsed fields</text>
+  <line x1="120" y1="108" x2="120" y2="320" stroke="#64748B" stroke-dasharray="4"/>
+  <line x1="120" y1="320" x2="280" y2="320" stroke="#D97706" marker-end="url(#arr)"/>
+  <text x="200" y="312" font-family="Arial,sans-serif" font-size="9" fill="#64748B">GET consistency-report</text>
+  <line x1="280" y1="320" x2="280" y2="148" stroke="#64748B"/><line x1="280" y1="148" x2="440" y2="148" stroke="#D97706"/>
+  <line x1="440" y1="148" x2="440" y2="360" stroke="#64748B"/>
+  <line x1="440" y1="360" x2="120" y2="360" stroke="#059669" marker-end="url(#arr)"/>
+  <text x="280" y="352" font-family="Arial,sans-serif" font-size="9" fill="#059669">alerts + readiness JSON</text>
+  <rect x="80" y="384" width="640" height="28" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="400" y="403" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">UI: MiceConsistencyPanel renders conflicts and checklist score on /evidence</text>
+</svg>

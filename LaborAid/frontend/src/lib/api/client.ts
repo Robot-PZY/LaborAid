@@ -20,7 +20,16 @@ export const TIMEOUT = {
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    if (!token) return config;
+
+    const headers = config.headers;
+    const existing =
+      typeof headers?.get === 'function'
+        ? headers.get('Authorization')
+        : (headers as Record<string, string | undefined>)?.Authorization;
+
+    // Keep an explicit Authorization header (e.g. fresh token right after login).
+    if (!existing) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

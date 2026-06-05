@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 240" fill="none">
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#64748B"/></marker></defs>
+  <text x="450" y="24" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">LEAP - Language-Enhanced Advocacy Planning</text>
+  <rect x="16" y="48" width="120" height="120" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="76" y="72" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#64748B">INPUT</text>
+  <text x="76" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Scenario form</text>
+  <text x="76" y="110" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Natural language</text>
+  <text x="76" y="126" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Optional image</text>
+  <line x1="136" y1="108" x2="168" y2="108" stroke="#64748B" marker-end="url(#arr)"/>
+  <rect x="168" y="72" width="100" height="72" rx="8" fill="#FFF" stroke="#D97706"/><text x="218" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">STDE</text><text x="218" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Structured extract</text>
+  <line x1="268" y1="108" x2="300" y2="108" stroke="#64748B" marker-end="url(#arr)"/>
+  <rect x="300" y="72" width="100" height="72" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="350" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">Cause match</text><text x="350" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">checklist tpl</text>
+  <line x1="400" y1="108" x2="432" y2="108" stroke="#64748B" marker-end="url(#arr)"/>
+  <circle cx="472" cy="108" r="36" fill="#7C3AED"/><text x="472" y="104" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#FFF">Supervisor</text>
+  <line x1="508" y1="108" x2="540" y2="108" stroke="#64748B" marker-end="url(#arr)"/>
+  <rect x="540" y="48" width="200" height="120" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="640" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#64748B">SPECIALIST WORKERS</text>
+  <text x="560" y="90" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Guidance Evidence Research</text>
+  <text x="640" y="106" font-family="Arial,sans-serif" font-size="9" fill="#D97706">Docgen Records</text>
+  <line x1="740" y1="108" x2="772" y2="108" stroke="#64748B" marker-end="url(#arr)"/>
+  <rect x="772" y="72" width="112" height="72" rx="8" fill="#FEF3C7" stroke="#D97706"/><text x="828" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#92400E">OUTPUT</text><text x="828" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">next-step tasks</text>
+  <rect x="16" y="188" width="868" height="36" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="450" y="211" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748B">Routes intake to cause-specific evidence templates and agent task queue</text>
+</svg>

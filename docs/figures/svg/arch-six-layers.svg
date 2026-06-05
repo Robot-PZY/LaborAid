@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" fill="none">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#64748B"/></marker>
+    <filter id="sh"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#1C2433" flood-opacity="0.06"/></filter>
+  </defs>
+  <text x="360" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">LaborAid Six-Layer Architecture</text>
+  <g filter="url(#sh)" font-family="Arial,sans-serif">
+    <rect x="40" y="44" width="640" height="56" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="56" y="68" font-size="11" font-weight="700" fill="#D97706">L1 Users</text>
+    <text x="56" y="86" font-size="11" fill="#64748B">Workers | Legal aid staff | Platform admin</text>
+    <line x1="360" y1="100" x2="360" y2="112" stroke="#64748B" marker-end="url(#a)"/>
+    <rect x="40" y="112" width="640" height="56" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="56" y="136" font-size="11" font-weight="700" fill="#D97706">L2 Presentation</text>
+    <text x="56" y="154" font-size="11" fill="#64748B">Home | Intake | Evidence / Docs / Reports | Guidance</text>
+    <line x1="360" y1="168" x2="360" y2="180" stroke="#64748B" marker-end="url(#a)"/>
+    <rect x="40" y="180" width="640" height="56" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="56" y="204" font-size="11" font-weight="700" fill="#D97706">L3 Business</text>
+    <text x="56" y="222" font-size="11" fill="#64748B">Scenario intake | Case build | Pipeline | Vault</text>
+    <line x1="360" y1="236" x2="360" y2="248" stroke="#64748B" marker-end="url(#a)"/>
+    <rect x="40" y="248" width="640" height="56" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="56" y="272" font-size="11" font-weight="700" fill="#D97706">L4 Scenarios</text>
+    <text x="56" y="290" font-size="11" fill="#64748B">Wage arrears | Probation | Maternity | General dispute</text>
+    <line x1="360" y1="304" x2="360" y2="316" stroke="#64748B" marker-end="url(#a)"/>
+    <rect x="40" y="316" width="640" height="56" rx="8" fill="#FAF9F6" stroke="#D97706" stroke-width="1.5"/>
+    <text x="56" y="340" font-size="11" font-weight="700" fill="#D97706">L5 Technology</text>
+    <text x="56" y="358" font-size="11" fill="#1C2433">LEAP | MICE | Graph-RAG | SAGD | Supervisor Agent</text>
+    <line x1="360" y1="372" x2="360" y2="384" stroke="#64748B" marker-end="url(#a)"/>
+    <rect x="40" y="384" width="640" height="56" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+    <text x="56" y="408" font-size="11" font-weight="700" fill="#D97706">L6 Data</text>
+    <text x="56" y="426" font-size="11" fill="#64748B">Case DB | Evidence OCR | Chroma | Templates | Links</text>
+  </g>
+  <rect x="40" y="460" width="640" height="44" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="360" y="487" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#92400E">Top-down: Users to UI to Business to Scenarios to AI stack to Data</text>
+</svg>
