@@ -38,10 +38,8 @@ foreach ($port in $FrontendPort, $BackendPort) {
 Start-Sleep -Seconds 2
 
 Write-Host "Starting backend http://127.0.0.1:$BackendPort ..."
-Start-Process powershell -ArgumentList @(
-  '-NoExit', '-Command',
-  "Set-Location '$backend'; Write-Host 'LaborAid Backend :$BackendPort'; python -m uvicorn app.main:app --host 127.0.0.1 --port $BackendPort --reload"
-)
+$backendCmd = "Write-Host 'LaborAid Backend :$BackendPort'; python -m uvicorn app.main:app --host 127.0.0.1 --port $BackendPort --reload"
+Start-Process powershell -WorkingDirectory $backend -ArgumentList @('-NoExit', '-Command', $backendCmd)
 
 Write-Host "Waiting for backend (first start may take 30-60s)..."
 $backendOk = Wait-ServiceReady -Label "backend /health" -MaxSeconds 90 -Test {
@@ -52,10 +50,8 @@ $backendOk = Wait-ServiceReady -Label "backend /health" -MaxSeconds 90 -Test {
 }
 
 Write-Host "Starting frontend http://127.0.0.1:$FrontendPort ..."
-Start-Process powershell -ArgumentList @(
-  '-NoExit', '-Command',
-  "Set-Location '$frontend'; Write-Host 'LaborAid Frontend :$FrontendPort'; npm run dev"
-)
+$frontendCmd = "Write-Host 'LaborAid Frontend :$FrontendPort'; npm run dev"
+Start-Process powershell -WorkingDirectory $frontend -ArgumentList @('-NoExit', '-Command', $frontendCmd)
 
 Write-Host "Waiting for frontend..."
 $frontendOk = Wait-ServiceReady -Label "frontend" -MaxSeconds 60 -Test {
@@ -75,3 +71,5 @@ if ($backendOk -and $frontendOk) {
 }
 
 Write-Host "API docs: http://127.0.0.1:$BackendPort/docs"
+Write-Host ""
+Write-Host "Tip: Next time double-click start-laboraid.bat in repo root."

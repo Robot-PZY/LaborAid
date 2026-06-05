@@ -5,11 +5,13 @@ import { getChannel, type ChannelConfig } from '@/lib/channels';
 import {
   getScenarioFormFields,
   listIntakeScenarios,
+  renderStructuredCaseFacts,
   validateFormAnswers,
 } from '@/lib/intake-scenarios';
 import { intakeApi, type IntakeAnalyzeResult } from '@/lib/api/intake';
-import { resultToSession } from '@/lib/intake-plan';
+import { resultToSession, sessionToAnalyzeResult } from '@/lib/intake-plan';
 import { saveReportProvinceFromWorkRegion } from '@/lib/report-province';
+import type { IntakeSession } from '@/lib/intake-session';
 import DynamicForm from '@/components/intake/DynamicForm';
 import IntakePlanResult from '@/components/intake/IntakePlanResult';
 import { Button, Badge, Surface } from '@/components/ui/primitives';
@@ -22,12 +24,30 @@ type Props = {
   onBack: () => void;
   initialChannelId?: string | null;
   initialScenarioId?: string | null;
+  resumeSession?: IntakeSession | null;
 };
+
+function resolveStructuredCaseFacts(
+  data: IntakeAnalyzeResult,
+  channelId: string,
+  scenarioId: string,
+  answers: Record<string, string>,
+): string {
+  if (data.case_facts?.trim()) return data.case_facts.trim();
+  const channel = getChannel(channelId);
+  const scenario = channel?.scenarios?.find((s) => s.id === scenarioId);
+  if (channel && scenario) {
+    const fields = getScenarioFormFields(channelId, scenarioId);
+    return renderStructuredCaseFacts(channel.title, scenario.title, answers, fields);
+  }
+  return data.summary;
+}
 
 export default function ChannelIntakeWizard({
   onBack,
   initialChannelId,
   initialScenarioId,
+  resumeSession,
 }: Props) {
   const [channelId, setChannelId] = useState<string | null>(initialChannelId ?? null);
   const [scenarioId, setScenarioId] = useState<string | null>(initialScenarioId ?? null);
@@ -35,11 +55,41 @@ export default function ChannelIntakeWizard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<IntakeAnalyzeResult | null>(null);
+  const [planInputText, setPlanInputText] = useState('');
 
   useEffect(() => {
     if (initialChannelId) setChannelId(initialChannelId);
     if (initialScenarioId) setScenarioId(initialScenarioId);
   }, [initialChannelId, initialScenarioId]);
+
+  useEffect(() => {
+    if (!resumeSession?.actionPlan?.steps?.length && !resumeSession?.recommendedTools?.length) {
+      return;
+    }
+    setChannelId(resumeSession.channelId ?? null);
+    setScenarioId(resumeSession.scenarioId ?? null);
+    setAnswers(resumeSession.structuredAnswers ?? {});
+    setResult(sessionToAnalyzeResult(resumeSession));
+
+    let facts = resumeSession.caseFacts || resumeSession.inputText || resumeSession.summary || '';
+    if (resumeSession.channelId && resumeSession.scenarioId && resumeSession.structuredAnswers) {
+      const ch = getChannel(resumeSession.channelId);
+      const scenario = ch?.scenarios?.find((s) => s.id === resumeSession.scenarioId);
+      if (ch && scenario) {
+        const rebuilt = renderStructuredCaseFacts(
+          ch.title,
+          scenario.title,
+          resumeSession.structuredAnswers,
+          getScenarioFormFields(resumeSession.channelId, resumeSession.scenarioId),
+        );
+        if (rebuilt.length > facts.length) facts = rebuilt;
+      }
+    }
+    setPlanInputText(facts);
+    if (facts.length > (resumeSession.caseFacts?.length || 0)) {
+      resultToSession(sessionToAnalyzeResult(resumeSession), facts);
+    }
+  }, [resumeSession]);
 
   const channel = channelId ? getChannel(channelId) : undefined;
   const scenarios = channel ? listIntakeScenarios(channel) : [];
@@ -68,8 +118,10 @@ export default function ChannelIntakeWizard({
         scenario_id: scenarioId,
         answers,
       });
+      const facts = resolveStructuredCaseFacts(data, channelId, scenarioId, answers);
       setResult(data);
-      resultToSession(data, data.summary);
+      setPlanInputText(facts);
+      resultToSession(data, facts);
       const workRegion = data.structured_answers?.work_region;
       if (typeof workRegion === 'string') {
         saveReportProvinceFromWorkRegion(workRegion);
@@ -85,6 +137,7 @@ export default function ChannelIntakeWizard({
 
   const handleReset = () => {
     setResult(null);
+    setPlanInputText('');
     setAnswers({});
     setScenarioId(null);
     setError('');
@@ -94,7 +147,7 @@ export default function ChannelIntakeWizard({
     return (
       <IntakePlanResult
         result={result}
-        inputText={result.summary}
+        inputText={planInputText || result.summary}
         onReset={handleReset}
         onBack={onBack}
       />

@@ -3,6 +3,8 @@
 import re
 from html import escape
 
+from app.services.docgen.structured.helpers import NO_INDENT, strip_no_indent_marker
+
 _INLINE_COLOR_STYLE_RE = re.compile(
     r'\s*style\s*=\s*["\'][^"\']*(?:color|background)[^"\']*["\']',
     re.IGNORECASE,
@@ -41,6 +43,12 @@ def markdown_to_html_body(text: str) -> str:
                 in_list = False
                 list_type = None
             html_parts.append('<p class="no-indent">&nbsp;</p>')
+            i += 1
+            continue
+
+        stripped, no_indent = strip_no_indent_marker(stripped)
+        if no_indent and stripped:
+            html_parts.append(f'<p class="no-indent">{format_inline_html(stripped)}</p>')
             i += 1
             continue
 
@@ -106,7 +114,7 @@ def markdown_to_html_body(text: str) -> str:
                 in_list = False
                 list_type = None
             if not in_list:
-                html_parts.append("<ol>")
+                html_parts.append('<ol class="legal-list">')
                 in_list = True
                 list_type = "ol"
             html_parts.append(f"<li>{format_inline_html(ordered_match.group(2))}</li>")

@@ -162,13 +162,20 @@ export default function Research() {
     return countReportWords(currentReport.report);
   }, [currentReport]);
 
+  const canGenerateReport = useMemo(() => {
+    if (!caseId) return false;
+    if (materials?.ready_for_analysis) return true;
+    const c = cases.find((item) => item.id === caseId);
+    return Boolean((c?.description || '').trim());
+  }, [caseId, materials, cases]);
+
   const handleGenerateReport = useCallback(async () => {
     if (!caseId) return;
-    if (materials && !materials.ready_for_analysis) {
+    if (!canGenerateReport) {
       toast({
         type: 'error',
         title: '材料不足',
-        description: '请至少填写案情描述，或上传证据/生成一份文书后再分析',
+        description: '请至少填写案情描述、完成维权 intake，或上传证据/文书后再分析',
       });
       return;
     }
@@ -206,7 +213,7 @@ export default function Research() {
     } finally {
       setGenerating(false);
     }
-  }, [caseId, materials, extraNotes, cases, toast]);
+  }, [caseId, canGenerateReport, extraNotes, cases, toast]);
 
   const handleLoadReport = useCallback(async (id: number) => {
     try {
@@ -435,7 +442,7 @@ export default function Research() {
             <button
               type="button"
               onClick={handleGenerateReport}
-              disabled={generating || !caseId || (materials !== null && !materials.ready_for_analysis)}
+              disabled={generating || !canGenerateReport}
               className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {generating ? (

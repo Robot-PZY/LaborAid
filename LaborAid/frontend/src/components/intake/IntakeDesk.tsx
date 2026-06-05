@@ -56,9 +56,11 @@ interface IntakeDeskProps {
   onAnalyzed?: (session: IntakeSession) => void;
   /** 嵌套在 EntryGate 普通入口内 */
   embedded?: boolean;
+  /** EntryGate 已处理 resumeIntake 时由父组件触发恢复 */
+  autoResume?: boolean;
 }
 
-export default function IntakeDesk({ onAnalyzed, embedded }: IntakeDeskProps) {
+export default function IntakeDesk({ onAnalyzed, embedded, autoResume }: IntakeDeskProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const imageRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -160,16 +162,18 @@ export default function IntakeDesk({ onAnalyzed, embedded }: IntakeDeskProps) {
   }, []);
 
   useEffect(() => {
-    if (searchParams.get('resumeIntake') === '1') {
+    if (searchParams.get('resumeIntake') === '1' || autoResume) {
       restoreFromSession();
-      const next = new URLSearchParams(searchParams);
-      next.delete('resumeIntake');
-      setSearchParams(next, { replace: true });
+      if (searchParams.get('resumeIntake') === '1') {
+        const next = new URLSearchParams(searchParams);
+        next.delete('resumeIntake');
+        setSearchParams(next, { replace: true });
+      }
       requestAnimationFrame(() => {
         document.getElementById('intake-desk')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
-  }, [searchParams, setSearchParams, restoreFromSession]);
+  }, [searchParams, setSearchParams, restoreFromSession, autoResume]);
 
   useEffect(() => {
     hydrateIntakeSessionFromServer().then((saved) => {

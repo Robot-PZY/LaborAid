@@ -59,6 +59,8 @@ export interface Document {
   ai_metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  exported_path?: string | null;
+  vault_archived?: boolean;
 }
 
 export interface Template {

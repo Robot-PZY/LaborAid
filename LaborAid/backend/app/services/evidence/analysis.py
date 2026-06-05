@@ -2,54 +2,89 @@
 
 import asyncio
 import logging
-from app.prompts.persona import prompt_with_persona, SYSTEM_EVIDENCE
-from app.services.llm_client import create_llm_client, create_llm_client_from_settings
+import re
+
 from app.config import get_settings
 from app.core.monitoring import timed, LLMTimer, record_llm_call
+from app.services.llm_client import create_llm_client, create_llm_client_from_settings
 
 logger = logging.getLogger(__name__)
 
-# Maximum characters for OCR text sent to LLM to prevent token overflow.
 _MAX_OCR_LENGTH = 8000
-
-# Maximum characters for the analysis response (safety cap).
 _MAX_RESPONSE_LENGTH = 16000
-
-# Timeout for LLM call in seconds.
 _LLM_TIMEOUT = 120
+_MAX_ANALYSIS_CHARS = 80
 
-EVIDENCE_ANALYSIS_PROMPT = prompt_with_persona("""请对以下证据材料进行专业分析。
+# 极简 system：禁止身份、免责声明、寒暄
+SYSTEM_EVIDENCE_BRIEF = (
+    "你是证据摘要助手。只输出一句中文，说明材料内容与证明作用。"
+    "禁止：自我介绍、劳权智助/LaborAid、问候语、标题、分点、markdown、法律免责声明。"
+)
 
-## 证据内容：
+EVIDENCE_ANALYSIS_PROMPT = """阅读证据与案情，用 **30～50 字** 一句话说明：
+1. 这份材料说了什么；
+2. 对本案有何证明作用。
+
+## 证据内容
 {ocr_text}
 
-## 案件背景：
+## 案件背景
 {case_context}
 
-请从以下 **7 个栏目** 简要分析（每栏 **不超过 80 字**，不要写开场白、不要重复案情背景、不要写总结段）：
+只输出这一句话，不要其他内容。"""
 
-## 证据类型
-（一句：证据种类与形式是否合规）
+# 需剔除的开场/身份/免责话术
+_NOISE_PATTERNS = [
+    r"^好的[，,。.!！\s]*",
+    r"^收到[您的]*[证据材料与背景说明]*[，,。.!！\s]*",
+    r"^作为[^，。]{0,20}[，,]\s*",
+    r"^我将[^，。]{0,30}[，,]\s*",
+    r"^请注意[：:][^。]*。?\s*",
+    r"^\*+\s*",
+    r"^\([^)]*仅供参考[^)]*\)\s*",
+    r"^（[^）]*仅供参考[^）]*）\s*",
+]
 
-## 证明力
-（一句：对争议事实的证明强弱）
 
-## 关联性
-（一句：与本案争议焦点的关联）
+def normalize_evidence_analysis(text: str) -> str:
+    """压成单段极短摘要，便于证据列表展示。"""
+    if not text or not text.strip():
+        return text
+    raw = text.strip()
+    if raw.startswith("无法分析") or raw.startswith("分析失败") or raw.startswith("分析超时"):
+        return raw
 
-## 真实性
-（一句：形式与内容是否可信）
+    kept: list[str] = []
+    for line in raw.splitlines():
+        stripped = line.strip()
+        if re.match(r"^#+\s", stripped):
+            continue
+        if re.match(r"^证据分析[：:]", stripped):
+            continue
+        if "仅供参考" in stripped and "不构成" in stripped:
+            continue
+        kept.append(re.sub(r"^#+\s*", "", stripped))
+    raw = " ".join(s for s in kept if s)
+    raw = re.sub(r"\*\*[^*]*仅供参考[^*]*\*\*", "", raw)
+    raw = re.sub(r"\*\*", "", raw)
+    raw = re.sub(r"^[-*•]\s+", "", raw)
+    raw = re.sub(r"\s+", " ", raw).strip()
 
-## 合法性
-（一句：取得方式是否合法）
+    for pat in _NOISE_PATTERNS:
+        raw = re.sub(pat, "", raw, flags=re.IGNORECASE)
 
-## 质证要点
-（一句：对方可能质疑点及应对）
+    # 全局剔除常见寒暄/免责/标题残留
+    raw = re.sub(r"好的，收到[^。]*。?\s*", "", raw)
+    raw = re.sub(r"作为[^，。]{0,30}[，,]\s*", "", raw)
+    raw = re.sub(r"我将[^。]{0,50}。?\s*", "", raw)
+    raw = re.sub(r"[（(]请注意[^）)]*[）)]", "", raw)
+    raw = re.sub(r"#{1,6}\s*证据分析[：:][^\s]*\s*", "", raw)
+    raw = re.sub(r"\s+", " ", raw).strip()
+    raw = re.sub(r"^(AI\s*解读|解读)[：:]\s*", "", raw, flags=re.IGNORECASE)
 
-## 补充建议
-（一句：还需补充什么证据）
-
-仅输出以上 7 个二级标题及对应短段落，不要其他章节。""")
+    if len(raw) > _MAX_ANALYSIS_CHARS:
+        raw = raw[: _MAX_ANALYSIS_CHARS - 1].rstrip("，,；; ") + "…"
+    return raw
 
 
 @timed("evidence:analyze", slow_threshold_ms=5000)
@@ -62,30 +97,26 @@ async def analyze_evidence(
     llm_model=None,
 ) -> str:
     """使用LLM对证据进行专业法律分析。"""
-    # Guard: empty or failed OCR extraction.
     if not ocr_text or not ocr_text.strip():
         return "无法分析：证据文字提取失败或为空"
     if ocr_text.strip().startswith("[") and len(ocr_text.strip()) < 100:
-        # Looks like a placeholder error message, e.g. "[OCR failed]"
         return "无法分析：证据文字提取失败或为空"
 
-    # Default case context when not provided.
     effective_context = case_context.strip() if case_context else "未提供案件背景信息"
 
     settings = get_settings()
     if llm:
         client, model = llm.client, llm.model
-        max_tokens = min(llm.max_tokens, 4096)
+        max_tokens = min(llm.max_tokens, 128)
     elif llm_base_url and llm_api_key:
         client = create_llm_client(llm_base_url, llm_api_key)
         model = llm_model or settings.LLM_MODEL
-        max_tokens = 4096
+        max_tokens = 128
     else:
         client = create_llm_client_from_settings(settings)
         model = llm_model or settings.LLM_MODEL
-        max_tokens = 4096
+        max_tokens = 128
 
-    # Truncate OCR text to prevent token overflow.
     truncated_ocr = ocr_text[:_MAX_OCR_LENGTH]
 
     try:
@@ -94,7 +125,7 @@ async def analyze_evidence(
                 client.messages.create(
                     model=model,
                     max_tokens=max_tokens,
-                    system=SYSTEM_EVIDENCE,
+                    system=SYSTEM_EVIDENCE_BRIEF,
                     messages=[{
                         "role": "user",
                         "content": EVIDENCE_ANALYSIS_PROMPT.format(
@@ -105,7 +136,6 @@ async def analyze_evidence(
                 ),
                 timeout=_LLM_TIMEOUT,
             )
-            # Extract token usage if available
             usage = getattr(response, "usage", None)
             if usage:
                 timer.set_tokens(
@@ -113,10 +143,7 @@ async def analyze_evidence(
                     getattr(usage, "output_tokens", 0),
                 )
         result = response.content[0].text if response.content else "分析完成但无结果"
-        # Safety cap on response length.
-        if len(result) > _MAX_RESPONSE_LENGTH:
-            result = result[:_MAX_RESPONSE_LENGTH] + "\n\n[... 分析结果过长，已截断]"
-        return result
+        return normalize_evidence_analysis(result)
     except asyncio.TimeoutError:
         logger.warning("Evidence analysis timed out after %ds", _LLM_TIMEOUT)
         return f"分析超时：LLM 响应超过 {_LLM_TIMEOUT} 秒，请稍后重试"

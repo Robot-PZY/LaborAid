@@ -27,7 +27,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-logger = logging.getLogger(__name__)
+from app.services.docgen.structured.helpers import strip_no_indent_marker
 
 # 法院标准排版参数
 COURT_FONT_SETTINGS = {
@@ -462,6 +462,16 @@ def _add_markdown_paragraphs(doc: Document, content: str, first_line_indent: boo
             i += 1
             continue
 
+        stripped, no_indent = strip_no_indent_marker(stripped)
+        if no_indent:
+            in_list = False
+            for chunk in _split_long_paragraph(stripped):
+                p = doc.add_paragraph()
+                _set_paragraph_format(p, first_line_indent=False)
+                _parse_inline_formatting(p, chunk)
+            i += 1
+            continue
+
         # 标题级别（先匹配长的 # 前缀）
         if stripped.startswith("#### "):
             has_heading = True
@@ -491,7 +501,7 @@ def _add_markdown_paragraphs(doc: Document, content: str, first_line_indent: boo
             if _should_page_break_before(stripped):
                 _add_page_break(doc)
             p = doc.add_paragraph()
-            _set_paragraph_format(p, first_line_indent=False, space_before=18, space_after=6)
+            _set_paragraph_format(p, first_line_indent=False, space_before=10, space_after=3)
             _parse_inline_formatting(p, stripped[3:])
             _set_outline_level(p, 1)
             _apply_heading_runs(p, "heading1_font", bold=True)

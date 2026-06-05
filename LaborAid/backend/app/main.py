@@ -184,6 +184,15 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         from app.core.schema_migrations import run_schema_migrations
         await conn.run_sync(run_schema_migrations)
+        if settings.DATABASE_URL.startswith("sqlite"):
+            from sqlalchemy import text
+            try:
+                await conn.execute(text("PRAGMA journal_mode=WAL"))
+            except Exception:
+                # 某些环境下数据库已被占用，WAL 切换失败不应阻断启动
+                pass
+            await conn.execute(text("PRAGMA busy_timeout=60000"))
+            await conn.execute(text("PRAGMA synchronous=NORMAL"))
     db_health = await db_health_check()
     startup_logger.info("Database ready: %s", db_health)
 

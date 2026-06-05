@@ -1,0 +1,12 @@
+%% 关键算法二：MICE — Multimodal Integrity & Consistency Engine
+
+flowchart TB
+  IMG[图片 / 扫描 PDF] --> OCR[通义 VL-OCR\n感知层]
+  OCR --> EXT[劳动领域 NER\n姓名·金额·日期·单位]
+  EXT --> RULE[规则校验\n时间线·金额·主体]
+  EXT --> LIST[清单对照\ncase_readiness]
+  RULE --> ALERT[⚠ 矛盾告警]
+  LIST --> SCORE[就绪度评分]
+  ALERT --> REPORT[MICE 质证报告]
+  SCORE --> REPORT
+  REPORT --> DOC[SAGD 文书 / 仲裁请求]

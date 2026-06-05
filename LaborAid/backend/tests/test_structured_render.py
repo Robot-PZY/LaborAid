@@ -51,11 +51,11 @@ def test_render_application_markdown_structure():
         },
     )
     assert md.startswith("# 劳动仲裁申请书")
-    assert "## 申请人" in md
-    assert "## 仲裁请求" in md
+    assert "## 一、仲裁请求" in md
     assert "1. 支付拖欠工资" in md
     assert "此致" in md
-    assert "**姓名**" in md
+    assert "**申请人**" in md
+    assert "| 序号 | 证据名称 |" in md
 
 
 def test_seed_from_parsed_case():
@@ -92,5 +92,5 @@ def test_render_complaint():
         },
     )
     assert "# 民事起诉状" in md
-    assert "## 劳动仲裁前置程序" in md
+    assert "## 一、劳动仲裁前置程序" in md
     assert has_structured_renderer("complaint")

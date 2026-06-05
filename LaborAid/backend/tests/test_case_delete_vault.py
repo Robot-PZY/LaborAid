@@ -1,9 +1,10 @@
-"""删除案件时同步清理材料库。"""
+"""删除案件时同步清理材料库、解除文书关联。"""
 
 import pytest
 from sqlalchemy import select
 
 from app.models.case import Case
+from app.models.document import Document
 from app.models.user_material import UserMaterial
 
 
@@ -49,3 +50,32 @@ async def test_delete_case_soft_deletes_vault_materials(client, auth_headers, te
         )
     )
     assert still_active.scalars().first() is None
+
+
+@pytest.mark.asyncio
+async def test_delete_case_unlinks_documents(client, auth_headers, test_user, db_session):
+    case = Case(
+        title="含文书案件",
+        case_type="administrative_labor",
+        description="测试",
+        owner_id=test_user.id,
+        status="active",
+    )
+    db_session.add(case)
+    await db_session.flush()
+    doc = Document(
+        case_id=case.id,
+        type="application",
+        title="仲裁申请书",
+        content="正文",
+        owner_id=test_user.id,
+    )
+    db_session.add(doc)
+    await db_session.commit()
+
+    r = await client.delete(f"/api/v1/cases/{case.id}", headers=auth_headers)
+    assert r.status_code == 200
+
+    await db_session.refresh(doc)
+    assert doc.case_id is None
+    assert doc.content == "正文"

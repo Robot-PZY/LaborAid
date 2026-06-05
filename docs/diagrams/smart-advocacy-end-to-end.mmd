@@ -1,0 +1,18 @@
+%% 智能维权端到端总流程（答辩 demo 用）
+
+flowchart TB
+  START([劳动者进入]) --> GATE{入口}
+  GATE -->|专项| CH[Channel Intake]
+  GATE -->|普通| DESK[Intake Desk]
+
+  CH --> CASE[建案 case_id]
+  DESK --> CASE
+
+  CASE --> LEAP[LEAP Pipeline 规划]
+  LEAP --> EVD[上传证据 → MICE]
+  EVD --> READ[就绪度 / 质证报告]
+  READ --> RES[Graph-RAG 研究]
+  RES --> DOC[SAGD 批量文书]
+  DOC --> TOOLS[计算器 · 企查查 · 办事资源]
+  TOOLS --> PACK[材料包导出]
+  PACK --> END([维权材料就绪])

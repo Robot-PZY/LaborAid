@@ -6,6 +6,7 @@ export interface IntakeAnalyzeResult {
   cause_type: string;
   cause_label: string;
   summary: string;
+  case_facts?: string | null;
   parties: { plaintiff?: string | null; defendant?: string | null };
   missing_info: string[];
   evidence_checklist: string[];

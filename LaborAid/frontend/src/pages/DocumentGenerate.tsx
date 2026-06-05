@@ -47,6 +47,11 @@ import { announceToScreenReader } from '@/lib/accessibility';
 import { addToolHistory, removeToolHistoryForDocument } from '@/lib/tool-history';
 import { downloadDocumentFile } from '@/lib/document-download';
 import CourtDocumentPreview from '@/components/documents/CourtDocumentPreview';
+import DocRecommendationPanel from '@/components/documents/DocRecommendationPanel';
+import {
+  buildLocalDocRecommendations,
+  type DocRecommendationsResult,
+} from '@/lib/doc-recommendations';
 import {
   BUNDLE_PRESETS,
   DOC_TYPES,
@@ -55,7 +60,7 @@ import {
   normalizeDocType,
 } from '@/config/doc-types';
 
-const MAX_CASE_FACT_CHARS = 200;
+const MAX_CASE_FACT_CHARS = 4000;
 
 const AGENT_PIPELINE_ORDER = ['prepare', 'research', 'generate', 'review', 'quality'] as const;
 
@@ -193,6 +198,7 @@ export default function DocumentGenerate() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any[] | null>(null);
   const [exportLoading, setExportLoading] = useState<string | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<number | null>(null);
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const autoWordDownloadedRef = useRef<number | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -247,6 +253,9 @@ export default function DocumentGenerate() {
   >({});
   const [lastPipelineHint, setLastPipelineHint] = useState<string | null>(null);
   const pipelineAbortRef = useRef<AbortController | null>(null);
+  const [docRecommendations, setDocRecommendations] = useState<DocRecommendationsResult | null>(null);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
+  const [generatingDocType, setGeneratingDocType] = useState<string | null>(null);
 
   // Character / word counter
   const caseFactCharCount = useMemo(
@@ -285,6 +294,44 @@ export default function DocumentGenerate() {
       .finally(() => setReadinessLoading(false));
   }, [selectedCaseId]);
 
+  // 关联案件后自动聚合案情（含证据分析），替换被截断的预填
+  useEffect(() => {
+    const caseId = selectedCaseId ? Number(selectedCaseId) : null;
+    if (!caseId || !Number.isFinite(caseId)) return;
+
+    let cancelled = false;
+    caseApi
+      .getDocFacts(caseId)
+      .then(({ case_facts }) => {
+        if (cancelled || !case_facts?.trim()) return;
+        setCaseFacts((prev) => {
+          const trimmed = prev.trim();
+          if (!trimmed) return trimToCharLimit(case_facts, MAX_CASE_FACT_CHARS);
+          if (
+            (trimmed.endsWith('...') || trimmed.length < case_facts.length * 0.6) &&
+            case_facts.length > trimmed.length
+          ) {
+            return trimToCharLimit(case_facts, MAX_CASE_FACT_CHARS);
+          }
+          return prev;
+        });
+      })
+      .catch(() => {
+        const c = cases.find((item) => item.id === caseId);
+        if (!c || cancelled) return;
+        setCaseFacts((prev) => {
+          if (prev.trim()) return prev;
+          const base = [c.description, c.plaintiff && c.defendant ? `当事人：${c.plaintiff} 诉 ${c.defendant}` : '']
+            .filter(Boolean)
+            .join('\n');
+          return base ? trimToCharLimit(base, MAX_CASE_FACT_CHARS) : prev;
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCaseId, cases]);
+
   useEffect(() => {
     const caseId = selectedCaseId ? Number(selectedCaseId) : null;
     if (!caseId || !Number.isFinite(caseId)) {
@@ -322,16 +369,122 @@ export default function DocumentGenerate() {
       .catch(() => setRecentDocuments([]));
   }, []);
 
-  const openDocument = useCallback((doc: Document, opts?: { skipAutoDownload?: boolean }) => {
-    if (opts?.skipAutoDownload) autoWordDownloadedRef.current = doc.id;
-    setGeneratedDoc(doc);
-    setEditedContent(doc.content);
-    setEditedTitle(doc.title);
-    setDocType(doc.type);
-    setDocVersions([{ version: doc.version, updated_at: doc.updated_at, title: doc.title }]);
-    setEditMode(false);
-    document.getElementById('doc-preview-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const refreshDocRecommendations = useCallback(() => {
+    const caseId = selectedCaseId ? Number(selectedCaseId) : null;
+    if (!caseId || !Number.isFinite(caseId)) {
+      const session = loadIntakeSession();
+      if (caseFacts.trim()) {
+        setDocRecommendations(buildLocalDocRecommendations(caseFacts, session));
+      } else {
+        setDocRecommendations(null);
+      }
+      return;
+    }
+    setRecommendationsLoading(true);
+    caseApi
+      .getDocRecommendations(caseId)
+      .then((data) => setDocRecommendations(data))
+      .catch(() => {
+        const session = loadIntakeSession();
+        setDocRecommendations(buildLocalDocRecommendations(caseFacts, session));
+      })
+      .finally(() => setRecommendationsLoading(false));
+  }, [selectedCaseId, caseFacts]);
+
+  useEffect(() => {
+    const t = window.setTimeout(refreshDocRecommendations, caseFacts.trim() ? 400 : 0);
+    return () => window.clearTimeout(t);
+  }, [refreshDocRecommendations, caseFacts]);
+
+  useEffect(() => {
+    if (docType || !docRecommendations?.recommendations.length) return;
+    const next =
+      docRecommendations.recommendations.find((r) => !r.generated)
+      || docRecommendations.recommendations[0];
+    if (next) setDocType(normalizeDocType(next.doc_type) || next.doc_type);
+  }, [docRecommendations, docType]);
+
+  const markRecommendationGenerated = useCallback((docTypeValue: string, documentId?: number) => {
+    setDocRecommendations((prev) => {
+      if (!prev) return prev;
+      const key = normalizeDocType(docTypeValue) || docTypeValue;
+      return {
+        ...prev,
+        recommendations: prev.recommendations.map((r) =>
+          (normalizeDocType(r.doc_type) || r.doc_type) === key
+            ? { ...r, generated: true, document_id: documentId ?? r.document_id }
+            : r,
+        ),
+      };
+    });
   }, []);
+
+  const applyGeneratedDocument = useCallback(
+    (doc: Document, typeForHistory: string, opts?: { pipelineHint?: string; vaultArchived?: boolean }) => {
+      const docWithVault =
+        opts?.vaultArchived || doc.vault_archived ? { ...doc, vault_archived: true } : doc;
+      setGeneratedDoc(docWithVault);
+      setEditedContent(doc.content);
+      setEditedTitle(doc.title);
+      setDocVersions([{ version: doc.version, updated_at: doc.updated_at, title: doc.title }]);
+      refreshRecentDocuments();
+      markRecommendationGenerated(typeForHistory, doc.id);
+      addToolHistory({
+        kind: 'docgen',
+        title: doc.title || docTypeLabel(typeForHistory) || '法律文书',
+        subtitle: docTypeLabel(typeForHistory),
+        route: '/documents',
+        query: String(doc.id),
+      });
+      const vaultHint = docWithVault.vault_archived ? 'Word 已同步到「材料库」' : '可在材料库查看导出文件';
+      toast({
+        type: 'success',
+        title: '文书生成完成',
+        description: opts?.pipelineHint || `正在下载 Word；${vaultHint}`,
+      });
+      announceToScreenReader('文书生成完成');
+      clearAutoSave('doc_gen_caseFacts');
+      clearAutoSave('doc_gen_extraInstructions');
+      requestAnimationFrame(() => {
+        document.getElementById('doc-preview-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    },
+    [refreshRecentDocuments, markRecommendationGenerated, toast],
+  );
+
+  const initPipelineSteps = useCallback(() => {
+    const initial: Record<string, 'pending' | 'running' | 'done' | 'skipped'> = {};
+    AGENT_PIPELINE_ORDER.forEach((k) => {
+      initial[k] = 'pending';
+    });
+    setPipelineSteps(initial);
+    setPipelineLoading(true);
+    setLoading(false);
+  }, []);
+
+  const openDocument = useCallback(async (doc: Document, opts?: { skipAutoDownload?: boolean }) => {
+    if (opts?.skipAutoDownload) autoWordDownloadedRef.current = doc.id;
+    let fullDoc = doc;
+    if (doc.id) {
+      setPreviewLoadingId(doc.id);
+      try {
+        fullDoc = await documentApi.get(doc.id);
+      } catch {
+        toast({ type: 'error', title: '无法加载完整文书', description: '将显示摘要内容' });
+      } finally {
+        setPreviewLoadingId(null);
+      }
+    }
+    setGeneratedDoc(fullDoc);
+    setEditedContent(fullDoc.content);
+    setEditedTitle(fullDoc.title);
+    setDocType(fullDoc.type);
+    setDocVersions([{ version: fullDoc.version, updated_at: fullDoc.updated_at, title: fullDoc.title }]);
+    setEditMode(false);
+    requestAnimationFrame(() => {
+      document.getElementById('doc-preview-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [toast]);
 
   const handleDeleteDocument = useCallback(
     async (doc: Document) => {
@@ -453,21 +606,39 @@ export default function DocumentGenerate() {
     if (autoWordDownloadedRef.current === generatedDoc.id) return;
     autoWordDownloadedRef.current = generatedDoc.id;
 
-    downloadDocumentFile(generatedDoc, 'word')
-      .then(() => {
+    const tryDownload = async () => {
+      try {
+        await downloadDocumentFile(generatedDoc, 'word');
+        return true;
+      } catch {
+        await new Promise((r) => setTimeout(r, 800));
+        try {
+          await downloadDocumentFile(generatedDoc, 'word');
+          return true;
+        } catch {
+          return false;
+        }
+      }
+    };
+
+    void tryDownload().then((ok) => {
+      const vaultHint = generatedDoc.vault_archived
+        ? 'Word 已同步到「材料库」'
+        : '可在「材料库」查看导出文件（若已同步）';
+      if (ok) {
         toast({
           type: 'success',
           title: '文书已保存',
-          description: 'Word 文档已开始下载；可在「我的记录」中再次查看',
+          description: `Word 已开始下载；${vaultHint}；「我的记录」可再次打开`,
         });
-      })
-      .catch(() => {
+      } else {
         toast({
-          type: 'success',
-          title: '文书已保存至账户',
-          description: 'Word 自动下载未成功，请点击右侧「下载 Word」重试',
+          type: 'warning',
+          title: '文书已生成',
+          description: `自动下载未成功，请点击「下载 Word」；${vaultHint}`,
         });
-      });
+      }
+    });
   }, [generatedDoc, toast]);
 
   useEffect(() => {
@@ -527,186 +698,147 @@ export default function DocumentGenerate() {
     return () => document.removeEventListener('keydown', handler);
   }, [showNewCase]);
 
-  const startProgressSimulation = useCallback(() => {
-    setProgressStep(0);
-    setElapsedSeconds(0);
-    let step = 0;
-    const interval = setInterval(() => {
-      step++;
-      if (step < progressSteps.length) {
-        setProgressStep(step);
-      } else {
-        clearInterval(interval);
-      }
-    }, 2000);
-    const timer = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
-    return () => { clearInterval(interval); clearInterval(timer); };
-  }, [progressSteps.length]);
+  const runDirectGenerate = useCallback(
+    async (type: string, caseId: number | null) => {
+      const advanceStep = (key: string, status: 'running' | 'done' | 'skipped') => {
+        setPipelineSteps((prev) => ({ ...prev, [key]: status }));
+      };
+      advanceStep('prepare', 'running');
+      advanceStep('prepare', 'done');
+      advanceStep('research', 'running');
+      advanceStep('research', 'done');
+      advanceStep('generate', 'running');
 
-  const handleGenerate = useCallback(async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!docType || !caseFacts.trim()) return;
-
-    if (
-      caseReadiness &&
-      caseReadiness.readiness_score < 45 &&
-      (caseReadiness.docgen_blockers?.length ?? 0) > 0
-    ) {
-      toast({
-        type: 'warning',
-        title: '材料完整度偏低',
-        description: caseReadiness.docgen_blockers?.[0] || '建议先补充证据与案情描述',
-      });
-    }
-
-    setLoading(true);
-    setError('');
-    setGeneratedDoc(null);
-    setReviewResult(null);
-    setEditMode(false);
-
-    const cleanup = startProgressSimulation();
-
-    try {
       const doc = await documentApi.generate({
-        type: docType,
-        case_id: selectedCaseId ? Number(selectedCaseId) : undefined,
+        type,
+        case_id: caseId ?? undefined,
         case_facts: caseFacts.trim(),
         extra_instructions: extraInstructions.trim() || undefined,
         research_report_ids: selectedReportIds.length > 0 ? selectedReportIds : undefined,
         template_id: selectedTemplateId ? Number(selectedTemplateId) : undefined,
       }, 'doc-generate');
-      setGeneratedDoc(doc);
-      setEditedContent(doc.content);
-      setEditedTitle(doc.title);
-      setDocVersions([{ version: doc.version, updated_at: doc.updated_at, title: doc.title }]);
-      refreshRecentDocuments();
-      addToolHistory({
-        kind: 'docgen',
-        title: doc.title || docTypeLabel(docType) || '法律文书',
-        subtitle: docTypeLabel(docType),
-        route: '/documents',
-        query: String(doc.id),
-      });
-      toast({ type: 'success', title: '文书生成完成', description: '正在准备 Word 下载…' });
-      announceToScreenReader('文书生成完成');
-      clearAutoSave('doc_gen_caseFacts');
-      clearAutoSave('doc_gen_extraInstructions');
-    } catch (err: unknown) {
-      if (axios.isCancel(err)) {
-        setError('生成已取消');
-      } else {
-        const msg = err instanceof AxiosError ? (err.response?.data?.detail || '文书生成失败，请重试') : '文书生成失败，请重试';
-        setError(msg);
-        toast({ type: 'error', title: '文书生成失败', description: msg });
+
+      advanceStep('generate', 'done');
+      advanceStep('review', 'done');
+      advanceStep('quality', 'skipped');
+      return doc;
+    },
+    [caseFacts, extraInstructions, selectedReportIds, selectedTemplateId],
+  );
+
+  const generateDocument = useCallback(
+    async (targetDocType?: string, e?: React.FormEvent) => {
+      e?.preventDefault();
+      const type = normalizeDocType(targetDocType || docType);
+      if (!type || !caseFacts.trim()) {
+        toast({ type: 'warning', title: '请先填写案情描述' });
+        return;
       }
-    } finally {
-      cleanup();
-      setLoading(false);
-    }
-  }, [
-    docType,
-    caseFacts,
-    selectedCaseId,
-    extraInstructions,
-    selectedReportIds,
-    selectedTemplateId,
-    caseReadiness,
-    startProgressSimulation,
-    toast,
-    refreshRecentDocuments,
-  ]);
 
-  const handleDocPipeline = useCallback(() => {
-    if (!docType || !caseFacts.trim()) return;
-    const caseId = selectedCaseId ? Number(selectedCaseId) : null;
-    if (!caseId || !Number.isFinite(caseId)) {
-      toast({ type: 'warning', title: '请先关联案件', description: '助手流水线需绑定案件以保存记录' });
-      return;
-    }
-
-    setPipelineLoading(true);
-    setLoading(false);
-    setError('');
-    setGeneratedDoc(null);
-    setReviewResult(null);
-    setEditMode(false);
-
-    const initial: Record<string, 'pending' | 'running' | 'done' | 'skipped'> = {};
-    AGENT_PIPELINE_ORDER.forEach((k) => {
-      initial[k] = 'pending';
-    });
-    setPipelineSteps(initial);
-
-    pipelineAbortRef.current?.abort();
-    pipelineAbortRef.current = caseApi.runDocPipelineStream(
-      caseId,
-      {
-        doc_type: docType,
-        case_facts: caseFacts.trim(),
-        extra_instructions: extraInstructions.trim() || undefined,
-        research_report_ids: selectedReportIds.length > 0 ? selectedReportIds : undefined,
-      },
-      (event: DocPipelineProgressEvent) => {
-        const key = event.step;
-        if (!AGENT_PIPELINE_ORDER.includes(key as (typeof AGENT_PIPELINE_ORDER)[number])) return;
-        setPipelineSteps((prev) => {
-          const next = { ...prev };
-          if (event.status === 'running') next[key] = 'running';
-          else if (event.status === 'done') next[key] = 'done';
-          else if (event.status === 'skipped') next[key] = 'skipped';
-          return next;
+      if (
+        caseReadiness &&
+        caseReadiness.readiness_score < 45 &&
+        (caseReadiness.docgen_blockers?.length ?? 0) > 0
+      ) {
+        toast({
+          type: 'warning',
+          title: '材料完整度偏低',
+          description: caseReadiness.docgen_blockers?.[0] || '建议先补充证据与案情描述',
         });
-      },
-      (errMsg) => {
-        setError(errMsg);
-        toast({ type: 'error', title: '助手流水线失败', description: errMsg });
-        setPipelineLoading(false);
-      },
-      async (payload) => {
-        try {
-          const doc = await documentApi.get(payload.document_id);
-          setGeneratedDoc(doc);
-          setEditedContent(doc.content);
-          setEditedTitle(doc.title);
-          setDocVersions([
-            { version: doc.version, updated_at: doc.updated_at, title: doc.title },
-          ]);
-          refreshRecentDocuments();
-          addToolHistory({
-            kind: 'docgen',
-            title: doc.title || '助手流水线文书',
-            subtitle: docTypeLabel(docType),
-            route: '/documents',
-            query: String(doc.id),
-          });
-          const hint =
-            payload.quality_summary ||
-            (payload.quality_score != null ? `质检得分 ${payload.quality_score}` : '');
-          toast({
-            type: 'success',
-            title: '助手流水线完成',
-            description: hint || '文书已审校并完成质量核查',
-          });
-          if (payload.quality_score != null) {
-            setLastPipelineHint(`本次流水线质检 ${payload.quality_score} 分`);
-          }
-        } catch {
-          toast({ type: 'warning', title: '文书已生成', description: '请从最近文书中打开查看' });
-        } finally {
-          setPipelineLoading(false);
+      }
+
+      setDocType(type);
+      setGeneratingDocType(type);
+      setError('');
+      setGeneratedDoc(null);
+      setReviewResult(null);
+      setEditMode(false);
+      initPipelineSteps();
+
+      const caseId = selectedCaseId ? Number(selectedCaseId) : null;
+      const hasCase = caseId != null && Number.isFinite(caseId);
+
+      const finish = (doc: Document, hint?: string, vaultArchived?: boolean) => {
+        applyGeneratedDocument(doc, type, { pipelineHint: hint, vaultArchived });
+        refreshDocRecommendations();
+      };
+
+      try {
+        // 统一走后端 generate API（已含法规检索、离线兜底、分阶段写库，避免 SSE 流水线锁库）
+        const doc = await runDirectGenerate(type, hasCase ? caseId : null);
+        const mode = (doc.ai_metadata as { generation_mode?: string } | undefined)?.generation_mode;
+        const hint =
+          mode === 'offline_fallback'
+            ? '已根据案情与证据生成标准格式初稿，请核对 [待填写] 项后下载'
+            : hasCase
+              ? '已关联案件并写入材料库'
+              : '文书已生成，请核对后下载 Word';
+        finish(doc, hint, doc.vault_archived);
+      } catch (err: unknown) {
+        if (axios.isCancel(err)) {
+          setError('生成已取消');
+        } else {
+          const msg =
+            err instanceof AxiosError
+              ? (err.response?.data?.detail || '文书生成失败，请重试')
+              : '文书生成失败，请重试';
+          setError(msg);
+          toast({ type: 'error', title: '文书生成失败', description: msg });
         }
-      },
-    );
-  }, [
-    docType,
-    caseFacts,
-    selectedCaseId,
-    extraInstructions,
-    selectedReportIds,
-    toast,
-    refreshRecentDocuments,
-  ]);
+      } finally {
+        setPipelineLoading(false);
+        setGeneratingDocType(null);
+      }
+    },
+    [
+      docType,
+      caseFacts,
+      selectedCaseId,
+      caseReadiness,
+      initPipelineSteps,
+      applyGeneratedDocument,
+      runDirectGenerate,
+      extraInstructions,
+      selectedReportIds,
+      refreshDocRecommendations,
+      toast,
+    ],
+  );
+
+  const handlePrimaryGenerate = useCallback(
+    (e?: React.FormEvent) => {
+      void generateDocument(undefined, e);
+    },
+    [generateDocument],
+  );
+
+  const handleRecommendationGenerate = useCallback(
+    (type: string) => {
+      void generateDocument(type);
+    },
+    [generateDocument],
+  );
+
+  const handleViewRecommendedDoc = useCallback(
+    (type: string, documentId?: number | null) => {
+      if (documentId) {
+        documentApi
+          .get(documentId)
+          .then((doc) => {
+            setDocType(normalizeDocType(type) || type);
+            void openDocument(doc, { skipAutoDownload: true });
+          })
+          .catch(() => toast({ type: 'error', title: '无法加载文书' }));
+        return;
+      }
+      const match = recentDocuments.find((d) => normalizeDocType(d.type) === normalizeDocType(type));
+      if (match) {
+        setDocType(normalizeDocType(type) || type);
+        void openDocument(match, { skipAutoDownload: true });
+      }
+    },
+    [openDocument, recentDocuments, toast],
+  );
 
   const handleExport = useCallback(async (format: 'word' | 'markdown' | 'html' | 'pdf') => {
     if (!generatedDoc) return;
@@ -953,7 +1085,7 @@ export default function DocumentGenerate() {
         <div>
           <h1 className="text-2xl font-bold">生成文书</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            输入案情描述，AI 自动生成专业法律文书
+            AI 分析案情与证据后推荐文书清单，逐项生成、预览并自动归档材料库
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -978,21 +1110,13 @@ export default function DocumentGenerate() {
         </div>
       </div>
 
-      {/* Mode Toggle */}
-      <div className="flex gap-1 border-b">
-        <button
-          onClick={() => setMode('single')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${mode === 'single' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-        >
-          <FileText className="h-4 w-4" /> 单个生成
-        </button>
-        <button
-          onClick={() => setMode('bundle')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${mode === 'bundle' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-        >
-          <Layers className="h-4 w-4" /> 批量生成
-        </button>
-      </div>
+      <DocRecommendationPanel
+        data={docRecommendations}
+        loading={recommendationsLoading}
+        generatingType={generatingDocType}
+        onGenerate={handleRecommendationGenerate}
+        onViewGenerated={handleViewRecommendedDoc}
+      />
 
       {/* Error */}
       {error && (
@@ -1123,10 +1247,11 @@ export default function DocumentGenerate() {
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         type="button"
-                        onClick={() => openDocument(doc, { skipAutoDownload: true })}
-                        className="rounded-md border px-2 py-1 text-xs hover:bg-accent"
+                        disabled={previewLoadingId === doc.id}
+                        onClick={() => void openDocument(doc, { skipAutoDownload: true })}
+                        className="rounded-md border px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
                       >
-                        查看
+                        {previewLoadingId === doc.id ? '加载…' : '查看'}
                       </button>
                       <button
                         type="button"
@@ -1174,7 +1299,7 @@ export default function DocumentGenerate() {
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Form Panel */}
         <div className={cn('lg:col-span-2', generatedDoc && 'lg:col-span-2')}>
-          <form onSubmit={mode === 'single' ? handleGenerate : (e) => { e.preventDefault(); handleBundleGenerate(); }} className="space-y-5 rounded-xl border bg-card p-4 sm:p-6 shadow-sm">
+          <form onSubmit={mode === 'single' ? handlePrimaryGenerate : (e) => { e.preventDefault(); handleBundleGenerate(); }} className="space-y-5 rounded-xl border bg-card p-4 sm:p-6 shadow-sm">
             {/* Document Type - single mode only */}
             {mode === 'single' && (
               <DocumentTypeSelector
@@ -1419,40 +1544,38 @@ export default function DocumentGenerate() {
 
             {/* Action buttons - single mode */}
             {mode === 'single' && (
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <button
-                  type="submit"
-                  disabled={loading || pipelineLoading || !docType || !caseFacts.trim()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {loading ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> 正在生成...</>
-                  ) : (
-                    <><Sparkles className="h-4 w-4" /> 生成文书</>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  disabled={loading || pipelineLoading || !docType || !caseFacts.trim() || !selectedCaseId}
-                  onClick={handleDocPipeline}
-                  title={selectedCaseId ? '自动检索、生成、审校与质检' : '需先关联案件'}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-900 transition-colors hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-violet-100"
-                >
-                  {pipelineLoading ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> 流水线运行中...</>
-                  ) : (
-                    <><Bot className="h-4 w-4" /> 助手流水线</>
-                  )}
-                </button>
-                {!loading && !pipelineLoading && caseFacts.trim() && (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <button
                     type="button"
-                    onClick={handleSaveDraft}
-                    className="flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
-                    title="保存为草稿"
+                    onClick={handlePrimaryGenerate}
+                    disabled={loading || pipelineLoading || !docType || !caseFacts.trim()}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <Save className="h-4 w-4" />
+                    {loading || pipelineLoading ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> {pipelineLoading ? '正在生成…' : '正在生成…'}</>
+                    ) : (
+                      <><Sparkles className="h-4 w-4" /> AI 生成文书</>
+                    )}
                   </button>
+                  {!loading && !pipelineLoading && caseFacts.trim() && (
+                    <button
+                      type="button"
+                      onClick={handleSaveDraft}
+                      className="flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
+                      title="保存为草稿"
+                    >
+                      <Save className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {selectedCaseId
+                    ? '关联案件后将自动检索法规、审校质检，生成后下载 Word 并写入材料库'
+                    : '建议关联案件以合并证据分析；也可直接根据案情生成'}
+                </p>
+                {lastPipelineHint && (
+                  <p className="text-[11px] text-violet-800 dark:text-violet-200">{lastPipelineHint}</p>
                 )}
               </div>
             )}
@@ -1475,8 +1598,9 @@ export default function DocumentGenerate() {
                   <li key={doc.id} className="flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => openDocument(doc, { skipAutoDownload: true })}
-                      className="flex min-w-0 flex-1 items-center justify-between gap-2 py-2.5 text-left text-sm hover:bg-muted/30"
+                      disabled={previewLoadingId === doc.id}
+                      onClick={() => void openDocument(doc, { skipAutoDownload: true })}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-2 py-2.5 text-left text-sm hover:bg-muted/30 disabled:opacity-50"
                     >
                       <span className="min-w-0 truncate font-medium">{doc.title}</span>
                       <span className="shrink-0 text-[11px] text-muted-foreground">
@@ -1503,96 +1627,61 @@ export default function DocumentGenerate() {
           )}
         </div>
 
-        {/* Right Panel - Loading / Result (single mode) */}
-        {mode === 'single' && (
+        {/* Right Panel - Loading / Result (single mode or after打开预览) */}
+        {(mode === 'single' || generatedDoc) && (
           <div id="doc-preview-panel" className="lg:col-span-3 scroll-mt-20">
             {/* Loading State */}
-            {(loading || pipelineLoading) && (
+            {(pipelineLoading || generatingDocType) && (
               <div className="rounded-xl border bg-card p-6 sm:p-8 shadow-sm">
                 <div className="mb-6 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    {pipelineLoading ? (
-                      <Bot className="h-5 w-5 text-violet-600 animate-pulse" />
-                    ) : (
-                      <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-                    )}
+                    <Bot className="h-5 w-5 text-violet-600 animate-pulse" />
                   </div>
                   <div>
                     <p className="font-semibold">
-                      {pipelineLoading ? '维权助手流水线运行中' : 'AI 正在生成文书'}
+                      正在生成 {docTypeLabel(generatingDocType || docType)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {pipelineLoading
-                        ? '检索法规 → 生成 → 审校 → 质检，请耐心等待'
-                        : `正在为您生成${selectedDocLabel}，请稍候`}
+                      准备材料 → 检索法规 → 生成 → 审校 → 质检
                     </p>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {pipelineLoading
-                    ? AGENT_PIPELINE_ORDER.map((key) => {
-                        const status = pipelineSteps[key] || 'pending';
-                        const label = AGENT_PIPELINE_LABELS[key] || key;
-                        return (
-                          <div
-                            key={key}
-                            className={cn(
-                              'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition-all duration-500',
-                              status === 'done' || status === 'skipped'
-                                ? 'bg-green-50 text-green-700'
-                                : status === 'running'
-                                  ? 'bg-violet-500/10 text-violet-800 font-medium dark:text-violet-200'
-                                  : 'text-muted-foreground',
-                            )}
-                          >
-                            {status === 'done' || status === 'skipped' ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            ) : status === 'running' ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <div className="h-4 w-4 rounded-full border-2 border-muted" />
-                            )}
-                            {label}
-                            {status === 'skipped' && (
-                              <span className="text-[10px] text-muted-foreground">（跳过）</span>
-                            )}
-                          </div>
-                        );
-                      })
-                    : progressSteps.map((step, idx) => (
-                    <div
-                      key={idx}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition-all duration-500',
-                        idx < progressStep
-                          ? 'bg-green-50 text-green-700'
-                          : idx === progressStep
-                            ? 'bg-primary/5 text-primary font-medium'
-                            : 'text-muted-foreground',
-                      )}
-                    >
-                      {idx < progressStep ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      ) : idx === progressStep ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <div className="h-4 w-4 rounded-full border-2 border-muted" />
-                      )}
-                      {step}
-                    </div>
-                  ))}
+                  {AGENT_PIPELINE_ORDER.map((key) => {
+                    const status = pipelineSteps[key] || 'pending';
+                    const label = AGENT_PIPELINE_LABELS[key] || key;
+                    return (
+                      <div
+                        key={key}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition-all duration-500',
+                          status === 'done' || status === 'skipped'
+                            ? 'bg-green-50 text-green-700'
+                            : status === 'running'
+                              ? 'bg-violet-500/10 text-violet-800 font-medium dark:text-violet-200'
+                              : 'text-muted-foreground',
+                        )}
+                      >
+                        {status === 'done' || status === 'skipped' ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : status === 'running' ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <div className="h-4 w-4 rounded-full border-2 border-muted" />
+                        )}
+                        {label}
+                        {status === 'skipped' && (
+                          <span className="text-[10px] text-muted-foreground">（跳过）</span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                {!pipelineLoading && (
-                  <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>已用时 {elapsedSeconds} 秒 | 预计剩余 {estimatedRemaining}</span>
-                  </div>
-                )}
               </div>
             )}
 
             {/* Generated Document */}
-            {generatedDoc && !loading && !pipelineLoading && (
+            {generatedDoc && !pipelineLoading && !generatingDocType && (
               <div className="space-y-4">
                 <div className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1669,8 +1758,9 @@ export default function DocumentGenerate() {
                     </span>
                   </div>
                   <button
-                    onClick={handleGenerate}
-                    disabled={loading}
+                    type="button"
+                    onClick={handlePrimaryGenerate}
+                    disabled={loading || pipelineLoading}
                     className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent disabled:opacity-50"
                     title="基于相同参数重新生成"
                   >

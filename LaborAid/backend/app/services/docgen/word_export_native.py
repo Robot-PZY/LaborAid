@@ -19,6 +19,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
+from app.services.docgen.structured.helpers import strip_no_indent_marker
 from app.services.docgen.word_export import _SAFE_FILENAME_RE, _sanitize_xml_text
 
 # 正文字体：Windows 常见，缺失时 Word 自动回退
@@ -114,6 +115,12 @@ def add_markdown_to_document(
     while i < len(lines):
         stripped = lines[i].strip()
         if not stripped:
+            i += 1
+            continue
+
+        stripped, no_indent = strip_no_indent_marker(stripped)
+        if no_indent:
+            _add_body_paragraph(doc, stripped, indent=False)
             i += 1
             continue
 

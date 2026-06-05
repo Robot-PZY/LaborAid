@@ -1,0 +1,49 @@
+%% LaborAid 六层体系架构 — 答辩主图
+%% 导出: scripts/export-diagrams.ps1 或 https://mermaid.live
+
+flowchart TB
+  subgraph L1["用户层"]
+    U1[劳动者]
+    U2[基层援助人员]
+    U3[平台管理员]
+  end
+
+  subgraph L2["展现层"]
+    V1[服务首页 / Intake]
+    V2[证据 · 文书 · 报告]
+    V3[办事资源 /guidance]
+  end
+
+  subgraph L3["业务层"]
+    B1[场景 intake · 智能建案]
+    B2[维权 Pipeline]
+    B3[材料库 · 我的记录]
+  end
+
+  subgraph L4["场景层"]
+    S1[农民工欠薪]
+    S2[试用期辞退]
+    S3[女职工保护]
+    S4[通用劳动争议]
+  end
+
+  subgraph L5["技术层"]
+    T1[LEAP 路径规划]
+    T2[MICE 证据质证]
+    T3[Graph-RAG]
+    T4[SAGD 文书引擎]
+    T5[Supervisor Agent]
+  end
+
+  subgraph L6["数据层"]
+    D1[(案件库)]
+    D2[(证据 OCR)]
+    D3[(Chroma 向量库)]
+    D4[(文书模板)]
+    D5[官方外链资源]
+  end
+
+  L1 --> L2 --> L3 --> L4 --> L5 --> L6
+
+  classDef layer fill:#0a1628,stroke:#00d4ff,color:#fff
+  class L1,L2,L3,L4,L5,L6 layer

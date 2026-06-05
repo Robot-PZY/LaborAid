@@ -50,7 +50,8 @@ class Case(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
     owner = relationship("User", back_populates="cases")
-    documents = relationship("Document", back_populates="case", cascade="all, delete-orphan")  # noqa: F821
+    # 文书在库层 ondelete=SET NULL；删除案件时仅解除关联，不级联删文书
+    documents = relationship("Document", back_populates="case")  # noqa: F821
     evidences = relationship("Evidence", back_populates="case", cascade="all, delete-orphan")  # noqa: F821
 
     def __repr__(self) -> str:

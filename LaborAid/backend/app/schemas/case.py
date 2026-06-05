@@ -85,6 +85,27 @@ class CaseOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class CaseDocFactsOut(BaseModel):
+    case_facts: str
+
+
+class CaseDocRecommendationItem(BaseModel):
+    doc_type: str
+    label: str
+    reason: str
+    priority: int
+    generated: bool = False
+    document_id: int | None = None
+
+
+class CaseDocRecommendationsOut(BaseModel):
+    cause_type: str
+    cause_label: str
+    summary: str
+    recommendations: list[CaseDocRecommendationItem]
+    case_facts_preview: str | None = None
+
+
 class CaseReadinessAction(BaseModel):
     label: str
     route: str

@@ -1,0 +1,18 @@
+%% 场景设计 — 五段式闭环（SDAD）
+
+flowchart LR
+  S1[① 情境采集\n专项/普通 Intake]
+  S2[② 智能建案\nai_snapshot]
+  S3[③ 证据就绪\nMICE + 清单]
+  S4[④ 策略文书\nGraph-RAG + SAGD]
+  S5[⑤ 办事出站\n外链 + 材料包]
+
+  S1 --> S2 --> S3 --> S4 --> S5
+
+  subgraph Scenarios["专项场景"]
+    SC1[农民工欠薪]
+    SC2[试用期辞退]
+    SC3[女职工保护]
+  end
+
+  Scenarios -.-> S1

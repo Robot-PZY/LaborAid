@@ -167,7 +167,7 @@ async def structured_intake_endpoint(
         session_payload = analyzer_result_to_session(
             validated.model_dump(mode="json"),
             input_text="",
-            case_facts=validated.summary,
+            case_facts=validated.case_facts or validated.summary,
         )
         await upsert_user_intake_session(db, current_user.id, session_payload)
     except Exception as exc:

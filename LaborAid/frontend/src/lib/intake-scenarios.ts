@@ -58,6 +58,22 @@ export function listIntakeChannels(): ChannelConfig[] {
   return listChannels().filter((ch) => listIntakeScenarios(ch).length > 0);
 }
 
+/** 与后端 structured_builder._render_case_facts 一致，用于恢复完整案情 */
+export function renderStructuredCaseFacts(
+  channelTitle: string,
+  scenarioTitle: string,
+  answers: Record<string, string>,
+  fields: IntakeFormField[],
+): string {
+  const lines = [`【专项维权】${channelTitle} · ${scenarioTitle}`, ''];
+  for (const field of fields) {
+    const val = answers[field.id]?.trim();
+    if (!val) continue;
+    lines.push(`${field.label}：${val}`);
+  }
+  return lines.join('\n').trim();
+}
+
 export function validateFormAnswers(
   fields: IntakeFormField[],
   answers: Record<string, string>,

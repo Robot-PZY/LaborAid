@@ -1,0 +1,17 @@
+%% Supervisor-Worker 多 Agent 编排
+
+flowchart TB
+  CTX[案件上下文\nCaseWorkContext]
+  SUP((Supervisor\n调度智能体))
+
+  CTX --> SUP
+
+  SUP --> AG1[GuidanceAgent\n办事资源]
+  SUP --> AG2[EvidenceAgent\nOCR·证据链]
+  SUP --> AG3[ResearchAgent\n深度研究]
+  SUP --> AG4[DocgenAgent\n文书推荐生成]
+  SUP --> AG5[RecordsAgent\n材料包·记录]
+
+  AG1 & AG2 & AG3 & AG4 & AG5 --> EVAL[evaluate_all_agents]
+  EVAL --> PICK[_pick_next_proposal]
+  PICK --> NEXT[GET /cases/id/agent/next-step]

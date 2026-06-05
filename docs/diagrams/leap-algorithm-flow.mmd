@@ -1,0 +1,29 @@
+%% 关键算法一：LEAP — Language-Enhanced Advocacy Planning
+
+flowchart LR
+  subgraph Input["输入"]
+    A1[专项场景表单]
+    A2[普通自然语言]
+    A3[可选图片]
+  end
+
+  STDE[STDE\n案情结构化抽取]
+  CAUSE[案由匹配\n证据清单模板]
+  SUP[Supervisor Agent\n调度评估]
+
+  subgraph Specialists["Specialist Workers"]
+    G[Guidance\n办事指引]
+    E[Evidence\n证据整理]
+    R[Research\n案情研究]
+    D[Docgen\n文书生成]
+    REC[Records\n记录归档]
+  end
+
+  OUT[输出\nnext-step · pipeline_tasks · 路由 prefill]
+
+  A1 --> STDE
+  A2 --> STDE
+  A3 --> STDE
+  STDE --> CAUSE --> SUP
+  SUP --> G & E & R & D & REC
+  G & E & R & D & REC --> OUT

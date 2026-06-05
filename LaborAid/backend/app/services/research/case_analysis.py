@@ -13,6 +13,7 @@ from app.models.case import Case
 from app.models.document import Document
 from app.models.evidence import Evidence
 from app.models.research import ResearchReport
+from app.services.intake.case_binding import get_case_intake
 from app.services.llm_resolver import ResolvedLLM
 
 logger = logging.getLogger(__name__)
@@ -65,21 +66,27 @@ async def gather_case_materials(
         )
     ).scalars().all()
 
+    intake = get_case_intake(case)
+    intake_summary = (intake.get("summary") or "").strip()
+
     return {
         "case": case,
         "documents": docs,
         "evidence": evidence_rows,
         "prior_reports": prior_reports,
+        "intake": intake,
         "stats": {
             "documents": len(docs),
             "evidence": len(evidence_rows),
             "has_description": bool((case.description or "").strip()),
+            "has_intake_summary": bool(intake_summary),
         },
     }
 
 
 def _format_materials_block(materials: dict[str, Any]) -> str:
     case: Case = materials["case"]
+    intake = materials.get("intake") or {}
     lines = [
         f"案件标题：{case.title}",
         f"案件类型：{case.case_type}",
@@ -87,9 +94,17 @@ def _format_materials_block(materials: dict[str, Any]) -> str:
         f"申请人/原告：{case.plaintiff or '（未填写）'}",
         f"被申请人/被告：{case.defendant or '（未填写）'}",
         f"案情描述：\n{case.description or '（未填写）'}",
-        "",
-        f"关联文书 {materials['stats']['documents']} 份：",
     ]
+    if intake.get("cause_label") or intake.get("cause_type"):
+        lines.append(
+            f"维权 intake：{intake.get('cause_label') or intake.get('cause_type')} "
+            f"（通道 {intake.get('channel_id') or '—'} / 情形 {intake.get('scenario_id') or '—'}）"
+        )
+    if intake.get("summary"):
+        lines.append(f"intake 案情摘要：\n{intake['summary']}")
+    if intake.get("evidence_checklist"):
+        lines.append("建议证据清单：" + "；".join(str(x) for x in intake["evidence_checklist"][:12]))
+    lines.extend(["", f"关联文书 {materials['stats']['documents']} 份："])
     for doc in materials["documents"]:
         excerpt = (doc.content or "")[:2500]
         lines.append(f"- 【{doc.title}】类型={doc.type}，状态={doc.status}\n{excerpt}")
@@ -100,9 +115,11 @@ def _format_materials_block(materials: dict[str, Any]) -> str:
     lines.append(f"关联证据 {materials['stats']['evidence']} 项：")
     for ev in materials["evidence"]:
         ocr = (ev.ocr_text or "")[:1500]
+        analysis = (ev.analysis or "").strip()[:200]
+        extra = f"\nAI摘要：{analysis}" if analysis else ""
         lines.append(
             f"- 【{ev.title or '未命名证据'}】类型={ev.type or '—'}；"
-            f"说明={getattr(ev, 'description', None) or '—'}\n{ocr or '（无 OCR 文字）'}"
+            f"说明={getattr(ev, 'description', None) or '—'}\n{ocr or '（无 OCR 文字）'}{extra}"
         )
     if not materials["evidence"]:
         lines.append("- （暂无）")
@@ -141,8 +158,13 @@ async def generate_case_analysis_report(
     materials = await gather_case_materials(db, case, owner_id=owner_id)
     stats = materials["stats"]
 
-    if not stats["has_description"] and stats["documents"] == 0 and stats["evidence"] == 0:
-        raise ValueError("案件尚无案情描述、文书或证据，请先补充至少一项后再分析")
+    if (
+        not stats["has_description"]
+        and stats["documents"] == 0
+        and stats["evidence"] == 0
+        and not stats.get("has_intake_summary")
+    ):
+        raise ValueError("案件尚无案情描述、维权摘要、文书或证据，请先补充至少一项后再分析")
 
     user_prompt = f"""请根据以下案件全部已知信息，生成一份完整的案情分析总结报告。
 

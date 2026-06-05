@@ -244,6 +244,13 @@ export function updateIntakeCaseId(caseId: number): void {
   setActiveCaseId(caseId);
 }
 
+/** 案件删除后去掉方案里的建案 ID，保留其余维权步骤可继续用 */
+export function clearIntakeCreatedCaseId(caseId: number): void {
+  const s = loadIntakeSession();
+  if (!s || s.createdCaseId !== caseId) return;
+  saveIntakeSession({ ...s, createdCaseId: undefined });
+}
+
 export function clearIntakeSession(): void {
   try {
     localStorage.removeItem(storageKey());
@@ -265,6 +272,22 @@ export function clearIntakeSession(): void {
 export function hasActiveIntakePlan(session?: IntakeSession | null): boolean {
   const s = session ?? loadIntakeSession();
   return Boolean(s?.actionPlan?.steps?.length || s?.recommendedTools?.length);
+}
+
+/** 顶栏「查看完整方案」应跳转的地址（专项通道会带上 channel/scenario） */
+export function getIntakeResumeUrl(session?: IntakeSession | null): string {
+  const s = session ?? loadIntakeSession();
+  if (!s) return '/?resumeIntake=1#intake-desk';
+  const params = new URLSearchParams();
+  params.set('resumeIntake', '1');
+  if (s.intakeMode === 'structured' && s.channelId) {
+    params.set('intake', 'special');
+    params.set('channel', s.channelId);
+    if (s.scenarioId) params.set('scenario', s.scenarioId);
+  } else {
+    params.set('intake', 'general');
+  }
+  return `/?${params.toString()}#intake-desk`;
 }
 
 export function getAgentRoute(agentId: string, prefill?: IntakeToolPrefill): string {

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from app.services.docgen.structured.helpers import PLACEHOLDER, today_cn
+from app.services.docgen.structured.helpers import PLACEHOLDER, today_cn, clean_case_facts_narrative, _default_labor_evidence_items
 from app.services.docgen.structured.schemas import STRUCTURED_FIELD_SCHEMAS
 
 # 各类型长文/关键字段（用于补全与校验）
@@ -117,6 +117,13 @@ def _infer_court(case_facts: str, parsed_case: dict[str, Any]) -> str:
     return m.group(1) if m else ""
 
 
+_DEFAULT_LEGAL_BASIS = (
+    "依据《中华人民共和国劳动争议调解仲裁法》第二条、第五条，"
+    "《中华人民共和国劳动合同法》第三十八条、第四十六条、第四十七条、第八十七条等规定，"
+    "用人单位应当向劳动者承担相应法律责任。"
+)
+
+
 def enrich_structured_payload(
     doc_type: str,
     payload: dict[str, Any],
@@ -130,14 +137,20 @@ def enrich_structured_payload(
     parsed_case = parsed_case or {}
     out = dict(payload)
 
-    summary = (parsed_case.get("facts_summary") or "").strip()
+    summary = (parsed_case.get("facts_summary") or parsed_case.get("facts") or "").strip()
+    cf = clean_case_facts_narrative(case_facts or "") or (case_facts or "").strip()
+    if not summary and cf:
+        summary = cf[:3000]
+
     if summary:
         if is_empty_value(out.get("facts")):
-            out["facts"] = summary
+            out["facts"] = summary if len(summary) <= 4000 else summary[:4000]
         if doc_type == "labor_supervision" and is_empty_value(out.get("items")):
-            out["items"] = summary[:500]
+            out["items"] = summary[:800]
         if doc_type == "legal_opinion" and is_empty_value(out.get("background")):
-            out["background"] = summary
+            out["background"] = summary[:2000]
+        if doc_type == "forced_termination_notice" and is_empty_value(out.get("facts")):
+            out["facts"] = summary[:3000]
 
     if legal_basis_section and doc_type == "application":
         plain = legal_basis_section.replace("## 法律依据参考", "").strip()
@@ -149,6 +162,8 @@ def enrich_structured_payload(
             inferred = _infer_arbitration_commission(case_facts, parsed_case)
             if inferred:
                 out["arbitration_commission"] = inferred
+        if is_empty_value(out.get("legal_basis")):
+            out["legal_basis"] = _DEFAULT_LEGAL_BASIS
     if doc_type in ("complaint", "answer", "appeal", "preservation_application"):
         if is_empty_value(out.get("court_name")):
             court = _infer_court(case_facts, parsed_case)
@@ -174,6 +189,8 @@ def enrich_structured_payload(
         out["items"] = out.get("evidence") or (
             "\n".join(ev) if isinstance(ev, list) else str(ev)
         )
+    if doc_type in ("application", "complaint", "forced_termination_notice") and is_empty_value(out.get("evidence")):
+        out["evidence"] = _default_labor_evidence_items(case_facts)
 
     return out
 

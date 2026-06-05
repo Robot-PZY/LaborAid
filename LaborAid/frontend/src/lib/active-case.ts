@@ -43,6 +43,13 @@ export function setActiveCaseId(caseId: number | null): void {
   }
 }
 
+/** 案件删除后清除本地「当前案件」指针，避免证据/文书页继续请求已删 ID */
+export function clearActiveCaseIfMatches(caseId: number): void {
+  if (getActiveCaseId() === caseId) {
+    setActiveCaseId(null);
+  }
+}
+
 export function subscribeActiveCase(listener: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
   const handler = () => listener();

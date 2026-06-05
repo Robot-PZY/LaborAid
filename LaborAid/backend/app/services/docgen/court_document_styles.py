@@ -8,7 +8,7 @@ COURT_DOCUMENT_CSS = """
   color: #000;
   max-width: 210mm;
   margin: 0 auto;
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem 1.5rem;
   background: #fff;
   box-sizing: border-box;
 }
@@ -18,7 +18,7 @@ COURT_DOCUMENT_CSS = """
   font-size: 22pt;
   text-align: center;
   line-height: 28.8pt;
-  margin: 0 0 24pt 0;
+  margin: 0 0 18pt 0;
   font-weight: bold;
   text-indent: 0;
   color: #000;
@@ -27,7 +27,7 @@ COURT_DOCUMENT_CSS = """
   font-family: "SimHei", "黑体", "STHeiti", "Microsoft YaHei", sans-serif;
   font-size: 16pt;
   font-weight: bold;
-  margin: 18pt 0 6pt 0;
+  margin: 10pt 0 2pt 0;
   line-height: 28.8pt;
   text-indent: 0;
   color: #000;
@@ -36,7 +36,7 @@ COURT_DOCUMENT_CSS = """
   font-family: "KaiTi", "楷体", "STKaiti", "SimKai", serif;
   font-size: 16pt;
   font-weight: bold;
-  margin: 12pt 0 6pt 0;
+  margin: 8pt 0 2pt 0;
   line-height: 28.8pt;
   text-indent: 0;
   color: #000;
@@ -45,7 +45,7 @@ COURT_DOCUMENT_CSS = """
   font-family: "FangSong_GB2312", "仿宋_GB2312", "FangSong", "仿宋", serif;
   font-size: 16pt;
   font-weight: bold;
-  margin: 10pt 0 4pt 0;
+  margin: 6pt 0 2pt 0;
   line-height: 28.8pt;
   text-indent: 0;
   color: #000;
@@ -82,23 +82,46 @@ COURT_DOCUMENT_CSS = """
 .court-document table {
   border-collapse: collapse;
   width: 100%;
-  margin: 12pt 0;
+  margin: 6pt 0 8pt 0;
   font-size: 14pt;
 }
 .court-document th,
 .court-document td {
   border: 1px solid #000;
-  padding: 6pt 8pt;
+  padding: 4pt 6pt;
   text-align: left;
   vertical-align: top;
   text-indent: 0;
+  line-height: 22pt;
 }
 .court-document th {
   font-weight: bold;
-  background-color: #f5f5f5;
+  background-color: #fafafa;
+  text-align: center;
+}
+.court-document ol.legal-list {
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+  counter-reset: legal-item;
+}
+.court-document ol.legal-list li {
+  counter-increment: legal-item;
+  position: relative;
+  padding-left: 1.2cm;
+  margin: 0;
+  text-indent: 0;
+  line-height: 28.8pt;
+  text-align: justify;
+}
+.court-document ol.legal-list li::before {
+  content: counter(legal-item) ". ";
+  position: absolute;
+  left: 0;
+  font-weight: normal;
 }
 .court-document ol {
-  padding-left: 1.5cm;
+  padding-left: 1.2cm;
   margin: 0;
 }
 .court-document ul {
@@ -107,7 +130,7 @@ COURT_DOCUMENT_CSS = """
   margin: 0;
 }
 .court-document li {
-  margin-bottom: 3pt;
+  margin-bottom: 0;
   text-indent: 0;
   line-height: 28.8pt;
 }

@@ -153,11 +153,11 @@ def build_structured_intake(
             step["prefill"] = prefill
         if step.get("step_type") == "create_case":
             prefill = step.get("prefill") or {}
-            prefill["description"] = case_facts[:500]
+            prefill["description"] = case_facts
             step["prefill"] = prefill
         if step.get("step_type") == "docgen":
             prefill = step.get("prefill") or {}
-            prefill["caseFacts"] = case_facts[:800]
+            prefill["caseFacts"] = case_facts
             prefill["channelId"] = channel_id
             prefill["scenarioId"] = scenario_id
             step["prefill"] = prefill
@@ -167,5 +167,6 @@ def build_structured_intake(
     result["intake_mode"] = "structured"
     result["structured_answers"] = answers
     result["cause_label"] = _cause_label(cause_type)
+    result["case_facts"] = case_facts
 
     return result

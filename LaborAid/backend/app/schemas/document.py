@@ -158,6 +158,7 @@ class DocumentOut(BaseModel):
     owner_id: int
     created_at: datetime
     updated_at: datetime
+    vault_archived: bool = False
 
     model_config = {"from_attributes": True}
 

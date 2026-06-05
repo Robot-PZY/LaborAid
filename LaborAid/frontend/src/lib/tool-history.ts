@@ -3,6 +3,7 @@
  */
 
 import { clearEnterpriseScanCache, removeEnterpriseScanCache } from '@/lib/enterprise-cache';
+import { getIntakeResumeUrl } from '@/lib/intake-session';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 export type ToolHistoryKind =
@@ -161,7 +162,7 @@ export function toolHistoryNavigatePath(entry: ToolHistoryEntry): string {
     return `/search?q=${encodeURIComponent(entry.query)}`;
   }
   if (entry.kind === 'intake') {
-    return '/?resumeIntake=1#intake-desk';
+    return getIntakeResumeUrl();
   }
   if (entry.kind === 'docgen' && entry.query) {
     return `/documents?docId=${encodeURIComponent(entry.query)}&worker=1`;

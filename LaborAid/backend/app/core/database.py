@@ -28,7 +28,7 @@ engine_kwargs: dict = {"echo": settings.APP_DEBUG}
 
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
-    connect_args["timeout"] = 30  # seconds to wait for lock
+    connect_args["timeout"] = 60  # seconds to wait for lock
     # aiosqlite defaults to NullPool — pool_size/recycle/pre_ping are invalid
 else:
     engine_kwargs["pool_size"] = 10
@@ -69,6 +69,21 @@ def _on_checkin(dbapi_conn, connection_record):
         id(dbapi_conn),
         id(connection_record),
     )
+
+
+if settings.DATABASE_URL.startswith("sqlite"):
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def _sqlite_pragmas(dbapi_conn, connection_record):  # noqa: ARG001
+        cursor = dbapi_conn.cursor()
+        try:
+            cursor.execute("PRAGMA journal_mode=WAL")
+        except Exception:
+            # 并发连接时 WAL 切换可能短暂失败，不阻断业务
+            pass
+        cursor.execute("PRAGMA busy_timeout=60000")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.close()
 
 # ── Session factory ─────────────────────────────────────────────────────────
 AsyncSessionLocal = async_sessionmaker(

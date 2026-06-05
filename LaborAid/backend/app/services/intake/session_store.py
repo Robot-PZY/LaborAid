@@ -104,3 +104,24 @@ async def delete_user_intake_session(db: AsyncSession, user_id: int) -> bool:
     await db.delete(row)
     await db.commit()
     return True
+
+
+async def clear_case_from_intake_session(
+    db: AsyncSession,
+    user_id: int,
+    case_id: int,
+) -> bool:
+    """案件删除后：清除维权方案里对已删案件的引用，避免前端继续跳转无效 ID。"""
+    row = await get_user_intake_session(db, user_id)
+    if not row or not isinstance(row.session_data, dict):
+        return False
+    data = dict(row.session_data)
+    if data.get("createdCaseId") != case_id:
+        return False
+    data["createdCaseId"] = None
+    now = datetime.now(timezone.utc)
+    data["updatedAt"] = now.isoformat()
+    row.session_data = data
+    row.updated_at = now
+    await db.flush()
+    return True

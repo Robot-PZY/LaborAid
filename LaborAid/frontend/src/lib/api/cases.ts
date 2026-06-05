@@ -60,6 +60,16 @@ export const caseApi = {
     return res.data;
   },
 
+  getDocFacts: async (id: number): Promise<{ case_facts: string }> => {
+    const res = await apiClient.get(`/cases/${id}/doc-facts`, { timeout: TIMEOUT.short });
+    return res.data;
+  },
+
+  getDocRecommendations: async (id: number): Promise<CaseDocRecommendations> => {
+    const res = await apiClient.get(`/cases/${id}/doc-recommendations`, { timeout: TIMEOUT.medium });
+    return res.data;
+  },
+
   getReadiness: async (
     id: number,
     opts?: { chainScore?: number },
@@ -159,6 +169,7 @@ export const caseApi = {
       run_id?: string;
       quality_score?: number;
       quality_summary?: string;
+      vault_archived?: boolean;
     }) => void,
   ): AbortController => {
     const controller = new AbortController();
@@ -187,6 +198,19 @@ export const caseApi = {
 
         const decoder = new TextDecoder();
         let buffer = '';
+        let finished = false;
+        let lastDocumentId: number | null = null;
+
+        const finish = (payload: {
+          document_id: number;
+          quality_score?: number;
+          quality_summary?: string;
+          vault_archived?: boolean;
+        }) => {
+          if (finished) return;
+          finished = true;
+          onComplete(payload);
+        };
 
         while (true) {
           const { done, value } = await reader.read();
@@ -199,14 +223,22 @@ export const caseApi = {
             if (!line.startsWith('data: ')) continue;
             try {
               const event = JSON.parse(line.slice(6)) as DocPipelineProgressEvent;
+              if (event.document_id) {
+                lastDocumentId = event.document_id;
+              }
               if (event.step === 'completed' && event.document_id) {
-                onComplete({
+                finish({
                   document_id: event.document_id,
                   quality_score: event.quality_score,
                   quality_summary: event.quality_summary,
+                  vault_archived: event.vault_archived,
                 });
               } else if (event.step === 'error') {
-                onError(event.error || event.label || '流水线失败');
+                if (lastDocumentId) {
+                  finish({ document_id: lastDocumentId });
+                } else if (!finished) {
+                  onError(event.error || event.label || '流水线失败');
+                }
               } else {
                 onProgress(event);
               }
@@ -214,6 +246,10 @@ export const caseApi = {
               /* skip malformed */
             }
           }
+        }
+
+        if (!finished && lastDocumentId) {
+          finish({ document_id: lastDocumentId });
         }
       })
       .catch((e) => {
@@ -309,6 +345,7 @@ export type DocPipelineProgressEvent = {
   label: string;
   status?: string;
   document_id?: number;
+  vault_archived?: boolean;
   quality_score?: number;
   quality_summary?: string;
   error?: string;
@@ -368,6 +405,23 @@ export interface CaseWorkflow {
   summary: string;
   ai_hint?: string | null;
   active_agent_id?: string | null;
+}
+
+export interface CaseDocRecommendationItem {
+  doc_type: string;
+  label: string;
+  reason: string;
+  priority: number;
+  generated: boolean;
+  document_id?: number | null;
+}
+
+export interface CaseDocRecommendations {
+  cause_type: string;
+  cause_label: string;
+  summary: string;
+  recommendations: CaseDocRecommendationItem[];
+  case_facts_preview?: string | null;
 }
 
 export interface CaseReadinessSummary {

@@ -20,6 +20,8 @@ from app.schemas.case import (
     CaseUpdate,
     CaseOut,
     CaseReportRequest,
+    CaseDocFactsOut,
+    CaseDocRecommendationsOut,
     CaseReadinessOut,
 )
 from app.schemas.orchestrator import (
@@ -250,9 +252,65 @@ async def get_case_materials(
             for e in materials["evidence"]
         ],
         "ready_for_analysis": bool(
-            stats["has_description"] or stats["documents"] > 0 or stats["evidence"] > 0
+            stats["has_description"]
+            or stats["documents"] > 0
+            or stats["evidence"] > 0
+            or stats.get("has_intake_summary")
         ),
     }
+
+
+@router.get("/{case_id}/doc-recommendations", response_model=CaseDocRecommendationsOut)
+async def get_case_doc_recommendations(
+    case_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """分析案情与证据，推荐应生成的文书清单。"""
+    from app.services.docgen.recommendations import recommend_docs_for_case
+
+    case = await _get_accessible_case(case_id, current_user, db)
+    intake_row = await get_user_intake_session(db, current_user.id)
+    session = (
+        intake_row.session_data
+        if intake_row and isinstance(intake_row.session_data, dict)
+        else None
+    )
+    raw = await recommend_docs_for_case(db, case, intake_session=session)
+
+    # 关联已生成文书的 document_id
+    doc_rows = (
+        await db.execute(
+            select(Document.id, Document.type)
+            .where(Document.case_id == case.id)
+            .order_by(Document.updated_at.desc())
+        )
+    ).all()
+    type_to_doc: dict[str, int] = {}
+    for doc_id, doc_type in doc_rows:
+        key = doc_type
+        if key and key not in type_to_doc:
+            type_to_doc[key] = doc_id
+
+    for item in raw.get("recommendations") or []:
+        if item.get("generated"):
+            item["document_id"] = type_to_doc.get(item.get("doc_type"))
+
+    return CaseDocRecommendationsOut.model_validate(raw)
+
+
+@router.get("/{case_id}/doc-facts", response_model=CaseDocFactsOut)
+async def get_case_doc_facts(
+    case_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """聚合案件描述与证据分析，供文书生成预填案情。"""
+    from app.services.orchestrator.doc_facts import build_docgen_case_facts
+
+    case = await _get_accessible_case(case_id, current_user, db)
+    facts = await build_docgen_case_facts(db, case)
+    return CaseDocFactsOut(case_facts=facts)
 
 
 @router.get("/{case_id}/readiness", response_model=CaseReadinessOut)
@@ -401,18 +459,17 @@ async def case_doc_pipeline_stream(
     case_id: int,
     data: CaseDocPipelineIn,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """文书助手流水线 SSE：检索 → 生成 → 审校 → 质检，并写入 ai_snapshot。"""
     from app.core.security import check_rate_limit
+    from app.core.streaming_db import wrap_stream_with_db
     from app.services.orchestrator.doc_pipeline import run_doc_pipeline_stream
 
     if not check_rate_limit(f"case_doc_pipeline:{current_user.id}", max_requests=6, window_seconds=3600):
         raise HTTPException(429, "文书流水线请求过于频繁，请一小时后再试")
 
-    case = await _get_accessible_case(case_id, current_user, db)
-
-    async def event_stream():
+    async def event_stream(db: AsyncSession):
+        case = await _get_accessible_case(case_id, current_user, db)
         async for event in run_doc_pipeline_stream(
             db,
             case,
@@ -426,7 +483,7 @@ async def case_doc_pipeline_stream(
             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
-        event_stream(),
+        wrap_stream_with_db(event_stream)(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -547,28 +604,56 @@ async def delete_case(
     if not case or case.owner_id != current_user.id:
         raise HTTPException(404, "案件不存在或无权删除")
     try:
-        settings = get_settings()
-        ev_result = await db.execute(select(Evidence).where(Evidence.case_id == case_id))
-        evidences = list(ev_result.scalars().all())
-        evidence_ids = [e.id for e in evidences]
+        from app.core.db_write_lock import run_serialized_write
+        from sqlalchemy import delete, update
 
-        for ev in evidences:
-            if ev.file_path:
-                fp = settings.upload_path / ev.file_path
-                if fp.is_file():
-                    fp.unlink(missing_ok=True)
-
+        from app.models.contract import Contract
+        from app.models.document import Document
+        from app.models.research import ResearchReport
+        from app.models.search import SearchRecord
+        from app.services.intake.session_store import clear_case_from_intake_session
         from app.services.vault import soft_delete_materials_for_case
 
-        vault_removed = await soft_delete_materials_for_case(
-            db,
-            user_id=current_user.id,
-            case_id=case_id,
-            evidence_ids=evidence_ids,
-        )
+        async def _delete_impl() -> tuple[int, list[Evidence]]:
+            settings = get_settings()
+            ev_result = await db.execute(select(Evidence).where(Evidence.case_id == case_id))
+            evidences = list(ev_result.scalars().all())
+            evidence_ids = [e.id for e in evidences]
 
-        await db.delete(case)
-        await db.flush()
+            for ev in evidences:
+                if ev.file_path:
+                    fp = settings.upload_path / ev.file_path
+                    if fp.is_file():
+                        fp.unlink(missing_ok=True)
+
+            vault_removed = await soft_delete_materials_for_case(
+                db,
+                user_id=current_user.id,
+                case_id=case_id,
+                evidence_ids=evidence_ids,
+            )
+
+            # 解除关联，保留用户已生成的文书/报告/合同/检索记录
+            await db.execute(
+                update(Document).where(Document.case_id == case_id).values(case_id=None)
+            )
+            await db.execute(
+                update(ResearchReport).where(ResearchReport.case_id == case_id).values(case_id=None)
+            )
+            await db.execute(
+                update(Contract).where(Contract.case_id == case_id).values(case_id=None)
+            )
+            await db.execute(
+                update(SearchRecord).where(SearchRecord.case_id == case_id).values(case_id=None)
+            )
+            await db.execute(delete(Evidence).where(Evidence.case_id == case_id))
+
+            await clear_case_from_intake_session(db, current_user.id, case_id)
+            await db.delete(case)
+            await db.flush()
+            return vault_removed, evidences
+
+        vault_removed, _ = await run_serialized_write(_delete_impl)
         return {
             "message": "案件已删除",
             "id": case_id,
@@ -577,7 +662,10 @@ async def delete_case(
     except Exception as e:
         logger.exception("Delete case failed: %s", e)
         await db.rollback()
-        raise HTTPException(500, "删除案件失败")
+        detail = "删除案件失败"
+        if "database is locked" in str(e).lower():
+            detail = "数据库繁忙，正在处理其他操作，请稍后重试"
+        raise HTTPException(500, detail)
 
 
 @router.post("/{case_id}/analyze")

@@ -34,6 +34,20 @@ router = APIRouter()
 MAX_CONTENT_LENGTH = 200000
 
 
+async def _finalize_generated_doc(
+    db: AsyncSession,
+    doc: Document,
+    *,
+    user_id: int,
+) -> DocumentOut:
+    """生成 Word 副本、写入材料库，并返回带 vault_archived 标记的响应。"""
+    from app.services.docgen.export_archive import export_docx_and_archive
+
+    archived = await export_docx_and_archive(db, doc, user_id=user_id)
+    await db.refresh(doc)
+    return DocumentOut.model_validate(doc).model_copy(update={"vault_archived": archived})
+
+
 # ---------------------------------------------------------------------------
 # Quality check response schema
 # ---------------------------------------------------------------------------
@@ -149,136 +163,48 @@ async def list_documents(
 async def generate_document(
     data: DocumentGenerate,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     # Rate limit document generation: 10 per hour per user
     if not check_rate_limit(f"doc_gen:{current_user.id}", max_requests=10, window_seconds=3600):
         raise HTTPException(429, "文书生成请求过于频繁，请一小时后再试")
 
-    canonical_type = normalize_doc_type(data.type) or data.type
-
-    # 获取模板
-    template = None
-    if data.template_id:
-        template = await db.get(Template, data.template_id)
-        if template and not template.is_public and template.owner_id != current_user.id:
-            raise HTTPException(403, "无权使用该模板")
-        if template:
-            canonical_type = template.type
-    elif canonical_type:
-        result = await db.execute(
-            select(Template)
-            .where(Template.type == canonical_type)
-            .order_by(Template.is_public.desc(), Template.id.asc())
-            .limit(1)
-        )
-        template = result.scalar_one_or_none()
-
-    if not template:
-        raise HTTPException(
-            400,
-            f"未找到类型为「{canonical_type}」的文书模板，请在「文书模板」中同步平台模板包或新建模板",
-        )
-
     if data.case_facts and len(data.case_facts) > MAX_CONTENT_LENGTH:
         raise HTTPException(400, f"案件事实内容不能超过 {MAX_CONTENT_LENGTH} 个字符")
 
-    # 查询研究报告作为生成依据
-    research_context = ""
-    if data.research_report_ids:
-        from app.models.research import ResearchReport
-        rr_result = await db.execute(
-            select(ResearchReport).where(
-                ResearchReport.id.in_(data.research_report_ids),
-                ResearchReport.owner_id == current_user.id,
-            )
-        )
-        reports = rr_result.scalars().all()
-        if reports:
-            research_context = "\n\n---\n\n".join(
-                f"【研究报告：{r.query}】\n{r.report[:4000]}"
-                for r in reports
-            )[:8000]
+    from app.services.docgen.generate_service import generate_document_result
 
-    # 调用AI生成引擎（单例）
-    llm = await resolve_user_llm(db, current_user)
-    engine = create_engine_for_llm(llm)
     try:
-        gen_result = await engine.generate(
-            case_facts=data.case_facts,
-            doc_type=canonical_type,
-            template=template,
-            extra_instructions=data.extra_instructions,
-            research_context=research_context or None,
-        )
-    except RuntimeError as e:
-        raise HTTPException(503, "文书生成服务暂时不可用，请稍后重试")
-    except Exception as e:
-        logger.exception("Document generation failed: %s", e)
-        raise HTTPException(500, "文书生成失败，请稍后重试")
-
-    # 保存文书
-    doc = Document(
-        case_id=data.case_id,
-        template_id=template.id,
-        type=canonical_type,
-        title=data.title or gen_result.get("title", f"{canonical_type}文书"),
-        content=gen_result["content"],
-        ai_metadata=gen_result.get("metadata", {}),
-        status="generated",
-        owner_id=current_user.id,
-    )
-    db.add(doc)
-    await db.flush()
-    await db.refresh(doc)
-    return doc
+        return await generate_document_result(current_user, data)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except PermissionError as exc:
+        raise HTTPException(403, str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(503, "文书生成服务暂时不可用，请稍后重试") from exc
+    except Exception as exc:
+        logger.exception("Document generation failed: %s", exc)
+        msg = str(exc).lower()
+        if "locked" in msg:
+            detail = "数据库繁忙，请关闭多余后端窗口后重试（或运行 stop-laboraid.bat 再启动）"
+        else:
+            detail = "文书生成失败，请稍后重试"
+        raise HTTPException(500, detail) from exc
 
 
 @router.post("/generate-stream")
 async def generate_document_stream(
     data: DocumentGenerate,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """SSE endpoint that streams document generation progress steps."""
     import time as _time
+
+    from app.core.streaming_db import wrap_stream_with_db
 
     if not check_rate_limit(f"doc_gen:{current_user.id}", max_requests=10, window_seconds=3600):
         raise HTTPException(429, "文书生成请求过于频繁，请一小时后再试")
 
     canonical_type = normalize_doc_type(data.type) or data.type
-
-    template = None
-    if data.template_id:
-        template = await db.get(Template, data.template_id)
-        if template:
-            canonical_type = template.type
-    elif canonical_type:
-        result = await db.execute(
-            select(Template)
-            .where(Template.type == canonical_type)
-            .order_by(Template.is_public.desc(), Template.id.asc())
-            .limit(1)
-        )
-        template = result.scalar_one_or_none()
-
-    if not template:
-        raise HTTPException(400, "未找到对应模板")
-
-    research_context = ""
-    if data.research_report_ids:
-        from app.models.research import ResearchReport
-        rr_result = await db.execute(
-            select(ResearchReport).where(
-                ResearchReport.id.in_(data.research_report_ids),
-                ResearchReport.owner_id == current_user.id,
-            )
-        )
-        reports = rr_result.scalars().all()
-        if reports:
-            research_context = "\n\n---\n\n".join(
-                f"【研究报告：{r.query}】\n{r.report[:4000]}" for r in reports
-            )[:8000]
 
     STEPS = [
         ("parsing", "解析案件信息"),
@@ -290,19 +216,51 @@ async def generate_document_stream(
         ("reviewing", "最终审查"),
     ]
 
-    llm = await resolve_user_llm(db, current_user)
-    stream_engine = create_engine_for_llm(llm)
-
-    async def event_stream():
+    async def event_stream(db: AsyncSession):
         start = _time.monotonic()
+        resolved_type = canonical_type
         try:
+            from app.services.docgen.template_resolve import resolve_template_for_doc_type
+
+            template = await resolve_template_for_doc_type(
+                db,
+                resolved_type,
+                template_id=data.template_id,
+                owner_id=current_user.id,
+            )
+            if template:
+                resolved_type = template.type
+
+            if not template:
+                yield f"data: {json.dumps({'step': 'error', 'label': '未找到模板', 'error': '未找到对应文书模板，请先在模板库同步'}, ensure_ascii=False)}\n\n"
+                return
+
+            research_context = ""
+            if data.research_report_ids:
+                from app.models.research import ResearchReport
+
+                rr_result = await db.execute(
+                    select(ResearchReport).where(
+                        ResearchReport.id.in_(data.research_report_ids),
+                        ResearchReport.owner_id == current_user.id,
+                    )
+                )
+                reports = rr_result.scalars().all()
+                if reports:
+                    research_context = "\n\n---\n\n".join(
+                        f"【研究报告：{r.query}】\n{r.report[:4000]}" for r in reports
+                    )[:8000]
+
+            llm = await resolve_user_llm(db, current_user)
+            stream_engine = create_engine_for_llm(llm)
+
             for step_key, step_label in STEPS:
                 elapsed = round(_time.monotonic() - start, 1)
                 yield f"data: {json.dumps({'step': step_key, 'label': step_label, 'elapsed': elapsed}, ensure_ascii=False)}\n\n"
 
             gen_result = await stream_engine.generate(
                 case_facts=data.case_facts,
-                doc_type=canonical_type,
+                doc_type=resolved_type,
                 template=template,
                 extra_instructions=data.extra_instructions,
                 research_context=research_context or None,
@@ -311,8 +269,8 @@ async def generate_document_stream(
             doc = Document(
                 case_id=data.case_id,
                 template_id=template.id,
-                type=canonical_type,
-                title=data.title or gen_result.get("title", f"{canonical_type}文书"),
+                type=resolved_type,
+                title=data.title or gen_result.get("title", f"{resolved_type}文书"),
                 content=gen_result["content"],
                 ai_metadata=gen_result.get("metadata", {}),
                 status="generated",
@@ -322,14 +280,19 @@ async def generate_document_stream(
             await db.flush()
             await db.refresh(doc)
 
+            from app.services.docgen.export_archive import export_docx_and_archive
+
+            vault_archived = await export_docx_and_archive(db, doc, user_id=current_user.id)
+            await db.refresh(doc)
+
             elapsed = round(_time.monotonic() - start, 1)
-            yield f"data: {json.dumps({'step': 'completed', 'label': '生成完成', 'elapsed': elapsed, 'document_id': doc.id}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'step': 'completed', 'label': '生成完成', 'elapsed': elapsed, 'document_id': doc.id, 'vault_archived': vault_archived}, ensure_ascii=False)}\n\n"
         except Exception as e:
             logger.error("SSE document generation failed: %s", e)
             yield f"data: {json.dumps({'step': 'error', 'label': '生成失败', 'error': '文书生成失败，请稍后重试'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
-        event_stream(),
+        wrap_stream_with_db(event_stream)(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -464,6 +427,17 @@ async def delete_document(
             exported_path=doc.exported_path,
             uploads_root=settings.upload_path,
         )
+        try:
+            from app.services.vault import mark_vault_source_deleted
+
+            await mark_vault_source_deleted(
+                db,
+                user_id=current_user.id,
+                source="document",
+                source_id=doc.id,
+            )
+        except Exception as e:
+            logger.warning("Vault cleanup for document %s failed: %s", doc_id, e)
         await db.delete(doc)
         await db.flush()
         return {"message": "文书已删除", "id": doc_id, "files_removed": removed_files}
@@ -551,12 +525,24 @@ async def export_document(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if data.format == "docx":
-        from app.services.docgen.word_export import export_to_docx
-        filepath = await export_to_docx(doc, output_dir)
+        from app.services.docgen.export_archive import export_docx_and_archive
+
+        archived = await export_docx_and_archive(db, doc, user_id=current_user.id)
+        await db.refresh(doc)
+        if doc.exported_path:
+            filepath = settings.upload_path / doc.exported_path
+        else:
+            from app.services.docgen.word_export import export_to_docx
+
+            filepath = Path(await export_to_docx(doc, output_dir))
+        if not filepath.is_file():
+            raise HTTPException(500, "Word 导出失败")
+        download_name = Path(filepath).name
         return FileResponse(
-            filepath,
+            str(filepath),
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename=Path(filepath).name,
+            filename=download_name,
+            headers={"X-Vault-Archived": "1" if archived else "0"},
         )
     elif data.format == "html":
         from app.services.docgen.html_export import export_to_html

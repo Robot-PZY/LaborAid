@@ -68,6 +68,7 @@ class IntakeAnalyzeResponse(BaseModel):
     cause_type: str
     cause_label: str
     summary: str
+    case_facts: str | None = None
     parties: IntakeParties = Field(default_factory=IntakeParties)
     missing_info: list[str] = Field(default_factory=list)
     evidence_checklist: list[str] = Field(default_factory=list)

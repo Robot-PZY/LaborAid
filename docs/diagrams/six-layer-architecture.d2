@@ -1,0 +1,67 @@
+# LaborAid 六层体系架构 — D2 高清版（答辩 SVG）
+# d2 docs/diagrams/six-layer-architecture.d2 docs/diagrams/export/six-layer.svg
+
+direction: down
+
+users: 用户层 {
+  style.fill: "#0d2137"
+  style.stroke: "#00d4ff"
+  劳动者
+  基层援助人员
+  平台管理员
+}
+
+presentation: 展现层 {
+  style.fill: "#0d2137"
+  style.stroke: "#00d4ff"
+  服务首页_Intake
+  证据_文书_报告
+  办事资源
+}
+
+business: 业务层 {
+  style.fill: "#0d2137"
+  style.stroke: "#00d4ff"
+  场景intake_建案
+  维权Pipeline
+  材料库_记录
+}
+
+scenarios: 场景层 {
+  style.fill: "#102a43"
+  style.stroke: "#38bdf8"
+  农民工欠薪
+  试用期辞退
+  女职工保护
+  通用劳动争议
+}
+
+tech: 技术层 {
+  style.fill: "#102a43"
+  style.stroke: "#38bdf8"
+  LEAP
+  MICE
+  Graph-RAG
+  SAGD
+  Supervisor_Agent
+}
+
+data: 数据层 {
+  style.fill: "#0d2137"
+  style.stroke: "#00d4ff"
+  案件库
+  证据OCR
+  Chroma向量库
+  文书模板
+  外链资源
+}
+
+users -> presentation -> business -> scenarios -> tech -> data
+
+summary: "六层结构 · 四场景 · 五算法" {
+  shape: text
+  style.font-size: 20
+  style.font-color: "#00d4ff"
+}
+
+tech -> summary

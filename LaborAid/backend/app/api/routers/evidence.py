@@ -17,7 +17,7 @@ from app.models.case import Case
 from app.models.evidence import Evidence
 from app.schemas.evidence import EvidenceCreate, EvidenceUpdate, EvidenceOut
 from app.services.evidence.ocr import extract_text
-from app.services.evidence.analysis import analyze_evidence
+from app.services.evidence.analysis import analyze_evidence, normalize_evidence_analysis
 from app.services.evidence.chain import analyze_evidence_chain, generate_cross_examination
 from app.services.llm_resolver import resolve_user_llm, resolve_vision_llm
 from app.services.ocr_status import classify_ocr_result
@@ -29,6 +29,8 @@ router = APIRouter()
 def _build_evidence_out(row: Evidence, *, truncate_ocr: bool = False) -> EvidenceOut:
     out = EvidenceOut.model_validate(row)
     out.has_file = row.file_path is not None
+    if out.analysis:
+        out.analysis = normalize_evidence_analysis(out.analysis)
     if truncate_ocr and out.ocr_text and len(out.ocr_text) > 300:
         out.ocr_text = out.ocr_text[:300] + "..."
     status, msg = classify_ocr_result(row.ocr_text, has_file=out.has_file)
@@ -65,10 +67,7 @@ async def list_evidence(
         result = await db.execute(query)
         items = []
         for e in result.scalars().all():
-            out = _build_evidence_out(e, truncate_ocr=True)
-            if out.analysis and len(out.analysis) > 300:
-                out.analysis = out.analysis[:300] + "..."
-            items.append(out)
+            items.append(_build_evidence_out(e, truncate_ocr=True))
         return JSONResponse(
             content=[i.model_dump(mode="json") for i in items],
             headers={"X-Total-Count": str(total)},
@@ -272,37 +271,46 @@ async def delete_evidence(
     current_user: User = Depends(get_current_user),
 ):
     try:
+        from app.core.db_write_lock import run_serialized_write
+
         result = await db.execute(
             select(Evidence).join(Case).where(Evidence.id == evidence_id, Case.owner_id == current_user.id)
         )
         row = result.scalar_one_or_none()
         if not row:
             raise HTTPException(404, "证据不存在")
-        if row.file_path:
-            settings = get_settings()
-            fp = settings.upload_path / row.file_path
-            if fp.exists():
-                fp.unlink()
-        try:
-            from app.services.vault import mark_vault_source_deleted
 
-            await mark_vault_source_deleted(
-                db,
-                user_id=current_user.id,
-                source="evidence",
-                source_id=row.id,
-            )
-        except Exception as e:
-            logger.warning("Vault cleanup for evidence %d failed: %s", evidence_id, e)
-        await db.delete(row)
-        await db.commit()
+        async def _delete_impl() -> None:
+            if row.file_path:
+                settings = get_settings()
+                fp = settings.upload_path / row.file_path
+                if fp.exists():
+                    fp.unlink()
+            try:
+                from app.services.vault import mark_vault_source_deleted
+
+                await mark_vault_source_deleted(
+                    db,
+                    user_id=current_user.id,
+                    source="evidence",
+                    source_id=row.id,
+                )
+            except Exception as e:
+                logger.warning("Vault cleanup for evidence %d failed: %s", evidence_id, e)
+            await db.delete(row)
+            await db.commit()
+
+        await run_serialized_write(_delete_impl)
         return {"message": "已删除"}
     except HTTPException:
         raise
     except Exception as e:
         logger.error("Delete evidence failed: %s", e)
         await db.rollback()
-        raise HTTPException(500, "删除证据失败")
+        detail = "删除证据失败"
+        if "database is locked" in str(e).lower():
+            detail = "数据库繁忙，正在处理其他操作，请稍后重试"
+        raise HTTPException(500, detail)
 
 
 @router.post("/{evidence_id}/analyze", response_model=EvidenceOut)

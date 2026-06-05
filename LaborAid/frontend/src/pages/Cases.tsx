@@ -14,8 +14,8 @@ import { caseApi, documentApi, intakeApi } from '@/lib/api';
 import { useToast } from '@/lib/toast';
 import { removeToolHistoryForDocument } from '@/lib/tool-history';
 import { withCaseTitleDatePrefix } from '@/lib/case-title';
-import { loadIntakeSession } from '@/lib/intake-session';
-import { setActiveCaseId } from '@/lib/active-case';
+import { clearIntakeCreatedCaseId, loadIntakeSession } from '@/lib/intake-session';
+import { clearActiveCaseIfMatches, setActiveCaseId } from '@/lib/active-case';
 import { downloadBlob } from '@/lib/api/client';
 import type { Case, CaseCreate, CaseReadinessSummary, Document } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -225,6 +225,35 @@ function Cases() {
     }
   }, []);
 
+  const handleDeleteCase = useCallback(
+    async (c: Case) => {
+      if (
+        !window.confirm(
+          `确定删除案件「${c.title}」？\n\n关联证据与材料库副本将删除；已生成的文书、案情分析仅解除关联。`,
+        )
+      ) {
+        return;
+      }
+      try {
+        await caseApi.delete(c.id);
+        clearActiveCaseIfMatches(c.id);
+        clearIntakeCreatedCaseId(c.id);
+        if (selectedCase?.id === c.id) {
+          setSelectedCase(null);
+        }
+        toast({ type: 'success', title: '案件已删除' });
+        fetchCases();
+      } catch (e: unknown) {
+        const msg =
+          e instanceof AxiosError
+            ? (e.response?.data as { detail?: string })?.detail || '删除失败'
+            : '删除失败';
+        toast({ type: 'error', title: '删除失败', description: String(msg) });
+      }
+    },
+    [fetchCases, selectedCase?.id, toast],
+  );
+
   const handleDeleteCaseDocument = useCallback(
     async (doc: Document) => {
       if (!window.confirm(`确定删除文书「${doc.title}」？此操作不可恢复。`)) return;
@@ -332,21 +361,7 @@ function Cases() {
               </span>
               <button
                 type="button"
-                onClick={async () => {
-                  if (!window.confirm(`确定删除案件「${selectedCase.title}」？关联证据将删除，文书与报告仅解除关联。`)) return;
-                  try {
-                    await caseApi.delete(selectedCase.id);
-                    toast({ type: 'success', title: '案件已删除' });
-                    setSelectedCase(null);
-                    fetchCases();
-                  } catch (e: unknown) {
-                    const msg =
-                      e instanceof AxiosError
-                        ? (e.response?.data as { detail?: string })?.detail || '删除失败'
-                        : '删除失败';
-                    toast({ type: 'error', title: '删除失败', description: String(msg) });
-                  }
-                }}
+                onClick={() => handleDeleteCase(selectedCase)}
                 className="shrink-0 rounded-lg border border-destructive/40 px-3 py-1 text-xs text-destructive hover:bg-destructive/10"
               >
                 删除案件
@@ -631,13 +646,27 @@ function Cases() {
                 onClick={() => openCaseDetail(c)}
                 className="group cursor-pointer rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
               >
-                <div className="mb-3 flex items-start justify-between">
+                <div className="mb-3 flex items-start justify-between gap-2">
                   <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{c.title}</h3>
-                  <span
-                    className={`ml-2 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor[c.status] || 'bg-gray-100 text-gray-700'}`}
-                  >
-                    {statusLabel[c.status] || c.status}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label={`删除案件 ${c.title}`}
+                      title="删除案件"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDeleteCase(c);
+                      }}
+                      className="rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor[c.status] || 'bg-gray-100 text-gray-700'}`}
+                    >
+                      {statusLabel[c.status] || c.status}
+                    </span>
+                  </div>
                 </div>
                 <div className="space-y-1 text-xs text-muted-foreground">
                   <p>

@@ -3,6 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import { HeartHandshake, MessageSquareText } from 'lucide-react';
 import ChannelIntakeWizard from '@/components/intake/ChannelIntakeWizard';
 import IntakeDesk from '@/components/intake/IntakeDesk';
+import {
+  hasActiveIntakePlan,
+  hydrateIntakeSessionFromServer,
+  loadIntakeSession,
+  type IntakeSession,
+} from '@/lib/intake-session';
 import { Surface, Badge } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils';
 
@@ -33,10 +39,51 @@ export default function EntryGate(_props: Props) {
   }, [searchParams]);
 
   const [path, setPath] = useState<EntryPath>(initial.path);
+  const [resumeSession, setResumeSession] = useState<IntakeSession | null>(null);
+  const [generalAutoResume, setGeneralAutoResume] = useState(false);
 
   useEffect(() => {
     setPath(initial.path);
   }, [initial.path]);
+
+  useEffect(() => {
+    if (searchParams.get('resumeIntake') !== '1') return;
+
+    const applyResume = (saved: IntakeSession | null) => {
+      if (!saved || !hasActiveIntakePlan(saved)) return;
+
+      if (saved.intakeMode === 'structured' && saved.channelId) {
+        setPath('special');
+        setResumeSession(saved);
+        setGeneralAutoResume(false);
+      } else {
+        setPath('general');
+        setResumeSession(null);
+        setGeneralAutoResume(true);
+      }
+
+      const next = new URLSearchParams(searchParams);
+      next.delete('resumeIntake');
+      if (saved.intakeMode === 'structured' && saved.channelId) {
+        next.set('intake', 'special');
+        next.set('channel', saved.channelId);
+        if (saved.scenarioId) next.set('scenario', saved.scenarioId);
+      } else {
+        next.set('intake', 'general');
+      }
+      setSearchParams(next, { replace: true });
+      requestAnimationFrame(() => {
+        document.getElementById('intake-desk')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    };
+
+    const local = loadIntakeSession();
+    if (local && hasActiveIntakePlan(local)) {
+      applyResume(local);
+      return;
+    }
+    void hydrateIntakeSessionFromServer().then(applyResume);
+  }, [searchParams, setSearchParams]);
 
   const clearIntakeParams = () => {
     const next = new URLSearchParams(searchParams);
@@ -80,6 +127,7 @@ export default function EntryGate(_props: Props) {
             <ChannelIntakeWizard
               initialChannelId={initial.channelId}
               initialScenarioId={initial.scenarioId}
+              resumeSession={resumeSession}
               onBack={goChoose}
             />
           </div>
@@ -98,7 +146,7 @@ export default function EntryGate(_props: Props) {
         >
           ← 返回选择维权方式
         </button>
-        <IntakeDesk embedded />
+        <IntakeDesk embedded autoResume={generalAutoResume} />
       </div>
     );
   }

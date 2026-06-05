@@ -17,6 +17,8 @@ import { caseApi, documentApi, researchApi, evidenceApi, contractApi } from '@/l
 import { userPortalApi, type UserRecentItem, type RecentKind } from '@/lib/api/user-portal';
 import { useToast } from '@/lib/toast';
 import { removeToolHistoryForDocument } from '@/lib/tool-history';
+import { clearActiveCaseIfMatches } from '@/lib/active-case';
+import { clearIntakeCreatedCaseId } from '@/lib/intake-session';
 import { formatBytes } from '@/lib/format';
 import { PageHeader, Surface, SectionTitle, Button } from '@/components/ui/primitives';
 import ServiceStrip from '@/components/service/ServiceStrip';
@@ -115,6 +117,8 @@ export default function Records() {
       switch (item.kind) {
         case 'case':
           await caseApi.delete(item.id);
+          clearActiveCaseIfMatches(item.id);
+          clearIntakeCreatedCaseId(item.id);
           break;
         case 'document':
           await documentApi.delete(item.id);

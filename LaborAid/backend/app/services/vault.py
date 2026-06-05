@@ -121,6 +121,7 @@ async def archive_file_to_vault(
     stage: str = "preparation",
     mime_type: str | None = None,
     replace_existing: bool = True,
+    commit: bool = True,
 ) -> UserMaterial | None:
     """从整理证据等模块归集副本到材料库；配额不足时跳过。"""
     if source not in ALLOWED_SOURCES:
@@ -149,6 +150,9 @@ async def archive_file_to_vault(
         stage=stage,
     )
     db.add(row)
-    await db.commit()
+    if commit:
+        await db.commit()
+    else:
+        await db.flush()
     await db.refresh(row)
     return row

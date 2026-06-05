@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, ListChecks, Sparkles, X } from 'lucide-react';
 import {
   clearIntakeSession,
+  getIntakeResumeUrl,
   hasActiveIntakePlan,
   loadIntakeSession,
   subscribeIntakeSession,
@@ -77,7 +78,7 @@ export default function IntakeResumeBar() {
         <Button
           type="button"
           size="sm"
-          onClick={() => navigate('/?resumeIntake=1#intake-desk')}
+          onClick={() => navigate(getIntakeResumeUrl(session))}
         >
           <ArrowRight className="h-3.5 w-3.5" />
           查看完整方案
