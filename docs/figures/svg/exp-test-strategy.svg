@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" fill="none">
+  <text x="360" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Software Test Strategy</text>
+  <rect x="40" y="48" width="200" height="120" rx="10" fill="#FFF" stroke="#059669" stroke-width="1.5"/>
+  <text x="140" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#059669">Unit Tests</text>
+  <text x="56" y="96" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- MICE rule engine</text>
+  <text x="56" y="112" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- NER field parsers</text>
+  <text x="56" y="128" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Compensation formulas</text>
+  <text x="56" y="144" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Agent scoring logic</text>
+  <rect x="260" y="48" width="200" height="120" rx="10" fill="#FFF" stroke="#D97706" stroke-width="1.5"/>
+  <text x="360" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#D97706">Integration</text>
+  <text x="276" y="96" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- FastAPI endpoint tests</text>
+  <text x="276" y="112" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- OCR pipeline mock</text>
+  <text x="276" y="128" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Chroma retrieval</text>
+  <text x="276" y="144" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Auth JWT flow</text>
+  <rect x="480" y="48" width="200" height="120" rx="10" fill="#FFF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="580" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#7C3AED">E2E / Demo</text>
+  <text x="496" y="96" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- case-001 to case-005</text>
+  <text x="496" y="112" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Full intake to doc</text>
+  <text x="496" y="128" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Admin config smoke</text>
+  <text x="496" y="144" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Competition demo script</text>
+  <rect x="40" y="188" width="640" height="120" rx="10" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="360" y="212" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">Evaluation dimensions (competition metrics)</text>
+  <g font-family="Arial,sans-serif" font-size="9">
+    <rect x="60" y="228" width="140" height="32" rx="6" fill="#FFF" stroke="#E8E4DD"/><text x="130" y="248" text-anchor="middle" fill="#1C2433">Evidence completeness</text>
+    <rect x="220" y="228" width="140" height="32" rx="6" fill="#FFF" stroke="#E8E4DD"/><text x="290" y="248" text-anchor="middle" fill="#1C2433">Legal cite accuracy</text>
+    <rect x="380" y="228" width="140" height="32" rx="6" fill="#FFF" stroke="#E8E4DD"/><text x="450" y="248" text-anchor="middle" fill="#1C2433">Doc draft usability</text>
+    <rect x="540" y="228" width="120" height="32" rx="6" fill="#FFF" stroke="#D97706"/><text x="600" y="248" text-anchor="middle" fill="#D97706">End-to-end success</text>
+    <text x="360" y="284" text-anchor="middle" fill="#64748B">Baseline: raw LLM chat | Full stack: LEAP + MICE + Graph-RAG + SAGD + Supervisor</text>
+  </g>
+</svg>

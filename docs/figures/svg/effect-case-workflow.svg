@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 280" fill="none">
+  <text x="360" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Effect: Case Workflow Stepper</text>
+  <rect x="40" y="48" width="640" height="200" rx="12" fill="#FFF" stroke="#E8E4DD"/>
+  <rect x="56" y="64" width="608" height="28" rx="6" fill="#FAF9F6"/>
+  <text x="72" y="82" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">Case: Probation dismissal - case-002</text>
+  <text x="600" y="82" text-anchor="end" font-family="Arial,sans-serif" font-size="9" fill="#059669">Step 3 of 5</text>
+  <g font-family="Arial,sans-serif">
+    <circle cx="100" cy="130" r="16" fill="#059669"/><text x="100" y="135" text-anchor="middle" font-size="10" font-weight="700" fill="#FFF">1</text>
+    <text x="100" y="162" text-anchor="middle" font-size="9" fill="#059669">Intake</text>
+    <line x1="116" y1="130" x2="164" y2="130" stroke="#059669" stroke-width="2"/>
+    <circle cx="180" cy="130" r="16" fill="#059669"/><text x="180" y="135" text-anchor="middle" font-size="10" font-weight="700" fill="#FFF">2</text>
+    <text x="180" y="162" text-anchor="middle" font-size="9" fill="#059669">Case build</text>
+    <line x1="196" y1="130" x2="244" y2="130" stroke="#D97706" stroke-width="2"/>
+    <circle cx="260" cy="130" r="18" fill="#D97706"/><text x="260" y="135" text-anchor="middle" font-size="10" font-weight="700" fill="#FFF">3</text>
+    <text x="260" y="162" text-anchor="middle" font-size="9" font-weight="600" fill="#D97706">Evidence</text>
+    <line x1="278" y1="130" x2="326" y2="130" stroke="#E8E4DD" stroke-width="2"/>
+    <circle cx="340" cy="130" r="16" fill="#FAF9F6" stroke="#E8E4DD" stroke-width="2"/><text x="340" y="135" text-anchor="middle" font-size="10" fill="#64748B">4</text>
+    <text x="340" y="162" text-anchor="middle" font-size="9" fill="#64748B">Research</text>
+    <line x1="356" y1="130" x2="404" y2="130" stroke="#E8E4DD" stroke-width="2"/>
+    <circle cx="420" cy="130" r="16" fill="#FAF9F6" stroke="#E8E4DD" stroke-width="2"/><text x="420" y="135" text-anchor="middle" font-size="10" fill="#64748B">5</text>
+    <text x="420" y="162" text-anchor="middle" font-size="9" fill="#64748B">Documents</text>
+  </g>
+  <rect x="480" y="110" width="200" height="56" rx="8" fill="#FEF3C7" stroke="#D97706"/>
+  <text x="580" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#92400E">Next action (Supervisor)</text>
+  <text x="580" y="150" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Upload missing social insurance proof</text>
+  <rect x="56" y="188" width="608" height="44" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="360" y="208" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">IntakeResumeBar: resume anytime | Agent proposals ranked by readiness impact</text>
+  <text x="360" y="224" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Guided advocacy - not a single chat box</text>
+</svg>

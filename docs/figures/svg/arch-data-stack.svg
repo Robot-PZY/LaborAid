@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" fill="none">
+  <text x="400" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Data Layer and Storage Strategy</text>
+
+  <rect x="40" y="52" width="200" height="120" rx="10" fill="#FFF" stroke="#E8E4DD"/>
+  <g transform="translate(100,72)">
+    <ellipse cx="40" cy="10" rx="40" ry="10" fill="#E8E4DD"/>
+    <rect x="0" y="10" width="80" height="50" fill="#FAF9F6" stroke="#E8E4DD"/>
+    <ellipse cx="40" cy="60" rx="40" ry="10" fill="#E8E4DD"/>
+  </g>
+  <text x="140" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1C2433">Relational DB</text>
+  <text x="140" y="164" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SQLite (dev default)</text>
+  <text x="140" y="178" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">PostgreSQL (production)</text>
+
+  <rect x="280" y="52" width="200" height="120" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <g transform="translate(340,72)">
+    <ellipse cx="40" cy="10" rx="40" ry="10" fill="#7C3AED" fill-opacity="0.2" stroke="#7C3AED"/>
+    <rect x="0" y="10" width="80" height="50" fill="#F5F3FF" stroke="#7C3AED"/>
+    <ellipse cx="40" cy="60" rx="40" ry="10" fill="#7C3AED" fill-opacity="0.2" stroke="#7C3AED"/>
+  </g>
+  <text x="380" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#7C3AED">ChromaDB</text>
+  <text x="380" y="164" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">localhost:8001</text>
+  <text x="380" y="178" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">laboraid_docs collection</text>
+
+  <rect x="520" y="52" width="240" height="120" rx="10" fill="#FFF" stroke="#D97706"/>
+  <rect x="560" y="80" width="160" height="48" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="640" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">./uploads/</text>
+  <text x="640" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">evidence files</text>
+  <text x="640" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">File storage</text>
+  <text x="640" y="164" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Vault quota 500MB</text>
+
+  <rect x="40" y="192" width="720" height="100" rx="10" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="400" y="216" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">What is stored where</text>
+  <text x="60" y="240" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SQL: users, cases, ai_snapshot, pipeline_tasks, intake sessions, admin settings</text>
+  <text x="60" y="258" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Chroma: law provisions, knowledge chunks, semantic embeddings (MiniLM)</text>
+  <text x="60" y="276" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Files: uploaded evidence, vault items, generated docx/pdf exports</text>
+
+  <rect x="40" y="308" width="340" height="56" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="210" y="332" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#64748B">Redis (optional)</text>
+  <text x="210" y="350" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">redis://localhost:6379 - cache / session extension</text>
+
+  <rect x="400" y="308" width="360" height="56" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="580" y="332" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#92400E">Selection rationale</text>
+  <text x="580" y="350" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SQLite zero-setup for competition demo; Postgres for multi-user deploy</text>
+</svg>

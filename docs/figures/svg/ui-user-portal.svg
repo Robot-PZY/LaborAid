@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" fill="none">
+  <defs><filter id="sh"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#1C2433" flood-opacity="0.06"/></filter></defs>
+  <text x="440" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">User Portal - Page Map</text>
+
+  <rect x="24" y="48" width="180" height="440" rx="10" fill="#1C2433" filter="url(#sh)"/>
+  <text x="114" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#FFF">Sidebar Nav</text>
+  <g font-family="Arial,sans-serif" font-size="9">
+    <text x="40" y="100" fill="#64748B" font-weight="600">SERVICE</text>
+    <rect x="36" y="108" width="156" height="22" rx="4" fill="#D97706"/><text x="48" y="123" fill="#FFF">Home / Intake</text>
+    <rect x="36" y="134" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="149" fill="#E8E4DD">Guidance</text>
+    <rect x="36" y="160" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="175" fill="#E8E4DD">My Records</text>
+    <text x="40" y="200" fill="#64748B" font-weight="600">CASE MGMT</text>
+    <rect x="36" y="208" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="223" fill="#E8E4DD">My Cases</text>
+    <rect x="36" y="234" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="249" fill="#E8E4DD">Material Vault</text>
+    <text x="40" y="274" fill="#64748B" font-weight="600">TOOLS</text>
+    <rect x="36" y="282" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="297" fill="#E8E4DD">Evidence</text>
+    <rect x="36" y="308" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="323" fill="#E8E4DD">Research</text>
+    <rect x="36" y="334" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="349" fill="#E8E4DD">Documents</text>
+    <rect x="36" y="360" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="375" fill="#E8E4DD">Search / Templates</text>
+    <text x="40" y="400" fill="#64748B" font-weight="600">OTHER</text>
+    <rect x="36" y="408" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="423" fill="#E8E4DD">Compensation calc</text>
+    <rect x="36" y="434" width="156" height="22" rx="4" fill="#243044"/><text x="48" y="449" fill="#E8E4DD">Settings</text>
+  </g>
+
+  <rect x="220" y="48" width="636" height="440" rx="10" fill="#FAF9F6" stroke="#E8E4DD" filter="url(#sh)"/>
+  <text x="240" y="76" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#64748B">MAIN WORKSPACE (selected routes)</text>
+
+  <rect x="240" y="92" width="280" height="100" rx="8" fill="#FFF" stroke="#D97706"/>
+  <text x="256" y="114" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">/  Dashboard + Intake</text>
+  <text x="256" y="132" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Special scenario form | General NL intake</text>
+  <text x="256" y="148" font-family="Arial,sans-serif" font-size="9" fill="#64748B">IntakeResumeBar | CaseWorkflowStepper</text>
+  <text x="256" y="164" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Agent next-step proposals</text>
+
+  <rect x="540" y="92" width="280" height="100" rx="8" fill="#FFF" stroke="#059669"/>
+  <text x="556" y="114" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#059669">/evidence  Evidence Hub</text>
+  <text x="556" y="132" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Upload materials | OCR preview</text>
+  <text x="556" y="148" font-family="Arial,sans-serif" font-size="9" fill="#64748B">MiceConsistencyPanel</text>
+  <text x="556" y="164" font-family="Arial,sans-serif" font-size="9" fill="#64748B">GET /cases/{id}/consistency-report</text>
+
+  <rect x="240" y="208" width="180" height="80" rx="8" fill="#FFF" stroke="#7C3AED"/>
+  <text x="256" y="230" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#7C3AED">/research</text>
+  <text x="256" y="248" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Graph-RAG deep study</text>
+  <text x="256" y="264" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Statute recommendations</text>
+
+  <rect x="440" y="208" width="180" height="80" rx="8" fill="#FFF" stroke="#D97706"/>
+  <text x="456" y="230" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">/documents</text>
+  <text x="456" y="248" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SAGD doc generation</text>
+  <text x="456" y="264" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Arbitration application</text>
+
+  <rect x="640" y="208" width="180" height="80" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="656" y="230" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1C2433">/cases</text>
+  <text x="656" y="248" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Case list and detail</text>
+  <text x="656" y="264" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Pipeline task status</text>
+
+  <rect x="240" y="304" width="580" height="72" rx="8" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="256" y="326" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1C2433">Supporting tools</text>
+  <text x="256" y="346" font-family="Arial,sans-serif" font-size="9" fill="#64748B">/tools/compensation | /tools/limitation | /guidance | /vault | /records | /search | /contracts | /enterprise</text>
+  <text x="256" y="364" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Protected by JWT | Role: user (default) or admin can switch portal</text>
+
+  <rect x="240" y="392" width="580" height="80" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="530" y="418" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#92400E">Primary user journey: Intake on Home -&gt; Case created -&gt; Evidence -&gt; Research -&gt; Documents -&gt; Records export</text>
+  <text x="530" y="436" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Special scenarios: wage arrears, probation dismissal, maternity, unsigned contract, work injury</text>
+</svg>

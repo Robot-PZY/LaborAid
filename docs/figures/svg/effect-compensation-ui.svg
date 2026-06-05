@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" fill="none">
+  <text x="360" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Effect: Compensation Calculator Result</text>
+  <rect x="80" y="48" width="560" height="240" rx="12" fill="#FFF" stroke="#E8E4DD"/>
+  <rect x="96" y="64" width="528" height="36" rx="8" fill="#FAF9F6"/>
+  <text x="112" y="88" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">Compensation Calculator - Unlawful dismissal</text>
+  <rect x="96" y="112" width="250" height="160" rx="8" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="112" y="136" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#64748B">INPUT</text>
+  <text x="112" y="156" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Monthly wage: 8500 CNY</text>
+  <text x="112" y="172" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Tenure: 8 months</text>
+  <text x="112" y="188" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Dismissal type: unlawful</text>
+  <text x="112" y="204" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Probation: yes (invalid grounds)</text>
+  <rect x="112" y="220" width="220" height="28" rx="6" fill="#D97706"/>
+  <text x="222" y="238" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#FFF">Calculate</text>
+  <rect x="366" y="112" width="258" height="160" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="382" y="136" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#92400E">STRUCTURED RESULT</text>
+  <text x="382" y="160" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">2N compensation: 17,000 CNY</text>
+  <text x="382" y="176" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Economic comp (N): 8,500 CNY</text>
+  <text x="382" y="192" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Legal basis: Labor Contract Law Art.87</text>
+  <text x="382" y="208" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Scenario: case-002 probation dismissal</text>
+  <rect x="382" y="220" width="120" height="22" rx="4" fill="#D1FAE5"/>
+  <text x="442" y="235" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#047857">Bind to SAGD doc</text>
+  <rect x="510" y="220" width="100" height="22" rx="4" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="560" y="235" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#64748B">Export PDF</text>
+  <rect x="80" y="300" width="560" height="24" rx="6" fill="#E8E4DD"/>
+  <text x="360" y="316" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Structured UI output - not plain text blob - feeds arbitration application template</text>
+</svg>

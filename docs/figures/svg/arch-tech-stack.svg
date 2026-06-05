@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 520" fill="none">
+  <text x="460" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#1C2433">LaborAid Technology Stack Overview</text>
+
+  <rect x="24" y="44" width="872" height="72" rx="10" fill="#FFF" stroke="#D97706" stroke-width="1.5"/>
+  <text x="40" y="68" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#D97706">PRESENTATION</text>
+  <text x="40" y="88" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">React 19 | TypeScript | Vite 6 | Tailwind CSS | Radix UI | React Router 7 | TanStack Query | Lucide icons</text>
+  <text x="40" y="106" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Single SPA serves user portal + admin portal | Port 5320 | Warm-paper design system</text>
+
+  <rect x="24" y="128" width="872" height="72" rx="10" fill="#FFF" stroke="#059669" stroke-width="1.5"/>
+  <text x="40" y="152" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#059669">APPLICATION</text>
+  <text x="40" y="172" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">Python 3.11 | FastAPI 0.115 | Uvicorn | Pydantic v2 | SQLAlchemy 2 async | Alembic | SSE streaming</text>
+  <text x="40" y="190" font-family="Arial,sans-serif" font-size="9" fill="#64748B">REST + OpenAPI /api/docs | Port 8010 | JWT auth (python-jose) | Modular routers</text>
+
+  <rect x="24" y="212" width="872" height="88" rx="10" fill="#FAF9F6" stroke="#7C3AED" stroke-width="2"/>
+  <text x="40" y="236" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#7C3AED">AI AND ALGORITHMS</text>
+  <text x="40" y="256" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">Text LLM: DeepSeek API (configurable) | Vision OCR: Qwen-VL (DashScope) | Embeddings: all-MiniLM-L6-v2</text>
+  <text x="40" y="274" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">LangChain + Chroma | LEAP | MICE | Graph-RAG | SAGD (Jinja2/docxtpl) | Supervisor Agent pipeline</text>
+  <text x="40" y="292" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Admin configures keys - users never enter API credentials</text>
+
+  <rect x="24" y="312" width="420" height="72" rx="10" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="40" y="336" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#64748B">DATA AND STORAGE</text>
+  <text x="40" y="356" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">SQLite (dev) / PostgreSQL (prod) | ChromaDB vectors | Redis (optional cache)</text>
+  <text x="40" y="374" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Local file uploads + material vault quota</text>
+
+  <rect x="456" y="312" width="440" height="72" rx="10" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="472" y="336" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#64748B">EXTERNAL INTEGRATIONS</text>
+  <text x="472" y="356" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">DeliLegal law search | Qichacha enterprise | Chinese Law MCP | Official guidance links</text>
+  <text x="472" y="374" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Pluggable via admin API config panel</text>
+
+  <rect x="24" y="400" width="872" height="56" rx="10" fill="#1C2433"/>
+  <text x="40" y="424" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#FFF">DEVOPS AND QUALITY</text>
+  <text x="40" y="444" font-family="Arial,sans-serif" font-size="10" fill="#E8E4DD">Git monorepo | start-laboraid.bat | ESLint + Prettier | Diagram-as-code (Mermaid + SVG figures)</text>
+
+  <rect x="24" y="472" width="872" height="36" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="460" y="494" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Design principle: lightweight deploy for legal-aid demos, cloud LLM for intelligence, local data for privacy</text>
+</svg>

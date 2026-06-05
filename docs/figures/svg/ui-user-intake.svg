@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" fill="none">
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#D97706"/></marker></defs>
+  <text x="360" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">User Intake Flow</text>
+  <rect x="280" y="48" width="160" height="40" rx="20" fill="#1C2433"/>
+  <text x="360" y="74" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#FFF">Entry Gate</text>
+  <line x1="280" y1="68" x2="180" y2="68" stroke="#64748B"/><line x1="280" y1="68" x2="180" y2="120" stroke="#64748B" marker-end="url(#arr)"/>
+  <line x1="440" y1="68" x2="540" y2="68" stroke="#64748B"/><line x1="440" y1="68" x2="540" y2="120" stroke="#64748B" marker-end="url(#arr)"/>
+  <rect x="80" y="120" width="200" height="100" rx="10" fill="#FFF" stroke="#D97706" stroke-width="1.5"/>
+  <text x="180" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#D97706">Special Scenario</text>
+  <text x="96" y="168" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Wage arrears channel</text>
+  <text x="96" y="184" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Probation dismissal</text>
+  <text x="96" y="200" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Maternity protection</text>
+  <rect x="440" y="120" width="200" height="100" rx="10" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="540" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#1C2433">General Intake</text>
+  <text x="456" y="168" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Free-text narrative</text>
+  <text x="456" y="184" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- Optional image upload</text>
+  <text x="456" y="200" font-family="Arial,sans-serif" font-size="9" fill="#64748B">- STDE auto-extract</text>
+  <line x1="180" y1="220" x2="180" y2="248" stroke="#D97706" marker-end="url(#arr)"/>
+  <line x1="540" y1="220" x2="540" y2="248" stroke="#D97706" marker-end="url(#arr)"/>
+  <line x1="180" y1="248" x2="540" y2="248" stroke="#E8E4DD"/>
+  <line x1="360" y1="248" x2="360" y2="268" stroke="#D97706" marker-end="url(#arr)"/>
+  <rect x="200" y="268" width="320" height="72" rx="10" fill="#FAF9F6" stroke="#D97706"/>
+  <text x="360" y="294" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">LEAP: cause match + agent dispatch</text>
+  <text x="360" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Creates case | ai_snapshot | pipeline_tasks</text>
+  <text x="360" y="328" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">IntakeResumeBar persists progress across sessions</text>
+</svg>

@@ -16,6 +16,8 @@
 
 方案叙事见 [competition-scenario-design-proposal.md](../competition-scenario-design-proposal.md)。
 
+**答辩组成元素图（35+ 张备用）**：[`docs/figures/`](../figures/README.md) — 架构/技术选型/用户端/管理端/部署/时序/实验/效果图，English-only PNG；预览 [`preview.html`](../figures/preview.html)。
+
 Cursor Agent Skill：`.cursor/skills/laboraid-architecture-diagrams/SKILL.md`
 
 ## 导出 PNG / SVG

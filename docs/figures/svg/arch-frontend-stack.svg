@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" fill="none">
+  <text x="400" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Frontend Technology Stack</text>
+
+  <rect x="280" y="48" width="240" height="48" rx="24" fill="#1C2433"/>
+  <text x="400" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#FFF">React 19 SPA</text>
+
+  <line x1="400" y1="96" x2="200" y2="140" stroke="#E8E4DD" stroke-width="1.5"/>
+  <line x1="400" y1="96" x2="400" y2="140" stroke="#E8E4DD" stroke-width="1.5"/>
+  <line x1="400" y1="96" x2="600" y2="140" stroke="#E8E4DD" stroke-width="1.5"/>
+
+  <rect x="80" y="140" width="240" height="80" rx="10" fill="#FFF" stroke="#D97706"/>
+  <text x="200" y="168" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">Build and language</text>
+  <text x="96" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Vite 6 (ESM, HMR)</text>
+  <text x="96" y="204" font-family="Arial,sans-serif" font-size="9" fill="#64748B">TypeScript 5.7 strict</text>
+
+  <rect x="280" y="140" width="240" height="80" rx="10" fill="#FFF" stroke="#059669"/>
+  <text x="400" y="168" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#059669">UI and styling</text>
+  <text x="296" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Tailwind CSS 3.4</text>
+  <text x="296" y="204" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Radix UI + CVA + shadcn pattern</text>
+
+  <rect x="480" y="140" width="240" height="80" rx="10" fill="#FFF" stroke="#7C3AED"/>
+  <text x="600" y="168" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#7C3AED">Data and routing</text>
+  <text x="496" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">React Router 7</text>
+  <text x="496" y="204" font-family="Arial,sans-serif" font-size="9" fill="#64748B">TanStack Query + Axios</text>
+
+  <rect x="40" y="240" width="720" height="100" rx="10" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="400" y="264" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">Key UI modules (src/)</text>
+  <text x="60" y="288" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Layout + AdminLayout | IntakeDesk + ChannelIntakeWizard | CaseWorkflowStepper</text>
+  <text x="60" y="306" font-family="Arial,sans-serif" font-size="9" fill="#64748B">MiceConsistencyPanel | AgentHeader | config/agents.ts tool registry</text>
+  <text x="60" y="324" font-family="Arial,sans-serif" font-size="9" fill="#64748B">react-markdown for AI output | lazy routes for code splitting</text>
+
+  <rect x="40" y="356" width="340" height="36" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>
+  <text x="210" y="378" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Design tokens: warm paper #FAF9F6, ink #1C2433, amber #D97706</text>
+  <rect x="400" y="356" width="360" height="36" rx="8" fill="#E8E4DD"/>
+  <text x="580" y="378" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">ESLint 9 + Prettier | DM Sans + Noto Serif SC fonts</text>
+</svg>

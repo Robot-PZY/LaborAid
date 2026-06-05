@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" fill="none">
+  <defs><filter id="sh"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#1C2433" flood-opacity="0.08"/></filter></defs>
+  <text x="320" y="26" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Supervisor-Worker Agent Topology</text>
+  <rect x="220" y="44" width="200" height="36" rx="6" fill="#FEF3C7" stroke="#D97706"/>
+  <text x="320" y="67" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#92400E">CaseWorkContext</text>
+  <line x1="320" y1="80" x2="320" y2="108" stroke="#64748B" stroke-width="1.5"/>
+  <circle cx="320" cy="148" r="44" fill="#7C3AED" filter="url(#sh)"/>
+  <text x="320" y="144" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#FFF">Supervisor</text>
+  <text x="320" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#E9D5FF">Orchestrator</text>
+  <g font-family="Arial,sans-serif" font-size="10" fill="#1C2433">
+    <rect x="24" y="248" width="152" height="52" rx="8" fill="#FFF" stroke="#E8E4DD" filter="url(#sh)"/>
+    <text x="100" y="272" text-anchor="middle" font-weight="600">GuidanceAgent</text>
+    <text x="100" y="288" text-anchor="middle" font-size="9" fill="#64748B">Resources and links</text>
+    <rect x="144" y="248" width="152" height="52" rx="8" fill="#FFF" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="220" y="272" text-anchor="middle" font-weight="600">EvidenceAgent</text>
+    <text x="220" y="288" text-anchor="middle" font-size="9" fill="#64748B">OCR and MICE</text>
+    <rect x="244" y="248" width="152" height="52" rx="8" fill="#FFF" stroke="#7C3AED" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="320" y="272" text-anchor="middle" font-weight="600">ResearchAgent</text>
+    <text x="320" y="288" text-anchor="middle" font-size="9" fill="#64748B">Graph-RAG</text>
+    <rect x="344" y="248" width="152" height="52" rx="8" fill="#FFF" stroke="#D97706" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="420" y="272" text-anchor="middle" font-weight="600">DocgenAgent</text>
+    <text x="420" y="288" text-anchor="middle" font-size="9" fill="#64748B">SAGD docs</text>
+    <rect x="464" y="248" width="152" height="52" rx="8" fill="#FFF" stroke="#E8E4DD" filter="url(#sh)"/>
+    <text x="540" y="272" text-anchor="middle" font-weight="600">RecordsAgent</text>
+    <text x="540" y="288" text-anchor="middle" font-size="9" fill="#64748B">Vault export</text>
+  </g>
+  <line x1="320" y1="192" x2="100" y2="248" stroke="#E8E4DD"/><line x1="320" y1="192" x2="220" y2="248" stroke="#E8E4DD"/>
+  <line x1="320" y1="192" x2="320" y2="248" stroke="#E8E4DD"/><line x1="320" y1="192" x2="420" y2="248" stroke="#E8E4DD"/>
+  <line x1="320" y1="192" x2="540" y2="248" stroke="#E8E4DD"/>
+  <rect x="120" y="328" width="400" height="72" rx="8" fill="#FAF9F6" stroke="#E8E4DD" filter="url(#sh)"/>
+  <text x="320" y="352" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#1C2433">evaluate_all_agents then pick_next_proposal</text>
+  <text x="320" y="372" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748B">GET /cases/{id}/agent/next-step</text>
+  <text x="320" y="390" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#D97706">Ranked next actions for case workflow</text>
+</svg>

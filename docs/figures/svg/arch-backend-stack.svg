@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" fill="none">
+  <text x="400" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">Backend Technology Stack</text>
+
+  <rect x="300" y="48" width="200" height="44" rx="22" fill="#059669"/>
+  <text x="400" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#FFF">FastAPI 0.115</text>
+
+  <rect x="40" y="112" width="220" height="120" rx="10" fill="#FFF" stroke="#E8E4DD"/>
+  <text x="150" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1C2433">API Routers</text>
+  <text x="56" y="156" font-family="Arial,sans-serif" font-size="9" fill="#64748B">auth, intake, cases</text>
+  <text x="56" y="172" font-family="Arial,sans-serif" font-size="9" fill="#64748B">evidence, documents</text>
+  <text x="56" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">research, search, vault</text>
+  <text x="56" y="204" font-family="Arial,sans-serif" font-size="9" fill="#64748B">admin, knowledge</text>
+
+  <rect x="290" y="112" width="220" height="120" rx="10" fill="#FFF" stroke="#D97706"/>
+  <text x="400" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">Services</text>
+  <text x="306" y="156" font-family="Arial,sans-serif" font-size="9" fill="#64748B">agents/ supervisor pipeline</text>
+  <text x="306" y="172" font-family="Arial,sans-serif" font-size="9" fill="#64748B">mice/ consistency engine</text>
+  <text x="306" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">docgen SAGD templates</text>
+  <text x="306" y="204" font-family="Arial,sans-serif" font-size="9" fill="#64748B">graph-rag retrieval</text>
+
+  <rect x="540" y="112" width="220" height="120" rx="10" fill="#FFF" stroke="#7C3AED"/>
+  <text x="650" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#7C3AED">Core infra</text>
+  <text x="556" y="156" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SQLAlchemy 2 async</text>
+  <text x="556" y="172" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Pydantic v2 settings</text>
+  <text x="556" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">JWT (python-jose)</text>
+  <text x="556" y="204" font-family="Arial,sans-serif" font-size="9" fill="#64748B">CORS middleware</text>
+
+  <rect x="40" y="252" width="360" height="72" rx="10" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="220" y="276" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">Persistence</text>
+  <text x="220" y="296" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">aiosqlite (dev) | asyncpg (prod Postgres)</text>
+  <text x="220" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Alembic migrations | SQLite write lock for concurrency</text>
+
+  <rect x="420" y="252" width="340" height="72" rx="10" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="590" y="276" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#1C2433">Document processing</text>
+  <text x="590" y="296" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">PyMuPDF, pypdf, python-docx, docxtpl</text>
+  <text x="590" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">WeasyPrint / xhtml2pdf export</text>
+
+  <rect x="40" y="340" width="720" height="44" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.35"/>
+  <text x="400" y="358" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400E">Uvicorn ASGI server | OpenAPI auto-docs at /api/docs</text>
+  <text x="400" y="374" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Environment via .env + pydantic-settings validation</text>
+</svg>

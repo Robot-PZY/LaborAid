@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 280" fill="none">
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#D97706"/></marker></defs>
+  <text x="460" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#1C2433">End-to-End Smart Advocacy Flow</text>
+  <g font-family="Arial,sans-serif" font-size="9">
+    <rect x="16" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="66" y="80" text-anchor="middle" font-weight="600" fill="#1C2433">User</text><text x="66" y="96" text-anchor="middle" fill="#64748B">Intake form</text><text x="66" y="110" text-anchor="middle" fill="#64748B">or NL text</text>
+    <rect x="136" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#D97706"/><text x="186" y="84" text-anchor="middle" font-weight="600" fill="#D97706">LEAP</text><text x="186" y="100" text-anchor="middle" fill="#64748B">STDE + route</text>
+    <rect x="256" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="306" y="84" text-anchor="middle" font-weight="600" fill="#1C2433">Case DB</text><text x="306" y="100" text-anchor="middle" fill="#64748B">ai_snapshot</text>
+    <rect x="376" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#059669"/><text x="426" y="84" text-anchor="middle" font-weight="600" fill="#059669">MICE</text><text x="426" y="100" text-anchor="middle" fill="#64748B">OCR + report</text>
+    <rect x="496" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#7C3AED"/><text x="546" y="84" text-anchor="middle" font-weight="600" fill="#7C3AED">Graph-RAG</text><text x="546" y="100" text-anchor="middle" fill="#64748B">Statutes</text>
+    <rect x="616" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#D97706"/><text x="666" y="84" text-anchor="middle" font-weight="600" fill="#D97706">SAGD</text><text x="666" y="100" text-anchor="middle" fill="#64748B">Documents</text>
+    <rect x="736" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="786" y="84" text-anchor="middle" font-weight="600" fill="#1C2433">Supervisor</text><text x="786" y="100" text-anchor="middle" fill="#64748B">next-step</text>
+    <rect x="856" y="56" width="48" height="64" rx="8" fill="#FEF3C7" stroke="#D97706"/><text x="880" y="92" text-anchor="middle" font-weight="600" fill="#92400E">Out</text>
+  </g>
+  <line x1="116" y1="88" x2="136" y2="88" stroke="#D97706" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="236" y1="88" x2="256" y2="88" stroke="#D97706" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="356" y1="88" x2="376" y2="88" stroke="#D97706" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="476" y1="88" x2="496" y2="88" stroke="#D97706" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="596" y1="88" x2="616" y2="88" stroke="#D97706" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="716" y1="88" x2="736" y2="88" stroke="#D97706" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="836" y1="88" x2="856" y2="88" stroke="#D97706" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="16" y="140" width="888" height="120" rx="10" fill="#FAF9F6" stroke="#E8E4DD"/>
+  <text x="40" y="164" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#64748B">PARALLEL AGENT TASKS (after LEAP dispatch)</text>
+  <rect x="40" y="176" width="160" height="36" rx="6" fill="#FFF" stroke="#E8E4DD"/><text x="120" y="198" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Guidance: official links</text>
+  <rect x="220" y="176" width="160" height="36" rx="6" fill="#FFF" stroke="#059669"/><text x="300" y="198" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#059669">Evidence: upload + MICE</text>
+  <rect x="400" y="176" width="160" height="36" rx="6" fill="#FFF" stroke="#7C3AED"/><text x="480" y="198" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#7C3AED">Research: deep analysis</text>
+  <rect x="580" y="176" width="160" height="36" rx="6" fill="#FFF" stroke="#D97706"/><text x="660" y="198" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#D97706">Docgen: arbitration draft</text>
+  <rect x="760" y="176" width="120" height="36" rx="6" fill="#FFF" stroke="#E8E4DD"/><text x="820" y="198" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Records: export</text>
+  <text x="460" y="240" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#92400E">User sees CaseWorkflowStepper + IntakeResumeBar guiding each stage</text>
+  <text x="460" y="256" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Loop: Supervisor re-evaluates after each agent completes a task</text>
+</svg>
