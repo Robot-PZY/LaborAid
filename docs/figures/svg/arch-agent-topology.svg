@@ -19,7 +19,7 @@
     <text x="320" y="288" text-anchor="middle" font-size="9" fill="#64748B">Graph-RAG</text>
     <rect x="344" y="248" width="152" height="52" rx="8" fill="#FFF" stroke="#D97706" stroke-width="1.5" filter="url(#sh)"/>
     <text x="420" y="272" text-anchor="middle" font-weight="600">DocgenAgent</text>
-    <text x="420" y="288" text-anchor="middle" font-size="9" fill="#64748B">SAGD docs</text>
+    <text x="420" y="288" text-anchor="middle" font-size="9" fill="#64748B">SADG docs</text>
     <rect x="464" y="248" width="152" height="52" rx="8" fill="#FFF" stroke="#E8E4DD" filter="url(#sh)"/>
     <text x="540" y="272" text-anchor="middle" font-weight="600">RecordsAgent</text>
     <text x="540" y="288" text-anchor="middle" font-size="9" fill="#64748B">Vault export</text>

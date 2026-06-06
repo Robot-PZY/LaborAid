@@ -82,7 +82,7 @@
     <rect x="630" y="290" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="709" y="308" text-anchor="middle" font-weight="600">Material Vault</text><text x="709" y="324" text-anchor="middle" fill="#64748B">Upload and OCR</text>
     <rect x="120" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="199" y="360" text-anchor="middle" font-weight="600">Agent Orchestration</text><text x="199" y="376" text-anchor="middle" fill="#64748B">Supervisor dispatch</text>
     <rect x="290" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="369" y="360" text-anchor="middle" font-weight="600">Research Engine</text><text x="369" y="376" text-anchor="middle" fill="#64748B">Graph-RAG query</text>
-    <rect x="460" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="539" y="360" text-anchor="middle" font-weight="600">Doc Generation</text><text x="539" y="376" text-anchor="middle" fill="#64748B">SAGD templates</text>
+    <rect x="460" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="539" y="360" text-anchor="middle" font-weight="600">Doc Generation</text><text x="539" y="376" text-anchor="middle" fill="#64748B">SADG templates</text>
     <rect x="630" y="342" width="158" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/><text x="709" y="360" text-anchor="middle" font-weight="600">Records Export</text><text x="709" y="376" text-anchor="middle" fill="#64748B">Material pack</text>
   </g>
 
@@ -129,7 +129,7 @@
     <text x="564" y="574" font-size="9" fill="#64748B">Hybrid rank</text>
 
     <rect x="686" y="498" width="120" height="96" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="1.5"/>
-    <text x="746" y="522" text-anchor="middle" font-size="10" font-weight="700" fill="#D97706">SAGD</text>
+    <text x="746" y="522" text-anchor="middle" font-size="10" font-weight="700" fill="#D97706">SADG</text>
     <text x="698" y="542" font-size="9" fill="#64748B">Template</text>
     <text x="698" y="558" font-size="9" fill="#64748B">binding</text>
     <text x="698" y="574" font-size="9" fill="#64748B">DocgenAgent</text>

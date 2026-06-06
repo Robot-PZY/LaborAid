@@ -89,7 +89,7 @@ function RiskRecord({
 }
 
 function ScanResult({ data }: { data: EnterpriseScanResult }) {
-  const { company, risk_summary, risks } = data;
+  const { company, risk_summary, risks, search_key } = data;
   const verdict = workerVerdict(data);
   const activeRisks = CORE_RISKS.filter(({ key }) => risk_summary[key] > 0);
   const hasRiskDetails =
@@ -97,12 +97,20 @@ function ScanResult({ data }: { data: EnterpriseScanResult }) {
     risks.exceptions.length > 0 ||
     risks.shixin_items.length > 0 ||
     risks.zhixing_items.length > 0;
+  const matchedFromAlias =
+    search_key.trim() !== company.name.trim() &&
+    !company.name.trim().startsWith(search_key.trim());
 
   return (
     <div className="space-y-6">
       <Surface className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
+            {matchedFromAlias && (
+              <p className="mb-1 text-sm text-muted-foreground">
+                已根据「{search_key}」匹配到
+              </p>
+            )}
             <h2 className="font-display text-lg font-semibold">{company.name}</h2>
             {company.reg_status && (
               <Badge tone={regStatusTone(company.reg_status)} className="mt-2">

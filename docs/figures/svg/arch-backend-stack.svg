@@ -15,7 +15,7 @@
   <text x="400" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">Services</text>
   <text x="306" y="156" font-family="Arial,sans-serif" font-size="9" fill="#64748B">agents/ supervisor pipeline</text>
   <text x="306" y="172" font-family="Arial,sans-serif" font-size="9" fill="#64748B">mice/ consistency engine</text>
-  <text x="306" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">docgen SAGD templates</text>
+  <text x="306" y="188" font-family="Arial,sans-serif" font-size="9" fill="#64748B">docgen SADG templates</text>
   <text x="306" y="204" font-family="Arial,sans-serif" font-size="9" fill="#64748B">graph-rag retrieval</text>
 
   <rect x="540" y="112" width="220" height="120" rx="10" fill="#FFF" stroke="#7C3AED"/>

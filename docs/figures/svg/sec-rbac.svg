@@ -22,7 +22,7 @@
   <text x="420" y="142" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/users  User CRUD</text>
   <text x="420" y="160" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/models  LLM config</text>
   <text x="420" y="178" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/knowledge  Corpus</text>
-  <text x="420" y="196" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/templates  SAGD tpl</text>
+  <text x="420" y="196" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/admin/templates  SADG tpl</text>
   <text x="420" y="214" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">Can also use user portal</text>
   <text x="420" y="240" font-family="Arial,sans-serif" font-size="10" font-weight="600" fill="#64748B">LOGIN</text>
   <text x="420" y="260" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">/login?portal=admin</text>

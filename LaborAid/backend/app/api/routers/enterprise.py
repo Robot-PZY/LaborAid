@@ -3,9 +3,13 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.core.security import check_rate_limit, get_current_user
 from app.models.user import User
+from app.services.enterprise.query_resolver import resolve_enterprise_search_key
+from app.services.llm_resolver import resolve_user_llm
 from app.schemas.enterprise import (
     EnterpriseCompanyOut,
     EnterpriseRiskItemsOut,
@@ -44,15 +48,18 @@ async def enterprise_status(_: User = Depends(get_current_user)):
 async def scan_enterprise(
     search_key: str = Query(..., min_length=2, max_length=100, description="企业名称或统一社会信用代码"),
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     if not check_rate_limit(f"enterprise_scan:{current_user.id}", max_requests=10, window_seconds=60):
         raise HTTPException(429, "查询过于频繁，请稍后再试")
 
     client = get_qichacha_client()
     key = search_key.strip()
+    llm = await resolve_user_llm(db, current_user)
+    api_search_key = await resolve_enterprise_search_key(key, llm=llm)
 
     try:
-        raw = await client.risk_scan(key)
+        raw = await client.risk_scan(api_search_key)
         normalized = normalize_risk_scan(raw)
         company = normalized["company"]
         if not company.get("name"):

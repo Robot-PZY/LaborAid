@@ -18,7 +18,7 @@
     <text x="300" y="198" text-anchor="middle" fill="#1C2433">Graph + vector hybrid retrieval</text>
     <text x="500" y="198" text-anchor="middle" fill="#64748B">Chroma + legal graph</text>
     <rect x="24" y="224" width="592" height="48" fill="#FAF9F6" stroke="#E8E4DD"/>
-    <text x="120" y="246" text-anchor="middle" font-weight="700" fill="#D97706">SAGD</text>
+    <text x="120" y="246" text-anchor="middle" font-weight="700" fill="#D97706">SADG</text>
     <text x="300" y="246" text-anchor="middle" fill="#1C2433">Template binding + docgen</text>
     <text x="500" y="246" text-anchor="middle" fill="#64748B">DocgenAgent + Jinja2</text>
     <rect x="24" y="272" width="592" height="48" fill="#FFF" stroke="#E8E4DD"/>

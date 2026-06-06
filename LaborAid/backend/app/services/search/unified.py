@@ -361,49 +361,86 @@ class UnifiedSearchService:
         return []
 
     async def _search_statutes_vector(self, query: str, limit: int) -> list[LawSearchResult]:
+        """使用统一 RAG 检索层检索法条（混合检索：向量 + BM25）。"""
         try:
-            from app.services.vector.store import get_vector_service
-            svc = get_vector_service()
-            items = await svc.search_statutes(query, limit)
+            from app.services.rag import retrieve_statutes
+            items = await retrieve_statutes(query, top_k=limit, hybrid=True)
             results = []
             for it in items:
-                meta = it.get("metadata", {})
+                meta = it.metadata
                 results.append(LawSearchResult(
                     source="本地法条库",
-                    document_id=it.get("id", ""),
+                    document_id=it.id,
                     title=meta.get("title", ""),
                     provision_ref=meta.get("provision_ref", ""),
-                    content=it.get("content", "")[:500],
-                    relevance_score=_normalize_relevance(1.0 - it.get("distance", 0.5), "vector"),
+                    content=it.content[:500],
+                    relevance_score=_normalize_relevance(it.score, "hybrid"),
                 ))
             return results
         except Exception as e:
-            logger.warning("Vector statute search failed: %s", e)
-            return []
+            logger.warning("RAG statute search failed, fallback to vector: %s", e)
+            try:
+                from app.services.vector.store import get_vector_service
+                svc = get_vector_service()
+                items = await svc.search_statutes(query, limit)
+                results = []
+                for it in items:
+                    meta = it.get("metadata", {})
+                    results.append(LawSearchResult(
+                        source="本地法条库",
+                        document_id=it.get("id", ""),
+                        title=meta.get("title", ""),
+                        provision_ref=meta.get("provision_ref", ""),
+                        content=it.get("content", "")[:500],
+                        relevance_score=_normalize_relevance(1.0 - it.get("distance", 0.5), "vector"),
+                    ))
+                return results
+            except Exception:
+                return []
 
     async def _search_cases_vector(self, query: str, limit: int) -> list[CaseSearchResult]:
+        """使用统一 RAG 检索层检索案例（混合检索：向量 + BM25）。"""
         try:
-            from app.services.vector.store import get_vector_service
-            svc = get_vector_service()
-            items = await svc.search_cases(query, limit)
+            from app.services.rag import retrieve_cases
+            items = await retrieve_cases(query, top_k=limit, hybrid=True)
             results = []
             for it in items:
-                meta = it.get("metadata", {})
+                meta = it.metadata
                 results.append(CaseSearchResult(
                     source="本地案例库",
-                    case_id=it.get("id", ""),
+                    case_id=it.id,
                     case_number=meta.get("case_number", ""),
                     title=meta.get("title", ""),
                     court=meta.get("court", ""),
                     date=meta.get("date", ""),
                     judgment_type=meta.get("judgment_type", ""),
-                    content=it.get("content", "")[:500],
-                    relevance_score=_normalize_relevance(1.0 - it.get("distance", 0.5), "vector"),
+                    content=it.content[:500],
+                    relevance_score=_normalize_relevance(it.score, "hybrid"),
                 ))
             return results
         except Exception as e:
-            logger.warning("Vector case search failed: %s", e)
-            return []
+            logger.warning("RAG case search failed, fallback to vector: %s", e)
+            try:
+                from app.services.vector.store import get_vector_service
+                svc = get_vector_service()
+                items = await svc.search_cases(query, limit)
+                results = []
+                for it in items:
+                    meta = it.get("metadata", {})
+                    results.append(CaseSearchResult(
+                        source="本地案例库",
+                        case_id=it.get("id", ""),
+                        case_number=meta.get("case_number", ""),
+                        title=meta.get("title", ""),
+                        court=meta.get("court", ""),
+                        date=meta.get("date", ""),
+                        judgment_type=meta.get("judgment_type", ""),
+                        content=it.get("content", "")[:500],
+                        relevance_score=_normalize_relevance(1.0 - it.get("distance", 0.5), "vector"),
+                    ))
+                return results
+            except Exception:
+                return []
 
     async def _search_external_laws(self, query: str, limit: int) -> list[LawSearchResult]:
         try:

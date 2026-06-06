@@ -76,7 +76,11 @@ async def test_enterprise_scan_success(client, auth_headers):
         "ZhiXingItems": [],
     }
 
-    with patch("app.api.routers.enterprise.get_qichacha_client") as mock_factory:
+    with (
+        patch("app.api.routers.enterprise.resolve_enterprise_search_key", new_callable=AsyncMock) as mock_resolve,
+        patch("app.api.routers.enterprise.get_qichacha_client") as mock_factory,
+    ):
+        mock_resolve.return_value = "测试科技有限公司"
         mock_client = AsyncMock()
         mock_client.configured = True
         mock_client.risk_scan = AsyncMock(return_value=mock_result)
@@ -96,6 +100,51 @@ async def test_enterprise_scan_success(client, auth_headers):
     assert data["risk_summary"]["penalty_count"] == 1
     assert data["risk_summary"]["has_risk"] is True
     assert "qcc.com" in (data["external_search_url"] or "")
+    mock_resolve.assert_awaited_once()
+    mock_client.risk_scan.assert_awaited_once_with("测试科技有限公司")
+
+
+@pytest.mark.asyncio
+async def test_enterprise_scan_resolves_short_name_before_api(client, auth_headers):
+    mock_result = {
+        "KeyNo": "tx123",
+        "Name": "深圳市腾讯计算机系统有限公司",
+        "CreditCode": "91440300708461136T",
+        "Status": "存续",
+        "OperName": "马化腾",
+        "RegistCapi": "6500万元",
+        "StartDate": "1998-11-11",
+        "Address": "深圳市南山区",
+        "Scope": "计算机软硬件",
+        "EconKind": "有限责任公司",
+        "ContactInfo": {},
+        "Penalty": [],
+        "Exceptions": [],
+        "ShiXinItems": [],
+        "ZhiXingItems": [],
+    }
+
+    with (
+        patch("app.api.routers.enterprise.resolve_enterprise_search_key", new_callable=AsyncMock) as mock_resolve,
+        patch("app.api.routers.enterprise.get_qichacha_client") as mock_factory,
+    ):
+        mock_resolve.return_value = "深圳市腾讯计算机系统有限公司"
+        mock_client = AsyncMock()
+        mock_client.configured = True
+        mock_client.risk_scan = AsyncMock(return_value=mock_result)
+        mock_factory.return_value = mock_client
+
+        response = await client.get(
+            "/api/v1/enterprise/scan",
+            params={"search_key": "腾讯"},
+            headers=auth_headers,
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["search_key"] == "腾讯"
+    assert data["company"]["name"] == "深圳市腾讯计算机系统有限公司"
+    mock_client.risk_scan.assert_awaited_once_with("深圳市腾讯计算机系统有限公司")
 
 
 @pytest.mark.asyncio

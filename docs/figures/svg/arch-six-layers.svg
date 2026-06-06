@@ -23,7 +23,7 @@
     <line x1="360" y1="304" x2="360" y2="316" stroke="#64748B" marker-end="url(#a)"/>
     <rect x="40" y="316" width="640" height="56" rx="8" fill="#FAF9F6" stroke="#D97706" stroke-width="1.5"/>
     <text x="56" y="340" font-size="11" font-weight="700" fill="#D97706">L5 Technology</text>
-    <text x="56" y="358" font-size="11" fill="#1C2433">LEAP | MICE | Graph-RAG | SAGD | Supervisor Agent</text>
+    <text x="56" y="358" font-size="11" fill="#1C2433">LEAP | MICE | Graph-RAG | SADG | Supervisor Agent</text>
     <line x1="360" y1="372" x2="360" y2="384" stroke="#64748B" marker-end="url(#a)"/>
     <rect x="40" y="384" width="640" height="56" rx="8" fill="#FFF" stroke="#E8E4DD"/>
     <text x="56" y="408" font-size="11" font-weight="700" fill="#D97706">L6 Data</text>

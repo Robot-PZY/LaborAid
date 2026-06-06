@@ -193,3 +193,92 @@ async def export_research(
             media_type="text/markdown",
             filename=filepath.name,
         )
+
+
+# ── RAG 调试接口（管理员专用）──────────────────────────────────────────────
+
+@router.get("/debug/rag")
+async def debug_rag(
+    q: str = Query(..., description="检索查询"),
+    collection: str = Query("all", description="检索集合: statutes | cases | knowledge | all"),
+    top_k: int = Query(5, ge=1, le=20, description="返回条数"),
+    hybrid: bool = Query(True, description="是否使用混合检索（向量+BM25）"),
+    current_user: User = Depends(get_current_user),
+):
+    """RAG 检索调试接口 -- 展示各检索器返回的原始结果，用于答辩演示与效果对比。"""
+    if current_user.role != "admin":
+        raise HTTPException(403, "仅管理员可访问 RAG 调试接口")
+
+    import time
+    from app.services.rag import (
+        retrieve_statutes,
+        retrieve_cases,
+        retrieve_knowledge,
+    )
+
+    results: dict = {}
+    query = q.strip()
+
+    if collection in ("statutes", "all"):
+        start = time.monotonic()
+        items = await retrieve_statutes(query, top_k=top_k, hybrid=hybrid)
+        results["statutes"] = {
+            "elapsed_ms": round((time.monotonic() - start) * 1000, 2),
+            "count": len(items),
+            "items": [it.to_dict() for it in items],
+        }
+
+    if collection in ("cases", "all"):
+        start = time.monotonic()
+        items = await retrieve_cases(query, top_k=top_k, hybrid=hybrid)
+        results["cases"] = {
+            "elapsed_ms": round((time.monotonic() - start) * 1000, 2),
+            "count": len(items),
+            "items": [it.to_dict() for it in items],
+        }
+
+    if collection in ("knowledge", "all"):
+        start = time.monotonic()
+        items = await retrieve_knowledge(query, top_k=top_k, hybrid=hybrid)
+        results["knowledge"] = {
+            "elapsed_ms": round((time.monotonic() - start) * 1000, 2),
+            "count": len(items),
+            "items": [it.to_dict() for it in items],
+        }
+
+    return {
+        "query": query,
+        "hybrid": hybrid,
+        "collections": results,
+    }
+
+
+# ── LangGraph Agent 可视化接口（管理员专用）──────────────────────────────────
+
+@router.get("/debug/agent-graph")
+async def debug_agent_graph(
+    current_user: User = Depends(get_current_user),
+):
+    """LangGraph Agent 状态机可视化接口 -- 返回图结构和节点信息。"""
+    if current_user.role != "admin":
+        raise HTTPException(403, "仅管理员可访问 Agent 调试接口")
+
+    from app.services.agents.graph import get_graph_structure, get_compiled_graph
+
+    # 获取图结构
+    structure = get_graph_structure()
+
+    # 获取编译后的图信息
+    graph = get_compiled_graph()
+
+    return {
+        "structure": structure,
+        "graph_info": {
+            "nodes": list(graph.nodes.keys()),
+            "edges": [
+                {"source": e.source, "target": e.target}
+                for e in graph.edges
+            ],
+        },
+        "description": "LangGraph Supervisor 状态机：规则驱动调度，可扩展为 LLM 智能路由",
+    }

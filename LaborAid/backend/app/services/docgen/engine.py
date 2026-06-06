@@ -136,15 +136,22 @@ class DocumentGenerationEngine:
             return {}
 
     # ------------------------------------------------------------------
-    # Step 1: 案件解析
+    # Step 1: 案件解析（使用 LCEL 链）
     # ------------------------------------------------------------------
     async def parse_case(self, case_facts: str) -> dict:
+        """解析案件事实为结构化信息。使用 LCEL 链封装。"""
         try:
-            result = await self._call_claude(
-                system="你是专业的中国法律分析师。",
-                user=CASE_PARSING_PROMPT.format(case_facts=case_facts),
+            # 使用 LCEL 链进行案件解析
+            from app.services.rag.chains import build_case_parsing_chain
+            
+            chain = build_case_parsing_chain(
+                self.client,
+                self.model,
+                system_prompt="你是专业的中国法律分析师。",
+                user_prompt_template=CASE_PARSING_PROMPT,
             )
-            parsed = self._parse_json_response(result)
+            parsed = await chain.ainvoke({"case_facts": case_facts})
+            
             if not parsed:
                 return {"case_type": "未知", "facts": case_facts, "claims": [], "parties": {}}
             return parsed
@@ -155,20 +162,28 @@ class DocumentGenerationEngine:
             return {"case_type": "未知", "facts": case_facts, "claims": [], "parties": {}}
 
     # ------------------------------------------------------------------
-    # Step 2: 法律争议焦点提取（Smart Template Matching 核心）
+    # Step 2: 法律争议焦点提取（使用 LCEL 链）
     # ------------------------------------------------------------------
     async def extract_legal_issues(self, parsed_case: dict, related_laws: str) -> dict:
-        """提取核心法律争议焦点并确定适用法律，用于智能匹配和文书生成。"""
+        """提取核心法律争议焦点并确定适用法律，用于智能匹配和文书生成。
+        使用 LCEL 链封装。
+        """
         try:
-            result = await self._call_claude(
-                system="你是资深中国法律分析师，擅长案件争议焦点归纳和法律适用分析。",
-                user=LEGAL_ISSUE_EXTRACTION_PROMPT.format(
-                    parsed_case=json.dumps(parsed_case, ensure_ascii=False, indent=2),
-                    related_laws=related_laws or "暂无",
-                ),
+            from app.services.rag.chains import make_llm_call, extract_json_from_text
+            
+            chain = make_llm_call(
+                self.client,
+                self.model,
+                system_prompt="你是资深中国法律分析师，擅长案件争议焦点归纳和法律适用分析。",
+                user_prompt=LEGAL_ISSUE_EXTRACTION_PROMPT,
                 max_tokens=2000,
             )
-            extracted = self._parse_json_response(result)
+            result = await chain.ainvoke({
+                "parsed_case": json.dumps(parsed_case, ensure_ascii=False, indent=2),
+                "related_laws": related_laws or "暂无",
+            })
+            
+            extracted = extract_json_from_text(result)
             if not extracted:
                 return {"key_issues": [], "applicable_statutes": [], "burden_of_proof": "", "recommended_strategy": ""}
             return extracted
@@ -177,15 +192,22 @@ class DocumentGenerationEngine:
             return {"key_issues": [], "applicable_statutes": [], "burden_of_proof": "", "recommended_strategy": ""}
 
     # ------------------------------------------------------------------
-    # Step 3: 检索关键词生成
+    # Step 3: 检索关键词生成（使用 LCEL 链）
     # ------------------------------------------------------------------
     async def generate_search_queries(self, case_facts: str) -> dict:
+        """生成检索关键词。使用 LCEL 链封装。"""
         try:
-            raw = await self._call_claude(
-                system="你是法律检索专家。只输出关键词，用逗号分隔。",
-                user=LAW_SEARCH_QUERY_PROMPT.format(case_facts=case_facts),
+            from app.services.rag.chains import make_llm_call
+            
+            chain = make_llm_call(
+                self.client,
+                self.model,
+                system_prompt="你是法律检索专家。只输出关键词，用逗号分隔。",
+                user_prompt=LAW_SEARCH_QUERY_PROMPT,
                 max_tokens=200,
             )
+            raw = await chain.ainvoke({"case_facts": case_facts})
+            
             keywords = re.split(r'[,，\n]', raw)
             keywords = [k.strip().strip('"').strip("'") for k in keywords if k.strip()]
             return {"law_keywords": keywords[:5], "case_keywords": keywords[:5]}
@@ -1045,30 +1067,30 @@ class DocumentGenerationEngine:
     # 向量库和外部数据源检索
     # ------------------------------------------------------------------
     async def _search_vector_statutes(self, keywords: list[str]) -> str:
+        """使用统一 RAG 检索层检索法条（混合检索：向量 + BM25）。"""
         try:
-            from app.services.vector.store import get_vector_service
-            svc = get_vector_service()
+            from app.services.rag import retrieve_statutes
             query = "、".join(keywords[:3])
-            items = await svc.search_statutes(query, top_k=5)
+            items = await retrieve_statutes(query, top_k=5, hybrid=True)
             if not items:
                 return ""
             return "\n".join(
-                f"- [{it.get('metadata', {}).get('title', '')}] {it.get('content', '')[:300]}"
+                f"- [{it.metadata.get('title', '')}] {it.content[:300]}"
                 for it in items
             )
         except Exception:
             return ""
 
     async def _search_vector_cases(self, keywords: list[str]) -> str:
+        """使用统一 RAG 检索层检索案例（混合检索：向量 + BM25）。"""
         try:
-            from app.services.vector.store import get_vector_service
-            svc = get_vector_service()
+            from app.services.rag import retrieve_cases
             query = "、".join(keywords[:3])
-            items = await svc.search_cases(query, top_k=5)
+            items = await retrieve_cases(query, top_k=5, hybrid=True)
             if not items:
                 return ""
             return "\n".join(
-                f"- [{it.get('metadata', {}).get('title', '')}] {it.get('content', '')[:300]}"
+                f"- [{it.metadata.get('title', '')}] {it.content[:300]}"
                 for it in items
             )
         except Exception:

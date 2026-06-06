@@ -14,7 +14,7 @@
   <rect x="24" y="212" width="872" height="88" rx="10" fill="#FAF9F6" stroke="#7C3AED" stroke-width="2"/>
   <text x="40" y="236" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#7C3AED">AI AND ALGORITHMS</text>
   <text x="40" y="256" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">Text LLM: DeepSeek API (configurable) | Vision OCR: Qwen-VL (DashScope) | Embeddings: all-MiniLM-L6-v2</text>
-  <text x="40" y="274" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">LangChain + Chroma | LEAP | MICE | Graph-RAG | SAGD (Jinja2/docxtpl) | Supervisor Agent pipeline</text>
+  <text x="40" y="274" font-family="Arial,sans-serif" font-size="10" fill="#1C2433">LangChain + Chroma | LEAP | MICE | Graph-RAG | SADG (Jinja2/docxtpl) | Supervisor Agent pipeline</text>
   <text x="40" y="292" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Admin configures keys - users never enter API credentials</text>
 
   <rect x="24" y="312" width="420" height="72" rx="10" fill="#FFF" stroke="#E8E4DD"/>

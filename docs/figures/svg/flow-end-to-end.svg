@@ -7,7 +7,7 @@
     <rect x="256" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="306" y="84" text-anchor="middle" font-weight="600" fill="#1C2433">Case DB</text><text x="306" y="100" text-anchor="middle" fill="#64748B">ai_snapshot</text>
     <rect x="376" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#059669"/><text x="426" y="84" text-anchor="middle" font-weight="600" fill="#059669">MICE</text><text x="426" y="100" text-anchor="middle" fill="#64748B">OCR + report</text>
     <rect x="496" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#7C3AED"/><text x="546" y="84" text-anchor="middle" font-weight="600" fill="#7C3AED">Graph-RAG</text><text x="546" y="100" text-anchor="middle" fill="#64748B">Statutes</text>
-    <rect x="616" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#D97706"/><text x="666" y="84" text-anchor="middle" font-weight="600" fill="#D97706">SAGD</text><text x="666" y="100" text-anchor="middle" fill="#64748B">Documents</text>
+    <rect x="616" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#D97706"/><text x="666" y="84" text-anchor="middle" font-weight="600" fill="#D97706">SADG</text><text x="666" y="100" text-anchor="middle" fill="#64748B">Documents</text>
     <rect x="736" y="56" width="100" height="64" rx="8" fill="#FFF" stroke="#E8E4DD"/><text x="786" y="84" text-anchor="middle" font-weight="600" fill="#1C2433">Supervisor</text><text x="786" y="100" text-anchor="middle" fill="#64748B">next-step</text>
     <rect x="856" y="56" width="48" height="64" rx="8" fill="#FEF3C7" stroke="#D97706"/><text x="880" y="92" text-anchor="middle" font-weight="600" fill="#92400E">Out</text>
   </g>
