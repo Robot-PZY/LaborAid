@@ -31,7 +31,7 @@
   <rect x="140" y="284" width="110" height="40" rx="6" fill="#FFF" stroke="#D97706"/><text x="195" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#D97706">LEAP</text>
   <rect x="264" y="284" width="110" height="40" rx="6" fill="#FFF" stroke="#059669"/><text x="319" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#059669">MICE</text>
   <rect x="388" y="284" width="110" height="40" rx="6" fill="#FFF" stroke="#7C3AED"/><text x="443" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#7C3AED">Graph-RAG</text>
-  <rect x="512" y="284" width="110" height="40" rx="6" fill="#FFF" stroke="#D97706"/><text x="567" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#D97706">SAGD</text>
+  <rect x="512" y="284" width="110" height="40" rx="6" fill="#FFF" stroke="#D97706"/><text x="567" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#D97706">SADG</text>
   <rect x="636" y="284" width="110" height="40" rx="6" fill="#FFF" stroke="#1C2433"/><text x="691" y="308" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="600" fill="#1C2433">Supervisor</text>
 
   <rect x="40" y="356" width="260" height="64" rx="8" fill="#FFF" stroke="#E8E4DD"/>

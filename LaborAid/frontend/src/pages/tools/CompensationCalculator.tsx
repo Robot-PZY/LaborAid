@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calculator, Copy, Check, ArrowUpRight } from 'lucide-react';
+import { Calculator, Copy, Check, ArrowUpRight, Info } from 'lucide-react';
 import { PageHeader, Surface, Button } from '@/components/ui/primitives';
 import { useToast } from '@/lib/toast';
 
@@ -62,7 +62,7 @@ export default function CompensationCalculator() {
   const [months, setMonths] = useState('0');
   const [terminationType, setTerminationType] = useState<TerminationType>('illegal');
   const [useLocalAvgCap, setUseLocalAvgCap] = useState(false);
-  const [localAvgWage, setLocalAvgWage] = useState(''); // 本地区上年度职工月平均工资（可选）
+  const [localAvgWage, setLocalAvgWage] = useState('');
   const [copied, setCopied] = useState(false);
 
   const result = useMemo(() => {
@@ -79,24 +79,22 @@ export default function CompensationCalculator() {
       if (avg && avg > 0 && wage && wage > 0) {
         const cap = 3 * avg;
         if (wage > cap) {
-          notes.push(`你启用了“3 倍社平工资封顶”：月工资按 ${formatMoney(cap)} 元计（原输入 ${formatMoney(wage)} 元）。`);
+          notes.push(`你启用了"3 倍社平工资封顶"：月工资按 ${formatMoney(cap)} 元计（原输入 ${formatMoney(wage)} 元）。`);
           effectiveWage = cap;
         } else {
-          notes.push(`你启用了“3 倍社平工资封顶”：你的月工资未超过封顶线。`);
+          notes.push(`你启用了"3 倍社平工资封顶"：你的月工资未超过封顶线。`);
         }
       } else {
-        notes.push('已启用“3 倍社平工资封顶”，但未填写有效的“当地职工月平均工资”。');
+        notes.push('已启用"3 倍社平工资封顶"，但未填写有效的"当地职工月平均工资"。');
       }
     }
 
-    // 简化计算：经济补偿= N * 月工资；赔偿金= 2N * 月工资
-    // 主动离职通常 0；其他类型给出区间提示
     let formula = '';
     let min = 0;
     let max = 0;
 
     if (!wage || wage <= 0) {
-      notes.push('请先填写“月工资（计算基数）”。');
+      notes.push('请先填写"月工资（计算基数）"。');
     }
 
     switch (terminationType) {
@@ -121,7 +119,7 @@ export default function CompensationCalculator() {
         max = min;
         break;
       case 'employee_resign':
-        formula = `通常：补偿为 0（如属于被迫解除，改选“被迫解除”）`;
+        formula = `通常：补偿为 0（如属于被迫解除，改选"被迫解除"）`;
         min = 0;
         max = 0;
         break;
@@ -129,7 +127,7 @@ export default function CompensationCalculator() {
         formula = `可能涉及 N 或 2N（取决于解除是否合法、是否构成违法解除等）`;
         min = n * effectiveWage;
         max = 2 * n * effectiveWage;
-        notes.push('你选择了“不确定/其他”：这里给出 N～2N 的粗略区间，需结合事实与证据判断。');
+        notes.push('你选择了"不确定/其他"：这里给出 N～2N 的粗略区间，需结合事实与证据判断。');
         break;
     }
 
@@ -162,7 +160,7 @@ export default function CompensationCalculator() {
       ].join('\n');
     })();
 
-    return { n, min, max, formula, notes, markdown: md };
+    return { n, min, max, formula, notes, markdown: md, wage, effectiveWage };
   }, [monthlyWage, years, months, terminationType, useLocalAvgCap, localAvgWage]);
 
   async function handleCopy() {
@@ -170,18 +168,22 @@ export default function CompensationCalculator() {
       await navigator.clipboard.writeText(result.markdown);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1200);
-      toast({ type: 'success', title: '已复制', description: '可直接粘贴到“分析案情/报告”或笔记中。' });
+      toast({ type: 'success', title: '已复制', description: '可直接粘贴到"分析案情/报告"或笔记中。' });
     } catch {
       toast({ type: 'error', title: '复制失败', description: '请检查浏览器权限，或手动全选复制。' });
     }
   }
+
+  // 计算各项金额
+  const nAmount = result.n * result.effectiveWage;
+  const twoNAmount = 2 * result.n * result.effectiveWage;
 
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="其他功能 · 计算器"
         title="赔偿/补偿计算"
-        description="按月工资、工龄与解除类型，粗算经济补偿/赔偿金区间并给出公式（可复制）。"
+        description="按月工资、工龄与解除类型，粗算经济补偿/赔偿金区间并给出公式。"
       />
 
       <Surface padding="lg" className="space-y-6">
@@ -215,7 +217,7 @@ export default function CompensationCalculator() {
               />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              这里按“月工资 × N/2N”简化计算；奖金、补贴、封顶口径等可在下方启用提示项。
+              这里按"月工资 × N/2N"简化计算；奖金、补贴、封顶口径等可在下方启用提示项。
             </p>
           </div>
         </div>
@@ -265,17 +267,18 @@ export default function CompensationCalculator() {
                 className="input-field"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                仅用于“封顶提示”的粗算；实际以当地公布口径、你的工资构成与证据为准。
+                仅用于"封顶提示"的粗算；实际以当地公布口径、你的工资构成与证据为准。
               </p>
             </div>
           </div>
         )}
       </Surface>
 
-      <Surface padding="lg" className="space-y-4">
+      {/* 结果卡片 */}
+      <Surface padding="lg" className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold">结果摘要</p>
+            <p className="text-sm font-semibold">计算结果</p>
             <p className="mt-0.5 text-xs text-muted-foreground">（仅作参考，最终以证据、裁判/仲裁口径为准）</p>
           </div>
           <Button variant="secondary" onClick={handleCopy}>
@@ -284,11 +287,121 @@ export default function CompensationCalculator() {
           </Button>
         </div>
 
-        <div className="rounded-[var(--radius-md)] border border-border/70 bg-background p-4 text-sm">
-          <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-foreground">
-            {result.markdown}
-          </pre>
+        {/* 主要结果 */}
+        <div className="rounded-lg border-2 border-emerald-200 bg-emerald-50 p-6">
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-emerald-100 p-3">
+              <Calculator className="h-6 w-6 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-emerald-700">计算结果</p>
+              {result.min === result.max ? (
+                <p className="mt-2 text-3xl font-bold text-emerald-600">
+                  ¥{formatMoney(result.min)}
+                </p>
+              ) : (
+                <p className="mt-2 text-3xl font-bold text-emerald-600">
+                  ¥{formatMoney(result.min)} ~ ¥{formatMoney(result.max)}
+                </p>
+              )}
+              <p className="mt-2 text-sm text-muted-foreground">
+                {result.formula}
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* 计算明细表格 */}
+        {result.wage && result.wage > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">计算明细</p>
+            <div className="overflow-hidden rounded-lg border border-border/70">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium">项目</th>
+                    <th className="px-4 py-2 text-right font-medium">金额</th>
+                    <th className="px-4 py-2 text-left font-medium">计算说明</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/70">
+                  <tr>
+                    <td className="px-4 py-3 font-medium">经济补偿 (N)</td>
+                    <td className="px-4 py-3 text-right font-semibold">¥{formatMoney(nAmount)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {result.effectiveWage} × {result.n} = {formatMoney(nAmount)}
+                    </td>
+                  </tr>
+                  {terminationType === 'illegal' && (
+                    <tr className="bg-emerald-50/50">
+                      <td className="px-4 py-3 font-medium text-emerald-700">赔偿金 (2N)</td>
+                      <td className="px-4 py-3 text-right font-semibold text-emerald-600">¥{formatMoney(twoNAmount)}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {result.effectiveWage} × {result.n} × 2 = {formatMoney(twoNAmount)}
+                      </td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td className="px-4 py-3 font-medium">代通知金（1个月）</td>
+                    <td className="px-4 py-3 text-right font-semibold">¥{formatMoney(result.effectiveWage)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      未提前30日通知时适用
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 计算依据 */}
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-foreground">计算依据</p>
+          <div className="rounded-lg border border-border/70 bg-muted/20 p-4">
+            <div className="grid gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">解除类型</span>
+                <span className="font-medium">{labelForTermination(terminationType)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">月工资基数</span>
+                <span className="font-medium">{result.wage ? `¥${formatMoney(result.wage)}` : '未填写'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">工龄</span>
+                <span className="font-medium">{Math.max(0, Math.floor(toNumber(years) ?? 0))} 年 {Math.max(0, Math.floor(toNumber(months) ?? 0))} 个月</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">折算 N</span>
+                <span className="font-medium">{result.n}</span>
+              </div>
+              {useLocalAvgCap && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">3倍社平工资封顶</span>
+                  <span className="font-medium">已启用</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 提示信息 */}
+        {result.notes.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Info className="h-4 w-4 text-amber-500" />
+              <p className="text-sm font-medium text-foreground">提示与注意</p>
+            </div>
+            <div className="space-y-2">
+              {result.notes.map((note, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <span className="mt-0.5 text-foreground">•</span>
+                  <span>{note}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>可复制后粘贴到「分析案情」的补充说明或报告正文里。</span>
@@ -301,4 +414,3 @@ export default function CompensationCalculator() {
     </div>
   );
 }
-

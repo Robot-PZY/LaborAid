@@ -55,7 +55,7 @@
 
   <rect x="540" y="260" width="280" height="72" rx="8" fill="#FFF" stroke="#D97706"/>
   <text x="556" y="282" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#D97706">Doc Templates</text>
-  <text x="556" y="300" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SAGD Jinja2 templates</text>
+  <text x="556" y="300" font-family="Arial,sans-serif" font-size="9" fill="#64748B">SADG Jinja2 templates</text>
   <text x="556" y="316" font-family="Arial,sans-serif" font-size="9" fill="#64748B">Admin edit mode on /admin/templates</text>
 
   <rect x="240" y="348" width="580" height="84" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.4"/>

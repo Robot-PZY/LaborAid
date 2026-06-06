@@ -30,7 +30,7 @@
   <rect x="580" y="182" width="140" height="44" rx="6" fill="#FAF9F6" stroke="#7C3AED"/>
   <text x="650" y="208" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#7C3AED">Graph-RAG</text>
   <rect x="740" y="182" width="120" height="44" rx="6" fill="#FAF9F6" stroke="#E8E4DD"/>
-  <text x="800" y="208" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">SAGD docgen</text>
+  <text x="800" y="208" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#1C2433">SADG docgen</text>
 
   <line x1="200" y1="236" x2="200" y2="268" stroke="#64748B" marker-end="url(#arr)"/>
   <line x1="450" y1="236" x2="450" y2="268" stroke="#64748B" marker-end="url(#arr)"/>

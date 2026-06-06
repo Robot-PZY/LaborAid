@@ -10,7 +10,7 @@ from __future__ import annotations
 AGENT_TOOL_IDS: dict[str, list[str]] = {
     "guidance": ["guidance", "channels", "limitation_calc"],
     "evidence": ["evidence", "vault", "cases"],
-    "docgen": ["docgen", "templates", "contract"],
+    "docgen": ["docgen", "templates"],
     "research": ["research", "search"],
     "records": ["records", "cases", "enterprise", "compensation_calc"],
 }

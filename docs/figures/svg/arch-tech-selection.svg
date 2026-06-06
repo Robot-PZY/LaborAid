@@ -48,7 +48,7 @@
     <text x="120" y="340" text-anchor="middle" font-weight="600" fill="#D97706">Doc engine</text>
     <text x="300" y="340" text-anchor="middle" fill="#1C2433">Jinja2 + docxtpl</text>
     <text x="500" y="340" text-anchor="middle" fill="#64748B">Pure LLM output</text>
-    <text x="700" y="340" text-anchor="middle" fill="#64748B">Structured SAGD; court-style export</text>
+    <text x="700" y="340" text-anchor="middle" fill="#64748B">Structured SADG; court-style export</text>
 
     <rect x="24" y="356" width="832" height="40" fill="#FAF9F6" stroke="#E8E4DD"/>
     <text x="120" y="380" text-anchor="middle" font-weight="600" fill="#1C2433">Agent design</text>

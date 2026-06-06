@@ -25,6 +25,6 @@
     <rect x="220" y="228" width="140" height="32" rx="6" fill="#FFF" stroke="#E8E4DD"/><text x="290" y="248" text-anchor="middle" fill="#1C2433">Legal cite accuracy</text>
     <rect x="380" y="228" width="140" height="32" rx="6" fill="#FFF" stroke="#E8E4DD"/><text x="450" y="248" text-anchor="middle" fill="#1C2433">Doc draft usability</text>
     <rect x="540" y="228" width="120" height="32" rx="6" fill="#FFF" stroke="#D97706"/><text x="600" y="248" text-anchor="middle" fill="#D97706">End-to-end success</text>
-    <text x="360" y="284" text-anchor="middle" fill="#64748B">Baseline: raw LLM chat | Full stack: LEAP + MICE + Graph-RAG + SAGD + Supervisor</text>
+    <text x="360" y="284" text-anchor="middle" fill="#64748B">Baseline: raw LLM chat | Full stack: LEAP + MICE + Graph-RAG + SADG + Supervisor</text>
   </g>
 </svg>

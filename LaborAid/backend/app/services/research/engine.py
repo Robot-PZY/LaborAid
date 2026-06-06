@@ -707,6 +707,8 @@ class LegalResearchEngine:
         """Decompose a user query into structured search elements.
         Returns a dict even if the LLM returns invalid JSON.
         Includes timeout fallback -- if decomposition takes too long, skip it.
+
+        Uses LCEL chain (LangChain Expression Language) for structured pipeline.
         """
         fallback = {
             "legal_issues": [query],
@@ -717,46 +719,20 @@ class LegalResearchEngine:
             "applicable_law_areas": [],
         }
         try:
-            # Wrap in timeout to prevent decomposition from blocking the pipeline
-            response = await asyncio.wait_for(
-                client.messages.create(
-                    model=model,
-                    max_tokens=2000,
-                    system="你是法律检索分析专家。请严格按照JSON格式返回查询分解结果。",
-                    messages=[{
-                        "role": "user",
-                        "content": QUERY_DECOMPOSITION_PROMPT.format(query=query),
-                    }],
-                ),
+            # Use LCEL chain for query decomposition
+            from app.services.rag.chains import run_query_decomposition
+            result = await asyncio.wait_for(
+                run_query_decomposition(client, model, query),
                 timeout=_DECOMPOSE_TIMEOUT,
             )
-            text = response.content[0].text.strip() if response.content else ""
-            # Strip code fences
-            text = re.sub(r'^```(?:json)?\n?', '', text)
-            text = re.sub(r'\n?```$', '', text)
-
-            try:
-                data = json.loads(text)
-            except json.JSONDecodeError:
-                # Try to extract JSON from within the text (LLM may add prose)
-                logger.warning("Query decomposition returned invalid JSON, attempting extraction")
-                json_match = re.search(r'\{[\s\S]*\}', text)
-                if json_match:
-                    try:
-                        data = json.loads(json_match.group())
-                    except json.JSONDecodeError:
-                        logger.warning("JSON extraction also failed, using fallback decomposition")
-                        return fallback
-                else:
-                    return fallback
 
             # Validate required keys exist
-            if not isinstance(data, dict):
+            if not isinstance(result, dict):
                 return fallback
             for key in ("sub_queries", "legal_issues"):
-                if key not in data or not isinstance(data[key], list):
-                    data[key] = fallback.get(key, [])
-            return data
+                if key not in result or not isinstance(result[key], list):
+                    result[key] = fallback.get(key, [])
+            return result
 
         except asyncio.TimeoutError:
             logger.warning("Query decomposition timed out after %ds, skipping decomposition", _DECOMPOSE_TIMEOUT)
@@ -799,35 +775,19 @@ class LegalResearchEngine:
         external_api_results: str, web_search_results: str,
         knowledge_base_results: str,
     ) -> str:
-        """Second pass: identify gaps, supplementary search, merge."""
+        """Second pass: identify gaps, supplementary search, merge.
+        
+        Uses LCEL chain for structured deep-dive analysis.
+        """
         try:
-            dive_prompt = DEEP_DIVE_PROMPT.format(
-                query=query,
-                initial_report=initial_report[:6000],
-            )
-            response = await client.messages.create(
-                model=model,
-                max_tokens=2000,
-                system="你是法律研究质量审核专家。请严格按JSON格式返回审核结果。",
-                messages=[{"role": "user", "content": dive_prompt}],
-            )
-            text = response.content[0].text.strip() if response.content else ""
-            text = re.sub(r'^```(?:json)?\n?', '', text)
-            text = re.sub(r'\n?```$', '', text)
-
-            try:
-                dive_analysis = json.loads(text)
-            except json.JSONDecodeError:
-                logger.warning("Deep dive returned invalid JSON, attempting extraction")
-                json_match = re.search(r'\{[\s\S]*\}', text)
-                if json_match:
-                    try:
-                        dive_analysis = json.loads(json_match.group())
-                    except json.JSONDecodeError:
-                        logger.warning("Deep dive JSON extraction failed, keeping initial report")
-                        return initial_report
-                else:
-                    return initial_report
+            # Use LCEL chain for deep-dive analysis
+            from app.services.rag.chains import build_deep_dive_analysis_chain
+            
+            chain = build_deep_dive_analysis_chain(client, model)
+            dive_analysis = await chain.ainvoke({
+                "query": query,
+                "initial_report": initial_report[:6000],
+            })
 
             if not isinstance(dive_analysis, dict):
                 return initial_report
@@ -923,12 +883,44 @@ class LegalResearchEngine:
     # ── Source search methods ────────────────────────────────────────────
 
     async def _search_vector_cases(self, query: str) -> list[dict]:
-        svc = get_vector_service()
-        return await svc.search_cases(query, top_k=5)
+        """使用统一 RAG 检索层检索案例（混合检索：向量 + BM25）。"""
+        try:
+            from app.services.rag import retrieve_cases
+            results = await retrieve_cases(query, top_k=5, hybrid=True)
+            # 转换为原有格式
+            return [
+                {
+                    "id": r.id,
+                    "content": r.content,
+                    "metadata": r.metadata,
+                    "distance": 1.0 - r.score,  # 转回距离格式
+                }
+                for r in results
+            ]
+        except Exception as e:
+            logger.warning("RAG case retrieval failed, fallback to vector: %s", e)
+            svc = get_vector_service()
+            return await svc.search_cases(query, top_k=5)
 
     async def _search_vector_statutes(self, query: str) -> list[dict]:
-        svc = get_vector_service()
-        return await svc.search_statutes(query, top_k=5)
+        """使用统一 RAG 检索层检索法条（混合检索：向量 + BM25）。"""
+        try:
+            from app.services.rag import retrieve_statutes
+            results = await retrieve_statutes(query, top_k=5, hybrid=True)
+            # 转换为原有格式
+            return [
+                {
+                    "id": r.id,
+                    "content": r.content,
+                    "metadata": r.metadata,
+                    "distance": 1.0 - r.score,
+                }
+                for r in results
+            ]
+        except Exception as e:
+            logger.warning("RAG statute retrieval failed, fallback to vector: %s", e)
+            svc = get_vector_service()
+            return await svc.search_statutes(query, top_k=5)
 
     async def _search_vector_cases_multi(
         self, main_query: str, sub_queries: list[str]

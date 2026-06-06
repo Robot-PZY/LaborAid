@@ -150,7 +150,7 @@ export const AGENTS: AgentConfig[] = [
     route: '/contracts',
     color: 'text-orange-600',
     bgColor: 'bg-orange-500',
-    category: 'core',
+    category: 'other',
     enabled: true,
     showInNav: true,
     showInHub: true,

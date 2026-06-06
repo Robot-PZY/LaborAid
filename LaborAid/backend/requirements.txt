@@ -15,10 +15,12 @@ openai>=1.0.0
 httpx==0.28.1
 anthropic==0.42.0
 chromadb==0.5.23
-langchain==0.3.14
-langchain-community==0.3.14
-langchain-chroma==0.2.2
+langchain-core>=1.4.0
+langchain-community>=0.3.14
+langchain-chroma>=0.2.2
+langgraph>=1.2.0
 rank-bm25==0.2.2
+jieba>=0.42.1
 python-docx==1.1.2
 pandas==2.2.3
 openpyxl==3.1.5
