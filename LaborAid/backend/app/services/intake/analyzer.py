@@ -34,6 +34,9 @@ _CHANNEL_KEYWORDS: dict[str, list[str]] = {
     "migrant-worker": ["农民工", "包工头", "工地", "欠薪"],
     "intern-probation": ["实习生", "试用期", "实习", "毕业生", "实习协议"],
     "female-worker": ["女职工", "怀孕", "孕期", "产假", "生育", "三期", "哺乳", "妇联"],
+    "gig-worker": ["骑手", "外卖", "网约车", "快递", "平台", "接单", "派单", "封号", "限制接单", "降单价", "灵活用工", "新就业形态"],
+    "labor-dispatch": ["派遣", "劳务派遣", "派遣工", "派遣公司", "用工单位", "同工同酬", "退回"],
+    "work-injury": ["工伤", "受伤", "职业病", "劳动能力鉴定", "伤残", "工伤认定", "工伤赔偿"],
 }
 
 _SCENARIO_KEYWORDS: dict[str, dict[str, list[str]]] = {
@@ -53,6 +56,24 @@ _SCENARIO_KEYWORDS: dict[str, dict[str, list[str]]] = {
         "maternity_leave": ["产假", "生育津贴", "哺乳"],
         "illegal_termination": ["三期", "产期", "哺乳期", "怀孕", "生育"],
     },
+    "gig-worker": {
+        "platform_relationship": ["劳动关系", "算不算", "认定", "协议", "合作"],
+        "gig_injury": ["受伤", "事故", "工伤", "赔偿", "保险"],
+        "gig_pay": ["降单价", "扣款", "拖欠", "报酬", "结算"],
+        "account_ban": ["封号", "限制接单", "封禁", "账号"],
+    },
+    "labor-dispatch": {
+        "dispatch_equality": ["同工同酬", "工资低", "待遇不同", "正式工"],
+        "dispatch_return": ["退回", "派遣公司", "解除", "降薪"],
+        "dispatch_fake": ["假派遣", "真用工", "资质", "派遣许可"],
+        "dispatch_fire": ["解除", "辞退", "违法", "赔偿金"],
+    },
+    "work-injury": {
+        "injury_recognize": ["工伤认定", "认定", "人社局", "申请"],
+        "injury_compensation": ["赔偿", "金额", "争议", "标准", "伤残"],
+        "injury_no_insurance": ["没缴", "未缴", "没保险", "未参保"],
+        "occupational_disease": ["职业病", "粉尘", "噪音", "有害物质", "诊断"],
+    },
 }
 
 _DOC_TYPE_MAP = {
@@ -60,6 +81,16 @@ _DOC_TYPE_MAP = {
     "illegal_termination": "application",
     "overtime_pay": "application",
     "no_written_contract": "application",
+    "gig_pay": "application",
+    "gig_injury": "application",
+    "account_ban": "application",
+    "dispatch_equality": "application",
+    "dispatch_return": "application",
+    "dispatch_fake": "application",
+    "dispatch_fire": "application",
+    "injury_compensation": "application",
+    "injury_no_insurance": "application",
+    "occupational_disease": "application",
 }
 
 _BUNDLE_TYPE_LABELS: dict[str, list[str]] = {
@@ -67,6 +98,15 @@ _BUNDLE_TYPE_LABELS: dict[str, list[str]] = {
     "illegal_termination": ["application", "forced_termination_notice", "evidence_list"],
     "overtime_pay": ["application", "evidence_list"],
     "no_written_contract": ["application", "evidence_list"],
+    "gig_pay": ["application", "evidence_list"],
+    "gig_injury": ["application", "evidence_list"],
+    "dispatch_equality": ["application", "evidence_list"],
+    "dispatch_return": ["application", "evidence_list"],
+    "dispatch_fake": ["application", "evidence_list"],
+    "dispatch_fire": ["application", "evidence_list"],
+    "injury_compensation": ["application", "evidence_list"],
+    "injury_no_insurance": ["application", "evidence_list"],
+    "occupational_disease": ["application", "evidence_list"],
 }
 
 

@@ -115,6 +115,37 @@ def build_action_plan(
             optional=True,
         )
 
+    # 新就业形态：用工关系复杂时可选咨询
+    if channel_id == "gig-worker" and any(k in text for k in ["劳动关系", "认定", "受伤", "工伤"]):
+        add(
+            "consult",
+            "12348 法律咨询（可选）",
+            "平台用工关系认定复杂，可先咨询公益法律热线",
+            agent_id="guidance",
+            optional=True,
+        )
+
+    # 劳务派遣：关系复杂时可选咨询
+    if channel_id == "labor-dispatch" and any(k in text for k in ["派遣", "退回", "同工同酬", "假派遣"]):
+        add(
+            "consult",
+            "12348 法律咨询（可选）",
+            "派遣关系涉及多方主体，可先咨询公益法律热线",
+            agent_id="guidance",
+            optional=True,
+        )
+
+    # 工伤：向人社局申请工伤认定（可选，视情况而定）
+    if channel_id == "work-injury" and any(k in text for k in ["工伤", "受伤", "职业病", "认定"]):
+        add(
+            "official_external",
+            "向人社局申请工伤认定（可选）",
+            "工作中受伤可申请工伤认定；单位不配合时劳动者可自行申请",
+            action="external",
+            platform_category="labor_inspection",
+            optional=True,
+        )
+
     # 4. 整理证据
     add(
         "evidence",

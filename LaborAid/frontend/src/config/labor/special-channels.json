@@ -704,6 +704,760 @@
       ],
       "enable_one_click_report": true,
       "report_button_label": "一键举报（跳转劳动监察）"
+    },
+    "gig-worker": {
+      "id": "gig-worker",
+      "title": "新就业形态劳动者专区",
+      "subtitle": "平台用工 · 灵活保障",
+      "audience": "适用于外卖骑手、网约车司机、快递员等平台就业人员，对劳动关系认定、工伤保障等有疑问",
+      "highlights": [
+        "区分劳动关系与民事合作两种路径",
+        "平台用工受伤、扣款等情形专项指引",
+        "账号封禁、限制接单等新型争议",
+        "联动合同审查与证据整理"
+      ],
+      "scenarios": [
+        {
+          "id": "platform_relationship",
+          "title": "与平台算不算劳动关系？",
+          "summary": "外卖骑手、网约车司机等，不确定是否与平台构成劳动关系，能否享受劳动法保护",
+          "path_hint": "先判断用工关系 → 审查平台协议 → 构成劳动关系则按劳动法维权，否则按民事规则处理",
+          "who_to_sue": "构成劳动关系的告平台企业或外包公司；纯民事合作的可能告合作企业，建议先咨询 12348",
+          "evidence_checklist": [
+            "APP 注册截图与协议",
+            "接单记录与派单截图",
+            "平台规则、奖惩制度截图",
+            "收入流水与提现记录",
+            "工服、装备、工牌照片"
+          ],
+          "steps": [
+            {
+              "title": "检索平台用工关系认定标准",
+              "detail": "了解劳动关系与民事合作的区分标准",
+              "action": "search",
+              "search_query": "新就业形态 劳动关系 认定",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "审查平台协议",
+              "detail": "识别协议中关于用工关系、责任承担的条款",
+              "action": "internal",
+              "route": "/contracts",
+              "link_label": "审查合同"
+            },
+            {
+              "title": "保存平台用工证据",
+              "detail": "接单记录、收入流水、平台规则等一并保存",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "咨询 12348",
+              "detail": "用工关系认定复杂时，先拨打公益法律热线",
+              "action": "phone",
+              "phones": ["12348"]
+            }
+          ],
+          "law_searches": ["关于维护新就业形态劳动者劳动保障权益的指导意见", "劳动合同法"]
+        },
+        {
+          "id": "gig_injury",
+          "title": "送餐/出车途中受伤，谁负责？",
+          "summary": "工作中受伤但平台称无劳动关系，不确定能否认定工伤或要求平台赔偿",
+          "path_hint": "确认平台是否购买保险 → 固定事故证据 → 检索工伤/人身损害规定 → 申请仲裁或起诉",
+          "evidence_checklist": [
+            "事故现场照片/视频",
+            "就医诊断证明与病历",
+            "事故发生时的接单记录",
+            "平台保险购买记录（如有）",
+            "收入流水证明"
+          ],
+          "steps": [
+            {
+              "title": "确认平台保险情况",
+              "detail": "查看平台是否购买工伤保险或商业意外险",
+              "action": "search",
+              "search_query": "新就业形态 职业伤害保障",
+              "link_label": "检索规定"
+            },
+            {
+              "title": "固定事故证据",
+              "detail": "现场照片、就医记录、接单时间线一并保存",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "检索工伤/人身损害赔偿规定",
+              "detail": "了解不同用工关系下的赔偿路径",
+              "action": "search",
+              "search_query": "外卖骑手 工伤 赔偿",
+              "link_label": "检索案例"
+            },
+            {
+              "title": "申请仲裁或起诉",
+              "detail": "根据用工关系认定结果选择维权路径",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人系【平台名称】外卖骑手/网约车司机，于【日期】在接单过程中发生事故受伤。平台未为本人缴纳工伤保险/未购买商业意外险。请求裁决：1. 确认与【平台/外包公司】存在劳动关系；2. 支付工伤待遇/人身损害赔偿【金额】元。"
+            }
+          ],
+          "law_searches": ["工伤保险条例", "关于维护新就业形态劳动者劳动保障权益的指导意见"]
+        },
+        {
+          "id": "gig_pay",
+          "title": "平台降单价/扣款/拖欠报酬",
+          "summary": "平台调整计件单价、违规扣款或拖延结算，想要回报酬",
+          "path_hint": "整理报酬约定与实发记录 → 查询平台运营主体 → 向劳动监察投诉 → 生成文书",
+          "evidence_checklist": [
+            "平台计价规则截图",
+            "历史收入流水与提现记录",
+            "扣款通知或处罚记录",
+            "与平台客服沟通记录",
+            "同类型劳动者报酬对比（如有）"
+          ],
+          "steps": [
+            {
+              "title": "查询平台运营主体",
+              "detail": "确认平台公司名称与经营状态",
+              "action": "internal",
+              "route": "/enterprise",
+              "link_label": "查询企业"
+            },
+            {
+              "title": "整理报酬证据",
+              "detail": "计价规则、收入流水、扣款记录一并保存",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "向劳动监察投诉",
+              "detail": "构成劳动关系的可向监察部门投诉",
+              "action": "report",
+              "link_label": "一键举报"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求支付拖欠报酬或返还违规扣款",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人系【平台名称】外卖骑手/网约车司机，自【日期】起在平台接单。平台于【日期】调整单价/扣款/拖欠报酬共计【金额】元。请求裁决支付拖欠报酬/返还扣款【金额】元。"
+            }
+          ],
+          "law_searches": ["劳动法 工资支付", "新就业形态 劳动报酬"]
+        },
+        {
+          "id": "account_ban",
+          "title": "被封号/限制接单",
+          "summary": "账号被平台封禁或限制接单，未收到合理解释，想要恢复或索赔",
+          "path_hint": "固定封号证据 → 审查平台规则 → 协商或投诉 → 必要时仲裁",
+          "evidence_checklist": [
+            "封号/限制通知截图",
+            "账号历史接单与收入记录",
+            "与客服沟通记录",
+            "平台规则中关于封号的条款"
+          ],
+          "steps": [
+            {
+              "title": "固定封号证据",
+              "detail": "保存封号通知、账号状态截图",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "审查平台协议",
+              "detail": "核对封号是否符合协议约定",
+              "action": "internal",
+              "route": "/contracts",
+              "link_label": "审查合同"
+            },
+            {
+              "title": "联系平台客服协商",
+              "detail": "先尝试与平台沟通解封",
+              "action": "phone",
+              "phones": ["12348"]
+            },
+            {
+              "title": "申请仲裁或起诉",
+              "detail": "协商不成时，根据用工关系选择维权路径",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人系【平台名称】注册骑手/司机，于【日期】被平台封号/限制接单，未收到合理解释。请求裁决：1. 恢复账号/解除限制；2. 赔偿封号期间收入损失【金额】元。"
+            }
+          ],
+          "law_searches": ["新就业形态 劳动者权益", "平台用工 封号"]
+        }
+      ],
+      "rights_summary": [
+        "平台用工应明确用工关系，符合条件的应依法签订劳动合同",
+        "平台应保障劳动者获得劳动报酬、休息休假等基本权益",
+        "鼓励平台为劳动者购买工伤保险或商业意外险",
+        "保留接单记录、收入流水、平台规则等证据"
+      ],
+      "quick_actions": [
+        {
+          "id": "contract_review",
+          "title": "审查平台协议",
+          "description": "使用「审查合同」识别用工关系与责任条款",
+          "action": "internal",
+          "route": "/contracts"
+        },
+        {
+          "id": "enterprise_query",
+          "title": "查询平台运营主体",
+          "description": "核实平台公司名称与经营状态",
+          "action": "internal",
+          "route": "/enterprise"
+        },
+        {
+          "id": "hotline",
+          "title": "12348 法律咨询",
+          "description": "用工关系认定复杂时先咨询",
+          "action": "external",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "id": "law_search",
+          "title": "检索相关法条",
+          "description": "新就业形态劳动者权益保障意见等",
+          "action": "internal",
+          "route": "/search"
+        }
+      ],
+      "steps": [
+        {
+          "title": "判断用工关系类型",
+          "detail": "了解劳动关系与民事合作的区分标准",
+          "action": "external",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "title": "保存平台用工证据",
+          "detail": "接单记录、收入流水、平台规则等",
+          "action": "internal",
+          "route": "/evidence"
+        },
+        {
+          "title": "根据情形选择维权路径",
+          "detail": "劳动关系走仲裁，民事合作走诉讼",
+          "action": "internal",
+          "route": "/documents"
+        }
+      ],
+      "laws": [
+        {
+          "title": "关于维护新就业形态劳动者劳动保障权益的指导意见",
+          "search_query": "新就业形态 劳动者 权益保障"
+        },
+        {
+          "title": "劳动合同法",
+          "search_query": "劳动合同法"
+        }
+      ],
+      "enable_one_click_report": false
+    },
+    "labor-dispatch": {
+      "id": "labor-dispatch",
+      "title": "劳务派遣工专区",
+      "subtitle": "派遣用工 · 权益保障",
+      "audience": "适用于通过劳务派遣方式工作的劳动者，对同工同酬、退回、解除等有疑问",
+      "highlights": [
+        "同工同酬争议专项指引",
+        "被退回派遣公司的合法性审查",
+        "假派遣、真用工的认定路径",
+        "派遣工违法解除维权"
+      ],
+      "scenarios": [
+        {
+          "id": "dispatch_equality",
+          "title": "同工同酬争议",
+          "summary": "派遣工与正式工做同样工作，但工资、福利明显偏低，想要争取同等待遇",
+          "path_hint": "收集对比证据 → 检索同工同酬规定 → 协商或投诉 → 申请仲裁",
+          "evidence_checklist": [
+            "派遣合同与工资约定",
+            "工资条与银行流水",
+            "同岗位正式工薪资证据（如有）",
+            "工作内容、岗位职责说明",
+            "社保、公积金缴纳记录"
+          ],
+          "steps": [
+            {
+              "title": "检索同工同酬规定",
+              "detail": "了解派遣工与正式工同等待遇的法律规定",
+              "action": "search",
+              "search_query": "劳务派遣 同工同酬",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "收集对比证据",
+              "detail": "整理自己与正式工的工作内容、薪资对比",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "向劳动监察投诉",
+              "detail": "同工同酬问题可向监察部门反映",
+              "action": "report",
+              "link_label": "一键举报"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求补足工资差额、享受同等待遇",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人系【派遣公司】派遣至【用工单位】的劳动者，从事【岗位】工作。与同岗位正式工相比，本人月工资为【金额】元，低于正式工【金额】元。该行为违反同工同酬规定，请求裁决补足工资差额【金额】元。"
+            }
+          ],
+          "law_searches": ["劳动合同法 第六十三条", "劳务派遣暂行规定"]
+        },
+        {
+          "id": "dispatch_return",
+          "title": "被退回派遣公司，是否合法？",
+          "summary": "用工单位将派遣工退回，派遣公司随之解除或降薪，怀疑违法",
+          "path_hint": "审查退回是否符合法定情形 → 固定退回与解除证据 → 检索退回规定 → 申请仲裁",
+          "evidence_checklist": [
+            "用工单位退回通知",
+            "派遣合同",
+            "派遣公司处理通知（解除/降薪）",
+            "退回理由相关证据",
+            "工作年限与工资流水"
+          ],
+          "steps": [
+            {
+              "title": "审查退回依据",
+              "detail": "核对退回是否符合劳动合同法第六十五条等规定",
+              "action": "search",
+              "search_query": "劳务派遣 退回 法定情形",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "固定退回证据",
+              "detail": "保存退回通知、派遣公司处理决定",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求确认违法退回、支付赔偿金或恢复工作",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人系【派遣公司】派遣至【用工单位】的劳动者。用工单位于【日期】将本人退回，理由为【理由】。派遣公司随后解除/降薪。本人认为该退回不符合法定情形，请求裁决：1. 确认违法退回；2. 支付赔偿金【金额】元。"
+            }
+          ],
+          "law_searches": ["劳动合同法 第六十五条", "劳务派遣暂行规定"]
+        },
+        {
+          "id": "dispatch_fake",
+          "title": "假派遣、真用工",
+          "summary": "实际在用工单位长期工作，但合同签在派遣公司，怀疑虚假派遣",
+          "path_hint": "查询派遣公司资质 → 固定实际用工证据 → 检索派遣合法性 → 申请仲裁确认实际劳动关系",
+          "evidence_checklist": [
+            "派遣合同",
+            "实际工作内容记录",
+            "用工单位管理指令",
+            "工资发放主体",
+            "派遣公司资质（如有）"
+          ],
+          "steps": [
+            {
+              "title": "查询派遣公司资质",
+              "detail": "核实派遣公司是否具有劳务派遣经营许可证",
+              "action": "internal",
+              "route": "/enterprise",
+              "link_label": "查询企业"
+            },
+            {
+              "title": "固定实际用工证据",
+              "detail": "证明实际在用工单位工作、接受其管理",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "检索派遣合法性规定",
+              "detail": "了解劳务派遣的法定限制与违法后果",
+              "action": "search",
+              "search_query": "劳务派遣 违法 虚假派遣",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "申请仲裁确认实际劳动关系",
+              "detail": "请求确认与用工单位存在劳动关系",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人于【日期】入职【用工单位】，实际在该单位工作至今，接受其管理。但劳动合同签在【派遣公司】。经查询，派遣公司无劳务派遣资质/该派遣属于虚假派遣。请求裁决确认本人与【用工单位】存在劳动关系。"
+            }
+          ],
+          "law_searches": ["劳动合同法 第五十七条", "劳务派遣暂行规定"]
+        },
+        {
+          "id": "dispatch_fire",
+          "title": "派遣工被违法解除",
+          "summary": "派遣公司或用工单位违法解除，想要赔偿金或恢复工作",
+          "path_hint": "固定解除证据 → 审查解除合法性 → 检索派遣解除规定 → 申请仲裁",
+          "evidence_checklist": [
+            "解除劳动合同通知书",
+            "派遣合同",
+            "用工单位退回通知（如有）",
+            "工作年限与工资流水",
+            "与 HR 沟通记录"
+          ],
+          "steps": [
+            {
+              "title": "审查解除依据",
+              "detail": "核对解除是否符合法定情形",
+              "action": "search",
+              "search_query": "劳务派遣 违法解除",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "固定解除证据",
+              "detail": "保存解除通知、沟通记录",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求确认违法解除、支付赔偿金或恢复工作",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人系【派遣公司】派遣至【用工单位】的劳动者。【派遣公司/用工单位】于【日期】单方解除劳动合同，理由为【理由】。本人认为该解除不符合法定条件，请求裁决：1. 确认违法解除；2. 支付赔偿金【金额】元（或继续履行劳动合同）。"
+            }
+          ],
+          "law_searches": ["劳动合同法 第四十八条", "劳务派遣暂行规定"]
+        }
+      ],
+      "rights_summary": [
+        "派遣工享有与用工单位正式工同工同酬的权利",
+        "用工单位退回派遣工需符合法定情形",
+        "派遣公司应具备劳务派遣经营许可证",
+        "派遣工被违法解除可要求赔偿金或恢复工作"
+      ],
+      "quick_actions": [
+        {
+          "id": "enterprise_query",
+          "title": "查询派遣公司/用工单位",
+          "description": "核实企业资质与经营状态",
+          "action": "internal",
+          "route": "/enterprise"
+        },
+        {
+          "id": "law_search",
+          "title": "检索相关法条",
+          "description": "劳动合同法、劳务派遣暂行规定等",
+          "action": "internal",
+          "route": "/search"
+        },
+        {
+          "id": "hotline",
+          "title": "12348 法律咨询",
+          "description": "派遣关系复杂时先咨询",
+          "action": "external",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "id": "report",
+          "title": "劳动监察投诉",
+          "description": "违法行为可向监察部门举报",
+          "action": "report"
+        }
+      ],
+      "steps": [
+        {
+          "title": "确认派遣关系",
+          "detail": "了解派遣公司、用工单位与自己的关系",
+          "action": "internal",
+          "route": "/enterprise"
+        },
+        {
+          "title": "保存用工证据",
+          "detail": "派遣合同、工作内容、工资流水等",
+          "action": "internal",
+          "route": "/evidence"
+        },
+        {
+          "title": "根据情形选择维权路径",
+          "detail": "协商、投诉或申请仲裁",
+          "action": "internal",
+          "route": "/documents"
+        }
+      ],
+      "laws": [
+        {
+          "title": "劳动合同法（劳务派遣专节）",
+          "search_query": "劳动合同法 劳务派遣"
+        },
+        {
+          "title": "劳务派遣暂行规定",
+          "search_query": "劳务派遣暂行规定"
+        }
+      ],
+      "enable_one_click_report": false
+    },
+    "work-injury": {
+      "id": "work-injury",
+      "title": "工伤劳动者专区",
+      "subtitle": "工伤认定 · 赔偿保障",
+      "audience": "适用于所有在工作中受伤或患职业病的劳动者，不限身份与用工形式",
+      "highlights": [
+        "工伤认定申请流程指引",
+        "劳动能力鉴定与赔偿标准",
+        "单位未缴工伤保险的应对",
+        "职业病诊断与赔偿路径"
+      ],
+      "scenarios": [
+        {
+          "id": "injury_recognize",
+          "title": "工伤认定申请",
+          "summary": "工作中受伤，单位不配合申请工伤认定，或不确定是否属于工伤",
+          "path_hint": "确认是否属于工伤情形 → 固定事故与就医证据 → 向人社局申请工伤认定 → 劳动能力鉴定",
+          "who_to_sue": "用人单位；单位不配合时劳动者可自行申请",
+          "evidence_checklist": [
+            "事故现场照片/视频",
+            "就医诊断证明与病历",
+            "证人信息（如有）",
+            "考勤记录",
+            "劳动关系证明"
+          ],
+          "steps": [
+            {
+              "title": "确认是否属于工伤情形",
+              "detail": "了解工伤认定的法定情形",
+              "action": "search",
+              "search_query": "工伤认定 法定情形",
+              "link_label": "检索法条"
+            },
+            {
+              "title": "固定事故与就医证据",
+              "detail": "现场照片、就医记录、证人信息一并保存",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "向人社局申请工伤认定",
+              "detail": "单位不配合时，劳动者可自行申请",
+              "action": "external",
+              "url": "https://www.mohrss.gov.cn/",
+              "link_label": "人社局官网"
+            },
+            {
+              "title": "劳动能力鉴定",
+              "detail": "工伤认定后申请劳动能力鉴定，确定伤残等级",
+              "action": "search",
+              "search_query": "劳动能力鉴定 伤残等级",
+              "link_label": "检索鉴定标准"
+            }
+          ],
+          "law_searches": ["工伤保险条例 第十四条", "工伤认定办法"]
+        },
+        {
+          "id": "injury_compensation",
+          "title": "工伤赔偿金额争议",
+          "summary": "已认定工伤但单位/社保对赔偿金额有异议，或单位未缴工伤保险",
+          "path_hint": "核对赔偿项目与标准 → 整理费用票据 → 协商或申请仲裁 → 生成仲裁申请书",
+          "evidence_checklist": [
+            "工伤认定决定书",
+            "劳动能力鉴定结论",
+            "医疗费票据与病历",
+            "工资流水",
+            "停工留薪期证明"
+          ],
+          "steps": [
+            {
+              "title": "核对工伤赔偿标准",
+              "detail": "了解各伤残等级的赔偿项目与计算标准",
+              "action": "search",
+              "search_query": "工伤赔偿 伤残等级 标准",
+              "link_label": "检索标准"
+            },
+            {
+              "title": "整理费用票据",
+              "detail": "医疗费、误工费、护理费等票据一并整理",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "生成仲裁申请书",
+              "detail": "请求支付工伤待遇",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人于【日期】在工作中受伤，经认定为工伤，伤残等级为【X】级。用人单位未足额支付工伤待遇/未缴纳工伤保险。请求裁决支付：1. 一次性伤残补助金【金额】元；2. 医疗费【金额】元；3. 停工留薪期工资【金额】元；4. 其他工伤待遇。"
+            }
+          ],
+          "law_searches": ["工伤保险条例 第三十条", "工伤保险条例 第三十五条"]
+        },
+        {
+          "id": "injury_no_insurance",
+          "title": "单位没缴工伤保险",
+          "summary": "发生工伤后发现单位未缴纳工伤保险，担心无法获得赔偿",
+          "path_hint": "确认单位未参保事实 → 申请工伤认定 → 要求单位承担全部工伤待遇 → 仲裁",
+          "evidence_checklist": [
+            "劳动关系证明",
+            "社保缴费记录（显示未缴）",
+            "工伤认定决定书",
+            "医疗费票据",
+            "工资流水"
+          ],
+          "steps": [
+            {
+              "title": "确认单位未参保事实",
+              "detail": "查询社保缴费记录，确认单位未缴纳工伤保险",
+              "action": "search",
+              "search_query": "工伤保险 单位未缴",
+              "link_label": "检索规定"
+            },
+            {
+              "title": "申请工伤认定",
+              "detail": "无论单位是否参保，均可申请工伤认定",
+              "action": "external",
+              "url": "https://www.mohrss.gov.cn/",
+              "link_label": "人社局官网"
+            },
+            {
+              "title": "要求单位承担全部待遇",
+              "detail": "单位未参保的，由单位承担全部工伤待遇",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人于【日期】在工作中受伤，经认定为工伤。经查，用人单位未为本人缴纳工伤保险。根据工伤保险条例第六十二条，应由用人单位承担全部工伤待遇。请求裁决支付：1. 一次性伤残补助金【金额】元；2. 医疗费【金额】元；3. 其他工伤待遇。"
+            }
+          ],
+          "law_searches": ["工伤保险条例 第六十二条"]
+        },
+        {
+          "id": "occupational_disease",
+          "title": "职业病诊断与赔偿",
+          "summary": "长期接触粉尘、噪音等有害物质，怀疑患职业病，想要诊断和赔偿",
+          "path_hint": "确认职业病危害因素 → 申请职业病诊断 → 工伤认定 → 劳动能力鉴定 → 赔偿",
+          "evidence_checklist": [
+            "工作环境照片/视频",
+            "职业病危害因素检测报告（如有）",
+            "职业健康检查记录",
+            "工作年限证明",
+            "就医诊断证明"
+          ],
+          "steps": [
+            {
+              "title": "了解职业病诊断流程",
+              "detail": "了解职业病诊断机构与申请流程",
+              "action": "search",
+              "search_query": "职业病诊断 申请",
+              "link_label": "检索流程"
+            },
+            {
+              "title": "固定工作环境证据",
+              "detail": "工作环境照片、危害因素、工作年限等",
+              "action": "internal",
+              "route": "/evidence",
+              "link_label": "整理证据"
+            },
+            {
+              "title": "申请职业病诊断",
+              "detail": "向有资质的职业病诊断机构申请",
+              "action": "external",
+              "url": "https://www.mohrss.gov.cn/",
+              "link_label": "人社局官网"
+            },
+            {
+              "title": "申请工伤认定与赔偿",
+              "detail": "职业病诊断后按工伤处理",
+              "action": "docgen",
+              "doc_type": "application",
+              "link_label": "生成仲裁申请书",
+              "prefill": "本人于【起止日期】在【单位】从事【工种】工作，长期接触【粉尘/噪音/化学物质】等有害因素。经【诊断机构】诊断为【职业病名称】。请求裁决支付工伤待遇。"
+            }
+          ],
+          "law_searches": ["职业病防治法", "工伤保险条例"]
+        }
+      ],
+      "rights_summary": [
+        "工作中受伤或患职业病应依法认定为工伤",
+        "用人单位应依法缴纳工伤保险",
+        "单位未参保的，由单位承担全部工伤待遇",
+        "保留事故证据、就医记录、劳动关系证明等"
+      ],
+      "quick_actions": [
+        {
+          "id": "evidence",
+          "title": "整理工伤证据",
+          "description": "事故照片、就医记录、劳动关系证明等",
+          "action": "internal",
+          "route": "/evidence"
+        },
+        {
+          "id": "law_search",
+          "title": "检索工伤规定",
+          "description": "工伤保险条例、工伤认定办法等",
+          "action": "internal",
+          "route": "/search"
+        },
+        {
+          "id": "hotline",
+          "title": "12333 人社热线",
+          "description": "工伤认定咨询",
+          "action": "phone",
+          "phones": ["12333"]
+        },
+        {
+          "id": "report",
+          "title": "劳动监察投诉",
+          "description": "单位不配合时可向监察部门反映",
+          "action": "report"
+        }
+      ],
+      "steps": [
+        {
+          "title": "固定事故与就医证据",
+          "detail": "现场照片、就医记录、证人信息等",
+          "action": "internal",
+          "route": "/evidence"
+        },
+        {
+          "title": "申请工伤认定",
+          "detail": "向人社局申请，单位不配合可自行申请",
+          "action": "external",
+          "url": "https://www.mohrss.gov.cn/"
+        },
+        {
+          "title": "劳动能力鉴定",
+          "detail": "工伤认定后申请鉴定，确定伤残等级",
+          "action": "external",
+          "url": "https://www.mohrss.gov.cn/"
+        },
+        {
+          "title": "申请工伤赔偿",
+          "detail": "根据伤残等级主张工伤待遇",
+          "action": "internal",
+          "route": "/documents"
+        }
+      ],
+      "laws": [
+        {
+          "title": "工伤保险条例",
+          "search_query": "工伤保险条例"
+        },
+        {
+          "title": "工伤认定办法",
+          "search_query": "工伤认定办法"
+        }
+      ],
+      "enable_one_click_report": false
     }
   },
   "ppt_future_features": [

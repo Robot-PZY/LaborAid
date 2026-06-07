@@ -16,9 +16,9 @@ import DynamicForm from '@/components/intake/DynamicForm';
 import IntakePlanResult from '@/components/intake/IntakePlanResult';
 import { Button, Badge, Surface } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils';
-import { CHANNEL_THEME } from '@/components/guidance/GuidanceHubPanel';
+import { CHANNEL_THEME } from '@/lib/channel-themes';
 
-const CHANNEL_IDS = ['migrant-worker', 'intern-probation', 'female-worker'] as const;
+const CHANNEL_IDS = ['migrant-worker', 'intern-probation', 'female-worker', 'gig-worker', 'labor-dispatch', 'work-injury'] as const;
 
 type Props = {
   onBack: () => void;

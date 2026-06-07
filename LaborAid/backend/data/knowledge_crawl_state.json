@@ -1,8 +1,8 @@
 {
-  "next_run_at": "2026-06-06T19:00:00+00:00",
+  "next_run_at": "2026-06-13T19:00:00+00:00",
   "enabled": true,
   "running": false,
-  "last_run_at": "2026-06-02T08:18:04.283873+00:00",
+  "last_run_at": "2026-06-07T05:37:26.929674+00:00",
   "last_run_status": "partial",
   "last_run_summary": {
     "trigger": "schedule",

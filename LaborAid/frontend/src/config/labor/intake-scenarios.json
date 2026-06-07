@@ -49,6 +49,70 @@
           "options": ["备孕期", "孕期", "产期", "哺乳期", "不适用"]
         }
       ]
+    },
+    "gig-worker": {
+      "common_fields": [
+        {
+          "id": "work_region",
+          "label": "工作地区",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "platform_name",
+          "label": "平台名称",
+          "type": "text",
+          "placeholder": "如：美团、滴滴、顺丰"
+        },
+        {
+          "id": "work_type",
+          "label": "工作类型",
+          "type": "select",
+          "options": ["外卖骑手", "网约车司机", "快递员", "其他"]
+        }
+      ]
+    },
+    "labor-dispatch": {
+      "common_fields": [
+        {
+          "id": "work_region",
+          "label": "工作地区",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "dispatch_company",
+          "label": "派遣公司名称",
+          "type": "text"
+        },
+        {
+          "id": "using_company",
+          "label": "实际用工单位",
+          "type": "text"
+        }
+      ]
+    },
+    "work-injury": {
+      "common_fields": [
+        {
+          "id": "work_region",
+          "label": "工作地区",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "injury_date",
+          "label": "受伤/确诊日期",
+          "type": "text",
+          "placeholder": "如：2024年6月15日"
+        },
+        {
+          "id": "has_insurance",
+          "label": "单位是否缴纳工伤保险",
+          "type": "select",
+          "options": ["是", "否", "不确定"]
+        }
+      ]
     }
   },
   "scenarios": {
@@ -373,6 +437,409 @@
           "label": "是否有书面解除通知",
           "type": "select",
           "options": ["有", "无", "仅有口头"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "gig-worker:platform_relationship": {
+      "cause_type": "no_written_contract",
+      "form_fields": [
+        {
+          "id": "platform_name",
+          "label": "平台名称",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "work_start_date",
+          "label": "开始接单时间",
+          "type": "text"
+        },
+        {
+          "id": "has_agreement",
+          "label": "是否签署平台协议",
+          "type": "select",
+          "options": ["有", "无", "不确定"]
+        },
+        {
+          "id": "income_method",
+          "label": "收入结算方式",
+          "type": "select",
+          "options": ["平台直接结算", "外包公司结算", "其他"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "gig-worker:gig_injury": {
+      "cause_type": "work_injury",
+      "form_fields": [
+        {
+          "id": "platform_name",
+          "label": "平台名称",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "injury_date",
+          "label": "事故发生日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "injury_location",
+          "label": "事故地点",
+          "type": "text"
+        },
+        {
+          "id": "has_insurance",
+          "label": "平台是否购买保险",
+          "type": "select",
+          "options": ["有工伤保险", "有商业意外险", "无保险", "不确定"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "gig-worker:gig_pay": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "platform_name",
+          "label": "平台名称",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "issue_type",
+          "label": "争议类型",
+          "type": "select",
+          "required": true,
+          "options": ["降单价", "违规扣款", "拖欠报酬", "其他"]
+        },
+        {
+          "id": "wage_amount",
+          "label": "涉及金额（元）",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "gig-worker:account_ban": {
+      "cause_type": "illegal_termination",
+      "form_fields": [
+        {
+          "id": "platform_name",
+          "label": "平台名称",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ban_date",
+          "label": "封号/限制日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ban_reason",
+          "label": "平台给出的理由",
+          "type": "text"
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "labor-dispatch:dispatch_equality": {
+      "cause_type": "wage_arrears",
+      "form_fields": [
+        {
+          "id": "dispatch_company",
+          "label": "派遣公司",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "using_company",
+          "label": "实际用工单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "position",
+          "label": "工作岗位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "wage_amount",
+          "label": "本人月工资（元）",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "regular_wage",
+          "label": "同岗位正式工月工资（元，如有）",
+          "type": "text"
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "labor-dispatch:dispatch_return": {
+      "cause_type": "illegal_termination",
+      "form_fields": [
+        {
+          "id": "dispatch_company",
+          "label": "派遣公司",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "using_company",
+          "label": "实际用工单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "return_date",
+          "label": "被退回日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "return_reason",
+          "label": "退回理由",
+          "type": "text"
+        },
+        {
+          "id": "after_return",
+          "label": "退回后派遣公司处理",
+          "type": "select",
+          "options": ["解除劳动合同", "降薪", "待岗", "未处理"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "labor-dispatch:dispatch_fake": {
+      "cause_type": "no_written_contract",
+      "form_fields": [
+        {
+          "id": "dispatch_company",
+          "label": "派遣公司",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "using_company",
+          "label": "实际用工单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "work_start_date",
+          "label": "实际入职日期",
+          "type": "text"
+        },
+        {
+          "id": "work_duration",
+          "label": "实际工作时长",
+          "type": "text"
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "labor-dispatch:dispatch_fire": {
+      "cause_type": "illegal_termination",
+      "form_fields": [
+        {
+          "id": "dispatch_company",
+          "label": "派遣公司",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "using_company",
+          "label": "实际用工单位",
+          "type": "text"
+        },
+        {
+          "id": "termination_date",
+          "label": "解除日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "termination_reason",
+          "label": "解除理由",
+          "type": "text"
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "work-injury:injury_recognize": {
+      "cause_type": "work_injury",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "injury_date",
+          "label": "受伤日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "injury_location",
+          "label": "受伤地点",
+          "type": "text"
+        },
+        {
+          "id": "has_applied",
+          "label": "是否已申请工伤认定",
+          "type": "select",
+          "options": ["已申请", "未申请", "单位不配合"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "work-injury:injury_compensation": {
+      "cause_type": "work_injury",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "disability_level",
+          "label": "伤残等级",
+          "type": "select",
+          "options": ["一级", "二级", "三级", "四级", "五级", "六级", "七级", "八级", "九级", "十级", "未鉴定"]
+        },
+        {
+          "id": "wage_amount",
+          "label": "月工资（元）",
+          "type": "text"
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "work-injury:injury_no_insurance": {
+      "cause_type": "work_injury",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "injury_date",
+          "label": "受伤日期",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "disability_level",
+          "label": "伤残等级（如有）",
+          "type": "select",
+          "options": ["一级", "二级", "三级", "四级", "五级", "六级", "七级", "八级", "九级", "十级", "未鉴定"]
+        },
+        {
+          "id": "detail",
+          "label": "补充说明",
+          "type": "textarea",
+          "maxLength": 500
+        }
+      ]
+    },
+    "work-injury:occupational_disease": {
+      "cause_type": "work_injury",
+      "form_fields": [
+        {
+          "id": "employer_name",
+          "label": "用人单位",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "work_type",
+          "label": "工种",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "hazard_factor",
+          "label": "有害因素",
+          "type": "select",
+          "options": ["粉尘", "噪音", "化学物质", "辐射", "其他"]
+        },
+        {
+          "id": "work_duration",
+          "label": "接触有害因素时长",
+          "type": "text"
+        },
+        {
+          "id": "diagnosis",
+          "label": "是否已诊断",
+          "type": "select",
+          "options": ["已诊断", "未诊断", "疑似"]
         },
         {
           "id": "detail",

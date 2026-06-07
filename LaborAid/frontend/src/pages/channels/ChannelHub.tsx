@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { PageHeader } from '@/components/ui/primitives';
-import { CHANNEL_THEME } from '@/components/guidance/GuidanceHubPanel';
+import { CHANNEL_THEME } from '@/lib/channel-themes';
 import { listChannels, getChannelsDisclaimer, getChannelsHubIntro } from '@/lib/channels';
 import OfficialEntryHint from '@/components/channels/OfficialEntryHint';
 import ServiceStrip from '@/components/service/ServiceStrip';

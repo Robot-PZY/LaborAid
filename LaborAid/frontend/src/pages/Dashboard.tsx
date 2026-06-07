@@ -8,8 +8,6 @@ import {
   Briefcase,
   Compass,
   FileText,
-  HeartHandshake,
-  Scale,
   ShieldCheck,
   Upload,
 } from 'lucide-react';
@@ -106,29 +104,8 @@ const FLOW_STEPS = [
   },
 ] as const;
 
-const PRIMARY_TOOL_IDS = ['cases', 'research', 'docgen', 'evidence', 'contract'] as const;
-const MORE_TOOL_IDS = ['search', 'enterprise'] as const;
-
-const SHOWCASE_CARDS = [
-  {
-    title: '证据时间线',
-    description: '证据按时间排序，自动补足时间、金额、主体等关键字段，便于提交与答辩。',
-    route: '/evidence',
-    icon: Upload,
-  },
-  {
-    title: '文书质量感',
-    description: '统一结构、术语和版式，输出更接近真实办案文书而非普通聊天回复。',
-    route: '/documents',
-    icon: Scale,
-  },
-  {
-    title: '官方渠道闭环',
-    description: '站内完成整理，站外直达 12348、人社与法规库，形成可执行闭环。',
-    route: '/guidance',
-    icon: HeartHandshake,
-  },
-] as const;
+const PRIMARY_TOOL_IDS = ['cases', 'research', 'docgen', 'evidence'] as const;
+const MORE_TOOL_IDS = ['search', 'enterprise', 'contract'] as const;
 
 function ToolRow({ agent, onClick }: { agent: AgentConfig; onClick: () => void }) {
   const Icon = agent.icon;
@@ -459,35 +436,6 @@ function Dashboard() {
             材料库 · {formatBytes(stats.vault_bytes)}
           </p>
         </button>
-        </div>
-      </section>
-
-      <section>
-        <SectionTitle
-          title="核心展示能力"
-          description="不仅能用，更能把维权过程讲清楚、交付清楚。"
-        />
-        <div className="grid gap-4 md:grid-cols-3">
-          {SHOWCASE_CARDS.map((card) => {
-            const Icon = card.icon;
-            return (
-              <Surface key={card.title} padding="md" hover>
-                <div className="inline-flex rounded-lg bg-accent/12 p-2 text-accent">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <h3 className="mt-3 font-display text-lg font-semibold">{card.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{card.description}</p>
-                <button
-                  type="button"
-                  onClick={() => navigate(card.route)}
-                  className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
-                >
-                  进入查看
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </button>
-              </Surface>
-            );
-          })}
         </div>
       </section>
 
