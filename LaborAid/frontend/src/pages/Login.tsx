@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, CheckCircle, AlertCircle, Loader2, User, Shield, ArrowRight } from 'lucide-react';
 import { BRAND } from '@/config/brand';
+import { ASSETS } from '@/config/assets';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { AxiosError } from 'axios';
 import { authApi } from '@/lib/api';
@@ -196,21 +197,26 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen">
-      {/* 左侧品牌区 */}
-      <aside className="login-panel-dark relative hidden w-[44%] flex-col justify-between p-10 text-white lg:flex xl:w-[42%]">
-        <Logo variant="inverse" size="lg" />
-        <div className="max-w-md">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300/90">
-            {BRAND.subtitle}
-          </p>
-          <h1 className="mt-4 font-display text-3xl font-semibold leading-snug text-balance xl:text-4xl">
+      {/* 左侧品牌区 — Logo 居中偏上，文字左对齐 */}
+      <aside className="login-panel-dark relative hidden w-[44%] flex-col p-10 text-white lg:flex xl:w-[42%]">
+        {/* Logo 居中 */}
+        <div className="relative z-10 flex items-center justify-center pt-[8%] -translate-x-4">
+          <img
+            src={ASSETS.logoWhite}
+            alt={`${BRAND.name} ${BRAND.nameEn}`}
+            className="h-80 w-80 object-contain"
+          />
+        </div>
+        {/* 文字左对齐 */}
+        <div className="relative z-10 max-w-md mt-20">
+          <h1 className="font-display text-3xl font-semibold leading-snug text-balance xl:text-4xl">
             {BRAND.tagline}
           </h1>
-          <p className="mt-4 text-sm leading-relaxed text-white/65">{BRAND.description}</p>
+          <p className="mt-3 text-sm leading-relaxed text-white/60">{BRAND.description}</p>
         </div>
-        <p className="text-xs text-white/40">© {new Date().getFullYear()} {BRAND.name}</p>
+        <p className="relative z-10 mt-auto text-xs text-white/35">© {new Date().getFullYear()} {BRAND.name}</p>
         <div
-          className="pointer-events-none absolute -right-20 top-1/3 h-64 w-64 rounded-full bg-amber-400/10 blur-3xl"
+          className="pointer-events-none absolute -right-20 top-1/3 z-10 h-64 w-64 rounded-full bg-amber-400/8 blur-3xl"
           aria-hidden
         />
       </aside>
@@ -219,7 +225,7 @@ export default function Login() {
       <div className="flex flex-1 flex-col justify-center px-5 py-10 sm:px-10 lg:px-14">
         <div className="mx-auto w-full max-w-[400px]">
           <div className="mb-8 lg:hidden">
-            <Logo size="md" />
+            <Logo size="sm" showWordmark />
           </div>
 
           <div className="mb-6 inline-flex rounded-[var(--radius-md)] border border-border bg-muted/50 p-1">

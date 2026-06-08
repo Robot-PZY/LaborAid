@@ -176,12 +176,37 @@
   }
 
   .login-panel-dark {
-    background: linear-gradient(
-      165deg,
-      hsl(222 28% 10%) 0%,
-      hsl(222 32% 16%) 45%,
-      hsl(222 28% 12%) 100%
-    );
+    background: hsl(215 40% 8%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-panel-dark::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background:
+      linear-gradient(155deg, hsl(218 55% 22%) 0%, transparent 50%),
+      linear-gradient(335deg, hsl(28 55% 20%) 0%, transparent 50%),
+      linear-gradient(195deg, transparent 40%, hsl(235 50% 26%) 100%);
+    opacity: 1;
+    animation: tile-drift 8s ease-in-out infinite alternate;
+  }
+
+  .login-panel-dark::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background:
+      linear-gradient(25deg, hsl(210 55% 10%) 0%, transparent 45%),
+      linear-gradient(215deg, hsl(215 40% 28%) 0%, transparent 40%);
+    opacity: 0.85;
+    animation: tile-drift 8s ease-in-out infinite alternate-reverse;
+  }
+
+  @keyframes tile-drift {
+    0%   { transform: translate(-5%, -3%) scale(1.08) rotate(0deg); }
+    100% { transform: translate(5%, 3%) scale(1.12) rotate(3deg); }
   }
 }
 

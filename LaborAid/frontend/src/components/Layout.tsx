@@ -176,7 +176,7 @@ export default function Layout() {
         )}
       >
         <div className="flex h-[60px] items-center justify-between border-b border-sidebar-border px-4">
-          <Logo size="sm" />
+          <Logo size="sm" showWordmark />
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}

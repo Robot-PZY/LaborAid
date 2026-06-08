@@ -61,14 +61,11 @@ export default function DashboardHeroBanner({ greeting }: { greeting: string }) 
       </svg>
 
       <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-12">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-accent/80">
-          LaborAid
-        </p>
         <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {greeting}
         </h1>
         <p className="mt-2 max-w-md text-sm text-muted-foreground/90">
-          劳权智助 · 劳动者维权服务
+          劳动者维权智能服务
         </p>
       </div>
     </section>

@@ -116,7 +116,7 @@ export default function AdminLayout() {
       >
         <div className="flex h-[60px] items-center justify-between border-b border-sidebar-border px-4">
           <div>
-            <Logo size="sm" />
+            <Logo size="sm" showWordmark />
             <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
               运营管理
             </p>

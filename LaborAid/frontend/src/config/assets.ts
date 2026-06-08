@@ -4,5 +4,7 @@
  */
 export const ASSETS = {
   logo: '/laboraid-logo.png',
+  logoWhite: '/laboraid-logo-white.png',
+  logoNobg: '/laboraid-logo-nobg.png',
   favicon: '/favicon.png',
 } as const;
