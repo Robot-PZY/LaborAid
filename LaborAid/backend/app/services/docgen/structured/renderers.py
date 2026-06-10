@@ -102,48 +102,48 @@ def _fallback_facts_render(doc_type: str, d: dict[str, Any]) -> str:
         employment_info = val(d, "employment_info", "")
 
         if employment_info and employment_info != PLACEHOLDER:
-            parts.append(md_sub_heading("劳动关系基本情况") + md_body_paragraphs(employment_info))
+            parts.append(md_body_paragraphs(employment_info))
         elif employment and employment != PLACEHOLDER:
-            parts.append(md_sub_heading("劳动关系基本情况") + md_body_paragraphs(employment))
+            parts.append(md_body_paragraphs(employment))
 
         if dispute and dispute != PLACEHOLDER:
-            parts.append(md_sub_heading("争议事实经过") + md_body_paragraphs(dispute))
+            parts.append(md_body_paragraphs(dispute))
         elif employment and employment != PLACEHOLDER and not employment_info:
-            parts.append(md_sub_heading("争议事实经过") + md_body_paragraphs(employment))
+            pass  # 已用 employment 填充
 
         social_ins = val(d, "social_insurance", "")
         if social_ins and social_ins != PLACEHOLDER:
-            parts.append(md_sub_heading("社会保险缴纳情况") + md_body_paragraphs(social_ins))
+            parts.append(md_body_paragraphs(social_ins))
 
         legal_analysis = val(d, "legal_analysis", "")
         if legal_analysis and legal_analysis != PLACEHOLDER:
-            parts.append(md_sub_heading("法律分析") + md_body_paragraphs(legal_analysis))
+            parts.append(md_body_paragraphs(legal_analysis))
 
         basis = val(d, "legal_basis", "")
         if basis and basis != PLACEHOLDER and basis != val(d, "facts"):
-            parts.append(md_sub_heading("法律依据") + md_body_paragraphs(basis))
+            parts.append(md_body_paragraphs(basis))
 
     elif doc_type == "complaint":
         emp_bg = val(d, "employment_background", "")
         if emp_bg and emp_bg != PLACEHOLDER:
-            parts.append(md_sub_heading("劳动关系背景") + md_body_paragraphs(emp_bg))
+            parts.append(md_body_paragraphs(emp_bg))
         arb_facts = val(d, "facts_arbitration", "")
         if arb_facts and arb_facts != PLACEHOLDER:
-            parts.append(md_sub_heading("仲裁阶段经过") + md_body_paragraphs(arb_facts))
+            parts.append(md_body_paragraphs(arb_facts))
         dispute = val(d, "facts_dispute", "")
         if dispute and dispute != PLACEHOLDER:
-            parts.append(md_sub_heading("争议事实经过") + md_body_paragraphs(dispute))
+            parts.append(md_body_paragraphs(dispute))
         legal_analysis = val(d, "legal_analysis", "")
         if legal_analysis and legal_analysis != PLACEHOLDER:
-            parts.append(md_sub_heading("法律分析") + md_body_paragraphs(legal_analysis))
+            parts.append(md_body_paragraphs(legal_analysis))
 
     elif doc_type == "labor_supervision":
         employment_info = val(d, "employment_info", "")
         facts_text = val(d, "facts", "")
         if employment_info and employment_info != PLACEHOLDER:
-            parts.append(md_sub_heading("劳动关系基本情况") + md_body_paragraphs(employment_info))
+            parts.append(md_body_paragraphs(employment_info))
             if facts_text and facts_text != PLACEHOLDER:
-                parts.append(md_sub_heading("投诉事实经过") + md_body_paragraphs(facts_text))
+                parts.append(md_body_paragraphs(facts_text))
         else:
             parts.append(md_body_paragraphs(facts_text))
 
@@ -169,6 +169,14 @@ def render_application(d: dict[str, Any]) -> str:
     # 事实与理由：优先模板渲染，回退旧字段
     facts_content = _render_facts_from_template("application", d)
 
+    # 仲裁请求引导说明（参考标准模板）
+    requests_content = md_numbered_list(d.get("requests"))
+    requests_guide = (
+        "（根据自己的实际情况如实写明自己的申请请求，"
+        "涉及到具体金额时应提出一个明确的申请数额；"
+        "涉及到补缴社保为题应写清楚补缴的具体期限。）\n\n"
+    )
+
     parts = [
         md_title("劳动仲裁申请书"),
         md_party_line("申请人", [
@@ -178,9 +186,8 @@ def render_application(d: dict[str, Any]) -> str:
             ("联系电话", val(d, "applicant_phone")),
         ]),
         md_party_line("被申请人", respondent_fields),
-        md_cn_section("一", "仲裁请求", md_numbered_list(d.get("requests"))),
+        md_cn_section("一", "仲裁请求", requests_guide + requests_content),
         md_cn_section("二", "事实与理由", facts_content),
-        md_cn_section("三", "证据目录", md_evidence_table(d.get("evidence"))),
         md_sign_arbitration(val(d, "arbitration_commission"), date=val(d, "sign_date")),
     ]
     return "".join(parts)
@@ -205,8 +212,7 @@ def render_labor_supervision(d: dict[str, Any]) -> str:
         ])
         + md_cn_section("一", "投诉事项", md_body_paragraphs(val(d, "items")))
         + md_cn_section("二", "事实经过", facts_content)
-        + md_cn_section("三", "证据材料", md_evidence_table(d.get("evidence")))
-        + md_cn_section("四", "请求事项", md_body_paragraphs(
+        + md_cn_section("三", "请求事项", md_body_paragraphs(
             val(d, "relief") if val(d, "relief") not in ("", "—", "[待填写]")
             else "请求劳动监察部门依法查处被投诉单位违法行为，责令其限期改正并依法处理。"
         ))
@@ -316,11 +322,10 @@ def render_complaint(d: dict[str, Any]) -> str:
         md_cn_section("一", "劳动仲裁前置程序", md_body_paragraphs(val(d, "arbitration_info"))),
         md_cn_section("二", "诉讼请求", md_numbered_list(d.get("claims"))),
         md_cn_section("三", "事实与理由", facts_content),
-        md_cn_section("四", "证据目录", md_evidence_table(d.get("evidence"))),
     ]
     med = val(d, "mediation_willing", "")
     if med and med != "—":
-        parts.append(md_cn_section("五", "调解意愿", f"是否同意先行调解：**{med}**"))
+        parts.append(md_cn_section("四", "调解意愿", f"是否同意先行调解：**{med}**"))
     parts.append(md_sign_court(val(d, "court_name"), date=val(d, "sign_date")))
     return "".join(parts)
 

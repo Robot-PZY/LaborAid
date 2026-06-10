@@ -732,60 +732,57 @@ export default function ContractReview() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Contract List */}
-        <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">合同列表 ({contracts.length})</h2>
-          {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-          ) : contracts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p>暂无合同</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {contracts.map((c) => {
-                const st = STATUS_MAP[c.status] || STATUS_MAP.pending;
-                const isSelected = selectedContract?.id === c.id;
-                return (
-                  <div key={c.id} onClick={() => selectContract(c)}
-                    className={`rounded-lg border p-3 cursor-pointer transition-all hover:shadow-sm ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:border-primary/30'}`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{c.title}</p>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <span className={`text-xs px-2 py-0.5 rounded ${st.color}`}>{st.label}</span>
-                          {c.file_type && <span className="text-xs text-muted-foreground uppercase">{c.file_type}</span>}
-                          {c.has_file && (
-                            <OcrStatusBadge
-                              compact
-                              status={parseLive[c.id]?.status ?? c.ocr_status}
-                              message={parseLive[c.id]?.message ?? c.ocr_message}
-                            />
-                          )}
+      <div className="space-y-6">
+        {/* Contract List - Horizontal Card Row */}
+        {contracts.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">合同列表 ({contracts.length})</h2>
+            {loading ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+            ) : (
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+                {contracts.map((c) => {
+                  const st = STATUS_MAP[c.status] || STATUS_MAP.pending;
+                  const isSelected = selectedContract?.id === c.id;
+                  return (
+                    <div key={c.id} onClick={() => selectContract(c)}
+                      className={`shrink-0 w-56 rounded-lg border p-3 cursor-pointer transition-all hover:shadow-sm ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:border-primary/30'}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{c.title}</p>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className={`text-xs px-2 py-0.5 rounded ${st.color}`}>{st.label}</span>
+                            {c.file_type && <span className="text-xs text-muted-foreground uppercase">{c.file_type}</span>}
+                            {c.has_file && (
+                              <OcrStatusBadge
+                                compact
+                                status={parseLive[c.id]?.status ?? c.ocr_status}
+                                message={parseLive[c.id]?.message ?? c.ocr_message}
+                              />
+                            )}
+                          </div>
                         </div>
+                        {c.risk_score !== null && (
+                          <div className={`text-lg font-bold ${getScoreColor(c.risk_score)}`}>{c.risk_score}</div>
+                        )}
                       </div>
-                      {c.risk_score !== null && (
-                        <div className={`text-lg font-bold ${getScoreColor(c.risk_score)}`}>{c.risk_score}</div>
-                      )}
+                      <p className="text-xs text-muted-foreground mt-1">{new Date(c.created_at).toLocaleDateString()}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">{new Date(c.created_at).toLocaleDateString()}</p>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Contract Detail */}
-        <div className="lg:col-span-2">
+        {/* Contract Detail - Full Width */}
+        <div>
           {!selectedContract ? (
             <div className="flex items-center justify-center h-64 lg:h-96 text-muted-foreground">
               <div className="text-center">
                 <ShieldCheck className="h-16 w-16 mx-auto mb-3 opacity-20" />
                 <p className="text-lg font-semibold mb-2">选择一份合同查看审查结果</p>
-                <p className="text-sm max-w-sm mx-auto">从左侧列表选择合同，或上传新合同文件开始AI智能审查。</p>
+                <p className="text-sm max-w-sm mx-auto">从上方列表选择合同，或上传新合同文件开始AI智能审查。</p>
               </div>
             </div>
           ) : (

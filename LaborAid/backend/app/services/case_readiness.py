@@ -244,6 +244,24 @@ def build_case_readiness(
             )
         )
 
+    # 提前计算综合分与等级，供下方 tips 判断使用
+    readiness_score = max(0, min(100, score))
+    chain_score: int | None = None
+    combined_score = readiness_score
+    if chain_completeness_score is not None:
+        chain_score = max(0, min(100, int(chain_completeness_score)))
+        combined_score = max(
+            0,
+            min(100, round(readiness_score * 0.65 + chain_score * 0.35)),
+        )
+
+    if combined_score >= 70:
+        readiness_level = "high"
+    elif combined_score >= 45:
+        readiness_level = "medium"
+    else:
+        readiness_level = "low"
+
     if tips and readiness_level != "high":
         missing_items.append(tips)
 
@@ -255,15 +273,7 @@ def build_case_readiness(
             seen.add(m)
             deduped_missing.append(m)
 
-    readiness_score = max(0, min(100, score))
-    chain_score: int | None = None
-    combined_score = readiness_score
-    if chain_completeness_score is not None:
-        chain_score = max(0, min(100, int(chain_completeness_score)))
-        combined_score = max(
-            0,
-            min(100, round(readiness_score * 0.65 + chain_score * 0.35)),
-        )
+    if chain_score is not None:
         if chain_score < 50 and readiness_score >= 50:
             deduped_missing.insert(
                 0,
@@ -271,14 +281,6 @@ def build_case_readiness(
             )
         elif chain_score >= 70 and readiness_score < 70:
             strengths.append(f"证据链分析 {chain_score} 分，链条较完整")
-
-    # 综合分等级
-    if combined_score >= 70:
-        readiness_level = "high"
-    elif combined_score >= 45:
-        readiness_level = "medium"
-    else:
-        readiness_level = "low"
 
     # 三档文书生成推荐
     has_description = bool((case.description or "").strip())

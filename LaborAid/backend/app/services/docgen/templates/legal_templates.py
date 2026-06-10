@@ -9,54 +9,25 @@
 
 # ============================================================
 # 劳动仲裁申请书 — 事实与理由模板
+# 格式参考：标准劳动仲裁申请书范本（舟山市劳动争议仲裁委员会）
 # ============================================================
 APPLICATION_FACTS_TEMPLATE = """
-### 劳动关系基本情况
+申请人于{hire_year}年{hire_month}月入职被申请人处，担任{job_position}岗位，双方约定月工资标准为人民币{monthly_salary}元（大写：{monthly_salary_cn}）。{contract_info}工作地点位于{work_location}。{social_insurance_info}
 
-申请人于{hire_year}年{hire_month}月入职被申请人处，担任{job_position}岗位，
-双方约定月工资标准为人民币{monthly_salary}元（大写：{monthly_salary_cn}）。
-{contract_info}工作地点位于{work_location}。
-{social_insurance_info}
+自{dispute_start}起至{dispute_end}止，被申请人未依法足额支付劳动报酬，累计拖欠工资金额为人民币{arrears_amount}元（大写：{arrears_amount_cn}）。{dispute_details}
 
-### 争议事实经过
-
-自{dispute_start}起至{dispute_end}止，被申请人未依法足额支付劳动报酬，
-累计拖欠工资金额为人民币{arrears_amount}元（大写：{arrears_amount_cn}）。
-{dispute_details}
-
-### 法律分析
-
-依据《中华人民共和国劳动争议调解仲裁法》第二条、第五条，
-《中华人民共和国劳动合同法》第三十条、第三十八条、第四十六条、
-第四十七条、第八十二条、第八十七条之规定，被申请人作为用人单位，
-应当依法向劳动者按时足额支付劳动报酬。被申请人拖欠劳动报酬的行为
-已构成违法，应当承担相应的法律责任。
-
-{legal_analysis_expansion}
+依据《中华人民共和国劳动争议调解仲裁法》第二条、第五条，《中华人民共和国劳动合同法》第三十条、第三十八条、第四十六条、第四十七条、第八十二条、第八十七条之规定，被申请人作为用人单位，应当依法向劳动者按时足额支付劳动报酬。被申请人拖欠劳动报酬的行为已构成违法，应当承担相应的法律责任。{legal_analysis_expansion}
 """
 
 # ============================================================
 # 民事起诉状 — 事实与理由模板
 # ============================================================
 COMPLAINT_FACTS_TEMPLATE = """
-### 劳动关系背景
+原告于{hire_year}年{hire_month}月入职被告处，担任{job_position}岗位，月工资标准为人民币{monthly_salary}元（大写：{monthly_salary_cn}）。{contract_info}
 
-原告于{hire_year}年{hire_month}月入职被告处，担任{job_position}岗位，
-月工资标准为人民币{monthly_salary}元（大写：{monthly_salary_cn}）。
-{contract_info}
-
-### 仲裁阶段经过
-
-原告于{arbitration_apply_date}向{arbitration_commission}申请劳动仲裁。
-该委于{arbitration_ruling_date}作出{arbitration_case_number}号裁决书，
-裁决结果为：{arbitration_ruling_result}。
-{arbitration_dissatisfaction_reason}
-
-### 争议事实经过
+原告于{arbitration_apply_date}向{arbitration_commission}申请劳动仲裁。该委于{arbitration_ruling_date}作出{arbitration_case_number}号裁决书，裁决结果为：{arbitration_ruling_result}。{arbitration_dissatisfaction_reason}
 
 {dispute_details}
-
-### 法律分析
 
 {legal_analysis_expansion}
 """
@@ -65,19 +36,11 @@ COMPLAINT_FACTS_TEMPLATE = """
 # 劳动监察投诉书 — 事实经过模板
 # ============================================================
 LABOR_SUPERVISION_FACTS_TEMPLATE = """
-### 劳动关系基本情况
+投诉人于{hire_year}年{hire_month}月入职被投诉单位，担任{job_position}岗位，约定月工资标准为人民币{monthly_salary}元（大写：{monthly_salary_cn}）。{contract_info}
 
-投诉人于{hire_year}年{hire_month}月入职被投诉单位，担任{job_position}岗位，
-约定月工资标准为人民币{monthly_salary}元（大写：{monthly_salary_cn}）。
-{contract_info}
+自{dispute_start}起至{dispute_end}止，被投诉单位存在以下违法行为：{dispute_details}
 
-### 违法事实经过
-
-自{dispute_start}起至{dispute_end}止，被投诉单位存在以下违法行为：
-{dispute_details}
-
-投诉人多次与被投诉单位协商，要求其依法支付拖欠工资/补缴社会保险/
-支付加班费等，但被投诉单位均以各种理由推诿，至今未予解决。
+投诉人多次与被投诉单位协商，要求其依法支付拖欠工资/补缴社会保险/支付加班费等，但被投诉单位均以各种理由推诿，至今未予解决。
 """
 
 # ============================================================
