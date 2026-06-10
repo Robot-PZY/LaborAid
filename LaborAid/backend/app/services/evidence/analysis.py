@@ -147,6 +147,9 @@ async def analyze_evidence(
     except asyncio.TimeoutError:
         logger.warning("Evidence analysis timed out after %ds", _LLM_TIMEOUT)
         return f"分析超时：LLM 响应超过 {_LLM_TIMEOUT} 秒，请稍后重试"
+    except (ConnectionError, OSError) as e:
+        logger.warning(f"Evidence analysis connection failed: {e}")
+        return "分析失败：无法连接到 AI 服务，请检查网络配置或联系管理员"
     except Exception as e:
         logger.warning(f"Evidence analysis failed: {e}")
-        return f"分析失败: {e}"
+        return "分析失败，请稍后重试"

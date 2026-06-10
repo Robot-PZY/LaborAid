@@ -4,7 +4,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Circle,
-  ExternalLink,
   Loader2,
   MapPin,
 } from 'lucide-react';
@@ -16,8 +15,6 @@ import { useToast } from '@/lib/toast';
 import {
   buildFallbackPlanFromTools,
   executePlanStep,
-  resolveOfficialLinkUrl,
-  resolveStepExternalUrl,
   resultToSession,
   startRecommendedPlan,
 } from '@/lib/intake-plan';
@@ -35,6 +32,7 @@ interface IntakePlanResultProps {
   inputText: string;
   onReset: () => void;
   onBack?: () => void;
+  onCaseCreated?: (caseId: number) => void;
 }
 
 function stepIcon(done: boolean, active: boolean) {
@@ -43,7 +41,7 @@ function stepIcon(done: boolean, active: boolean) {
   return <Circle className="h-4 w-4 text-muted-foreground/50" />;
 }
 
-export default function IntakePlanResult({ result, inputText, onReset, onBack }: IntakePlanResultProps) {
+export default function IntakePlanResult({ result, inputText, onReset, onBack, onCaseCreated }: IntakePlanResultProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
@@ -89,9 +87,13 @@ export default function IntakePlanResult({ result, inputText, onReset, onBack }:
     setPlanStarting(true);
     try {
       const s = loadIntakeSession() || session;
-      await startRecommendedPlan(s, navigate);
+      const updatedSession = await startRecommendedPlan(s, navigate);
       refreshProgress();
       toast('已为您建立案件，请继续下一步', 'success');
+      // 通知父组件案件已创建
+      if (updatedSession.createdCaseId && onCaseCreated) {
+        onCaseCreated(updatedSession.createdCaseId);
+      }
     } catch {
       toast('执行计划失败，请重试', 'error');
     } finally {
@@ -103,18 +105,12 @@ export default function IntakePlanResult({ result, inputText, onReset, onBack }:
     setLoading(`step-${step.step}`);
     try {
       const s = loadIntakeSession() || session;
-      if (step.step_type === 'official_external' || step.action === 'external') {
-        const url = resolveStepExternalUrl(step);
-        if (url) {
-          window.open(url, '_blank', 'noopener,noreferrer');
-          toast('已打开官方网页', 'success');
-        }
-        saveIntakeSession({ ...s, currentStep: step.step + 1 });
-        return;
-      }
-      await executePlanStep(step, s, navigate);
+      const updatedSession = await executePlanStep(step, s, navigate);
       if (step.step_type === 'create_case') {
         toast('案件已创建', 'success');
+        if (updatedSession.createdCaseId && onCaseCreated) {
+          onCaseCreated(updatedSession.createdCaseId);
+        }
       }
       refreshProgress();
     } catch {
@@ -175,7 +171,6 @@ export default function IntakePlanResult({ result, inputText, onReset, onBack }:
             {steps.map((step) => {
               const done = isIntakePlanStepDone(step, progress, session.createdCaseId);
               const active = step.step === activeStepNum && !done;
-              const isExternal = step.step_type === 'official_external' || step.action === 'external';
               return (
                 <li
                   key={step.step}
@@ -206,12 +201,10 @@ export default function IntakePlanResult({ result, inputText, onReset, onBack }:
                   >
                     {loading === `step-${step.step}` ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : isExternal ? (
-                      <ExternalLink className="h-3.5 w-3.5" />
                     ) : (
                       <ArrowRight className="h-3.5 w-3.5" />
                     )}
-                    {isExternal ? '打开官方' : active && step.step_type === 'create_case' ? '建案' : '前往'}
+                    {active && step.step_type === 'create_case' ? '建案' : '前往'}
                   </Button>
                 </li>
               );
@@ -238,27 +231,12 @@ export default function IntakePlanResult({ result, inputText, onReset, onBack }:
         <div>
           <p className="text-xs font-medium text-muted-foreground">相关办事渠道</p>
           <ul className="mt-1.5 space-y-1.5">
-            {result.official_links.map((link) => {
-              const url = resolveOfficialLinkUrl(link.id);
-              return (
-                <li key={link.id} className="text-xs">
-                  {url ? (
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-accent hover:underline"
-                    >
-                      {link.title}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ) : (
-                    <span className="text-muted-foreground">{link.title}</span>
-                  )}
-                  {link.when && <span className="text-muted-foreground"> — {link.when}</span>}
-                </li>
-              );
-            })}
+            {result.official_links.map((link) => (
+              <li key={link.id} className="text-xs">
+                <span className="text-foreground">{link.title}</span>
+                {link.when && <span className="text-muted-foreground"> — {link.when}</span>}
+              </li>
+            ))}
           </ul>
         </div>
       )}

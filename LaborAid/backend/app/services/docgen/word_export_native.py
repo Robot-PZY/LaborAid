@@ -16,22 +16,117 @@ from typing import Any
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
 from app.services.docgen.structured.helpers import strip_no_indent_marker
 from app.services.docgen.word_export import _SAFE_FILENAME_RE, _sanitize_xml_text
 
-# 正文字体：Windows 常见，缺失时 Word 自动回退
+
+# 中文大写数字映射
+_CN_UPPER_DIGITS = "零壹贰叁肆伍陆柒捌玖"
+_CN_UPPER_UNITS = ["", "拾", "佰", "仟"]
+_CN_UPPER_BIG_UNITS = ["", "万", "亿", "兆"]
+
+# 金额匹配正则：匹配 ¥100,000.00 或 ￥100000 或 人民币10000元 等格式
+_AMOUNT_PATTERN = re.compile(
+    r"(?:人民币|￥|¥)\s*(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)\s*元?"
+)
+
+
+def _num_to_cn_upper(amount_str: str) -> str:
+    """将阿拉伯数字金额转为中文大写金额（如 100000 → 壹拾万元整）。"""
+    s = amount_str.replace(",", "").strip()
+    if not s:
+        return ""
+    try:
+        num = float(s)
+    except ValueError:
+        return amount_str
+
+    integer_part = int(num)
+    decimal_part = round((num - integer_part) * 100)
+    jiao = decimal_part // 10
+    fen = decimal_part % 10
+
+    if integer_part == 0:
+        result = "零"
+    else:
+        s_int = str(integer_part)
+        n = len(s_int)
+        result_parts = []
+        zero_flag = False
+        for i, ch in enumerate(s_int):
+            digit = int(ch)
+            pos = n - 1 - i
+            unit_idx = pos % 4
+            big_idx = pos // 4
+            if digit == 0:
+                zero_flag = True
+                if unit_idx == 0 and big_idx > 0:
+                    result_parts.append(_CN_UPPER_BIG_UNITS[big_idx])
+                    zero_flag = False
+            else:
+                if zero_flag:
+                    result_parts.append("零")
+                    zero_flag = False
+                result_parts.append(_CN_UPPER_DIGITS[digit] + _CN_UPPER_UNITS[unit_idx])
+                if unit_idx == 0 and big_idx > 0:
+                    result_parts.append(_CN_UPPER_BIG_UNITS[big_idx])
+        result = "".join(result_parts)
+
+    if jiao == 0 and fen == 0:
+        result += "元整"
+    elif jiao == 0 and fen > 0:
+        result += "元零" + _CN_UPPER_DIGITS[fen] + "分"
+    elif jiao > 0 and fen == 0:
+        result += "元" + _CN_UPPER_DIGITS[jiao] + "角整"
+    else:
+        result += "元" + _CN_UPPER_DIGITS[jiao] + "角" + _CN_UPPER_DIGITS[fen] + "分"
+
+    return "人民币" + result
+
+
+def _auto_uppercase_amounts(text: str) -> str:
+    """在文本中检测 ¥/￥/人民币 金额，自动补充中文大写。
+
+    例：¥100,000.00 → ¥100,000.00（人民币壹拾万元整）
+    已有大写的不再重复添加。
+    """
+    def _replacer(m: re.Match) -> str:
+        original = m.group(0)
+        amount_str = m.group(1)
+        cn_upper = _num_to_cn_upper(amount_str)
+        return f"{original}（{cn_upper}）"
+
+    # 如果已有中文大写金额，不再转换
+    if re.search(r"[\u58f9\u8d30\u53c1\u8086\u4f0d\u9646\u67d2\u634c\u7396\u62fe\u4f70\u4edf\u4e07\u4ebf]", text):
+        return text
+
+    return _AMOUNT_PATTERN.sub(_replacer, text)
+
+# 正文字体：对齐法院标准排版（与 word_export.py COURT_FONT_SETTINGS 一致）
 _BODY_FONT = "仿宋"
 _BODY_FONT_FALLBACK = "FangSong"
-_BODY_SIZE = Pt(12)
-_LINE_SPACING = Pt(22)
-_FIRST_LINE_INDENT = Cm(0.74)
+_BODY_SIZE = Pt(16)           # 三号 = 16pt（法院标准）
+_LINE_SPACING = Pt(28.8)      # 固定值 28.8 磅
+_FIRST_LINE_INDENT = Cm(0.74) # 2 字符 ≈ 0.74cm（三号字）
+
+# 标题字体
+_TITLE_FONT = "方正小标宋简体"
+_TITLE_FONT_ALT = "FZXiaoBiaoSong-B05S"
+_HEADING1_FONT = "黑体"
+_HEADING1_FONT_FALLBACK = "SimHei"
+_HEADING2_FONT = "楷体"
+_HEADING2_FONT_FALLBACK = "KaiTi"
+
+# 英文字体
+_EN_FONT = "Times New Roman"
 
 
 def _set_east_asia_font(run, name: str) -> None:
-    run.font.name = name
+    """设置东亚字体（同时设置拉丁字体名和 w:eastAsia 属性）。"""
     r = run._element
     r_pr = r.get_or_add_rPr()
     r_fonts = r_pr.get_or_add_rFonts()
@@ -48,44 +143,98 @@ def _style_set_east_asia(style, latin: str, east_asia: str) -> None:
 def _configure_document_styles(doc: Document) -> None:
     """统一 Normal / Heading 样式，打开 Word 时版式稳定。"""
     normal = doc.styles["Normal"]
-    _style_set_east_asia(normal, _BODY_FONT_FALLBACK, _BODY_FONT)
+    _style_set_east_asia(normal, _EN_FONT, _BODY_FONT)
     normal.font.size = _BODY_SIZE
+    normal.font.color.rgb = RGBColor(0, 0, 0)
     pf = normal.paragraph_format
     pf.line_spacing_rule = WD_LINE_SPACING.EXACTLY
     pf.line_spacing = _LINE_SPACING
-    pf.space_after = Pt(6)
+    pf.space_before = Pt(0)
+    pf.space_after = Pt(0)
 
-    for level, size in ((1, 22), (2, 16), (3, 14), (4, 12)):
+    heading_configs = [
+        (1, 22, _TITLE_FONT_ALT, _TITLE_FONT, False),
+        (2, 16, _HEADING1_FONT, _HEADING1_FONT, True),
+        (3, 16, _HEADING2_FONT, _HEADING2_FONT, True),
+        (4, 14, _EN_FONT, _BODY_FONT, True),
+    ]
+    for level, size, latin_font, ea_font, bold in heading_configs:
         style_name = f"Heading {level}"
         if style_name not in doc.styles:
             continue
         h = doc.styles[style_name]
-        _style_set_east_asia(h, _BODY_FONT_FALLBACK, "黑体" if level <= 2 else _BODY_FONT)
-        h.font.bold = True
+        _style_set_east_asia(h, latin_font, ea_font)
+        h.font.bold = bold
         h.font.size = Pt(size)
+        h.font.color.rgb = RGBColor(0, 0, 0)
+        h_pf = h.paragraph_format
+        h_pf.space_before = Pt(6)
+        h_pf.space_after = Pt(3)
+        if level == 1:
+            h.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 
 def _setup_page_simple(doc: Document) -> None:
+    """A4 纸张，法院标准页边距。"""
     for section in doc.sections:
         section.page_width = Cm(21.0)
         section.page_height = Cm(29.7)
-        section.top_margin = Cm(2.54)
-        section.bottom_margin = Cm(2.54)
-        section.left_margin = Cm(3.17)
-        section.right_margin = Cm(3.17)
+        section.top_margin = Cm(3.7)
+        section.bottom_margin = Cm(3.5)
+        section.left_margin = Cm(2.8)
+        section.right_margin = Cm(2.6)
+
+
+def _add_page_number(doc: Document) -> None:
+    """在页脚添加居中页码（- X - 格式）。"""
+    for section in doc.sections:
+        footer = section.footer
+        footer.is_linked_to_previous = False
+        p = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
+
+        run_pre = p.add_run("- ")
+        _set_east_asia_font(run_pre, _BODY_FONT)
+        run_pre.font.size = Pt(10)
+
+        fld_char_begin = OxmlElement("w:fldChar")
+        fld_char_begin.set(qn("w:fldCharType"), "begin")
+        run_field = p.add_run()
+        run_field._element.append(fld_char_begin)
+
+        instr_text = OxmlElement("w:instrText")
+        instr_text.set(qn("xml:space"), "preserve")
+        instr_text.text = " PAGE "
+        run_instr = p.add_run()
+        run_instr._element.append(instr_text)
+        _set_east_asia_font(run_instr, _BODY_FONT)
+        run_instr.font.size = Pt(10)
+
+        fld_char_end = OxmlElement("w:fldChar")
+        fld_char_end.set(qn("w:fldCharType"), "end")
+        run_end = p.add_run()
+        run_end._element.append(fld_char_end)
+
+        run_suf = p.add_run(" -")
+        _set_east_asia_font(run_suf, _BODY_FONT)
+        run_suf.font.size = Pt(10)
 
 
 def _parse_inline_to_paragraph(p, text: str, *, bold_labels: bool = True) -> None:
-    """支持 **加粗**；**标签**：值 常见于法律文书。"""
+    """支持 **加粗**；**标签**：值 常见于法律文书。自动转换金额为大写。"""
     safe = _sanitize_xml_text(text)
     if not safe:
         return
+    safe = _auto_uppercase_amounts(safe)
     parts = safe.split("**")
     for i, part in enumerate(parts):
         if not part:
             continue
         run = p.add_run(part)
         _set_east_asia_font(run, _BODY_FONT)
+        run.font.name = _EN_FONT
         run.font.size = _BODY_SIZE
         if i % 2 == 1:
             run.bold = True
@@ -156,10 +305,27 @@ def add_markdown_to_document(
                 cols = max(len(r) for r in table_rows)
                 table = doc.add_table(rows=len(table_rows), cols=cols)
                 table.style = "Table Grid"
+                table.autofit = True
                 for ri, row in enumerate(table_rows):
                     for ci in range(cols):
                         cell_text = row[ci] if ci < len(row) else ""
-                        table.cell(ri, ci).text = _sanitize_xml_text(cell_text)
+                        cell = table.cell(ri, ci)
+                        cell.text = ""
+                        p = cell.paragraphs[0]
+                        p.paragraph_format.space_before = Pt(2)
+                        p.paragraph_format.space_after = Pt(2)
+                        p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+                        p.paragraph_format.line_spacing = Pt(24)
+                        run = p.add_run(_sanitize_xml_text(cell_text))
+                        _set_east_asia_font(run, _BODY_FONT)
+                        run.font.size = Pt(14)
+                        run.font.name = _EN_FONT
+                        if ri == 0:
+                            run.bold = True
+                            shading = OxmlElement("w:shd")
+                            shading.set(qn("w:fill"), "D9E2F3")
+                            shading.set(qn("w:val"), "clear")
+                            cell._element.get_or_add_tcPr().append(shading)
             continue
 
         ordered = re.match(r"^(\d+)[.、)]\s*(.*)", stripped)
@@ -208,6 +374,8 @@ def build_document_from_markdown(
         h.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     add_markdown_to_document(doc, body, first_line_indent=True)
+
+    _add_page_number(doc)
 
     footer = doc.add_paragraph("本文书由劳权智助辅助生成，提交前请核对事实与法律依据。")
     footer.alignment = WD_ALIGN_PARAGRAPH.CENTER

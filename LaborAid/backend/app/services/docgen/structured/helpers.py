@@ -165,6 +165,9 @@ def md_evidence_table(items_text: str | list[str] | None) -> str:
     ]
     for i, item in enumerate(items, 1):
         name, purpose = _split_evidence_item(item)
+        # 清理内容中的 | 字符，避免被 Word 导出解析为表格列分隔符
+        name = name.replace("|", "｜").replace("\n", " ")
+        purpose = purpose.replace("|", "｜").replace("\n", " ")
         rows.append(f"| {i} | {name} | {purpose} |  |")
     return "\n".join(rows) + "\n\n"
 

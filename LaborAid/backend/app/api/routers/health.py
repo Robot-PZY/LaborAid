@@ -1,5 +1,6 @@
 """Health check endpoint — detailed component-level status."""
 
+import asyncio
 import logging
 import time
 
@@ -40,8 +41,8 @@ async def _check_chromadb() -> dict:
         return {"status": "error"}
 
 
-async def _check_llm() -> dict:
-    """Check LLM API connectivity (best-effort, non-blocking)."""
+async def _check_llm_config() -> dict:
+    """Check LLM API configuration (no actual call)."""
     try:
         from app.config import get_settings
         settings = get_settings()
@@ -54,6 +55,45 @@ async def _check_llm() -> dict:
         return {"status": "error"}
 
 
+async def _check_llm_live(timeout: float = 15.0) -> dict:
+    """Perform a lightweight live LLM API call to verify connectivity."""
+    try:
+        from app.config import get_settings
+        settings = get_settings()
+        if not settings.LLM_API_KEY:
+            return {"status": "not_configured"}
+
+        from app.services.llm_client import create_llm_client_from_settings
+        client = create_llm_client_from_settings(settings)
+        model = settings.LLM_MODEL
+
+        start = time.monotonic()
+        response = await asyncio.wait_for(
+            client.messages.create(
+                model=model,
+                max_tokens=8,
+                messages=[{"role": "user", "content": "回复一个字：好"}],
+            ),
+            timeout=timeout,
+        )
+        latency_ms = round((time.monotonic() - start) * 1000, 2)
+        text = ""
+        if response and response.content:
+            text = response.content[0].text[:50]
+        return {
+            "status": "ok",
+            "model": model,
+            "latency_ms": latency_ms,
+            "sample": text,
+        }
+    except asyncio.TimeoutError:
+        return {"status": "timeout", "timeout_s": timeout}
+    except (ConnectionError, OSError) as e:
+        return {"status": "connection_error", "detail": str(e)[:200]}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)[:200]}
+
+
 @router.get("/health")
 async def health_check():
     """Return detailed health status with component-level checks."""
@@ -61,7 +101,7 @@ async def health_check():
 
     db_status = await _check_database()
     chroma_status = await _check_chromadb()
-    llm_status = await _check_llm()
+    llm_status = await _check_llm_config()
 
     total_latency = round((time.monotonic() - start) * 1000, 2)
 
@@ -85,6 +125,16 @@ async def health_check():
             },
         },
     )
+
+
+@router.get("/health/llm")
+async def llm_health_check(
+    current_user: User = Depends(get_current_user),
+):
+    """Perform a live LLM connectivity test. Requires authentication."""
+    result = await _check_llm_live()
+    status_code = 200 if result["status"] == "ok" else 503
+    return JSONResponse(status_code=status_code, content=result)
 
 
 @router.get("/performance")

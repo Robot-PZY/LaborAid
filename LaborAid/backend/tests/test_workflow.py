@@ -26,6 +26,7 @@ def _readiness(**kwargs) -> CaseReadinessOut:
         cause_label="拖欠工资",
         evidence_suggestions=[],
         docgen_ready=False,
+        docgen_recommendation="not_ready",
         docgen_blockers=[],
     )
     d.update(kwargs)

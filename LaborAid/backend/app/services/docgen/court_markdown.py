@@ -11,6 +11,18 @@ _INLINE_COLOR_STYLE_RE = re.compile(
 )
 _RAW_HEADING_RE = re.compile(r"^<h([1-6])\b[^>]*>.*</h\1>\s*$", re.IGNORECASE | re.DOTALL)
 
+# 右对齐段落模式：签名、日期、此致后的法院名等
+_RIGHT_ALIGN_PATTERNS = re.compile(
+    r"^(?:起诉人|申请人|答辩人|上诉人|被上诉人|反诉原告|反诉被告|"
+    r"代理人|辩护人|投诉人|质证人|异议人|出具人|调解员|"
+    r"律师|仲裁员|书记员|"
+    r"XXXX年|××××年|\d{4}年|"
+    r"日期[：:])",
+)
+
+# 落款区块起始标记
+_CLOSING_MARKERS = {"## 落款", "## 落款："}
+
 
 def _strip_inline_color_styles(html: str) -> str:
     """移除 LLM 可能注入的 color/background 行内样式，避免预览标题发蓝。"""
@@ -23,7 +35,18 @@ def format_inline_html(text: str) -> str:
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"__(.+?)__", r"<strong>\1</strong>", text)
     text = re.sub(r"\*(.+?)\*", r"<em>\1</em>", text)
+    # 模板变量缺失提示高亮：【xxx待补充】 → 红色高亮
+    text = re.sub(
+        r"【([^】]*待补充[^】]*)】",
+        r'<span class="template-hint">【\1】</span>',
+        text,
+    )
     return text
+
+
+def _is_right_align_candidate(text: str) -> bool:
+    """判断文本是否应右对齐（签名行、日期行等）。"""
+    return bool(_RIGHT_ALIGN_PATTERNS.match(text))
 
 
 def markdown_to_html_body(text: str) -> str:
@@ -32,6 +55,7 @@ def markdown_to_html_body(text: str) -> str:
     html_parts: list[str] = []
     in_list = False
     list_type: str | None = None
+    in_closing = False
 
     i = 0
     while i < len(lines):
@@ -47,8 +71,27 @@ def markdown_to_html_body(text: str) -> str:
             continue
 
         stripped, no_indent = strip_no_indent_marker(stripped)
+
+        # 检测落款区块 → 后续 no-indent 行均右对齐
+        if stripped in _CLOSING_MARKERS:
+            if in_list:
+                html_parts.append(f"</{list_type}>")
+                in_list = False
+                list_type = None
+            in_closing = True
+            i += 1
+            continue
+
         if no_indent and stripped:
-            html_parts.append(f'<p class="no-indent">{format_inline_html(stripped)}</p>')
+            if in_list:
+                html_parts.append(f"</{list_type}>")
+                in_list = False
+                list_type = None
+            # 落款区块内的 no-indent 行或匹配签名模式的行 → 右对齐
+            if in_closing or _is_right_align_candidate(stripped):
+                html_parts.append(f'<p class="right-align">{format_inline_html(stripped)}</p>')
+            else:
+                html_parts.append(f'<p class="no-indent">{format_inline_html(stripped)}</p>')
             i += 1
             continue
 
@@ -57,6 +100,7 @@ def markdown_to_html_body(text: str) -> str:
                 html_parts.append(f"</{list_type}>")
                 in_list = False
                 list_type = None
+            in_closing = False
             html_parts.append(_strip_inline_color_styles(stripped))
             i += 1
             continue
@@ -75,6 +119,7 @@ def markdown_to_html_body(text: str) -> str:
                 html_parts.append(f"</{list_type}>")
                 in_list = False
                 list_type = None
+            in_closing = False
             html_parts.append(f"<h3>{format_inline_html(stripped[4:])}</h3>")
             i += 1
             continue
@@ -84,6 +129,7 @@ def markdown_to_html_body(text: str) -> str:
                 html_parts.append(f"</{list_type}>")
                 in_list = False
                 list_type = None
+            in_closing = False
             html_parts.append(f"<h2>{format_inline_html(stripped[3:])}</h2>")
             i += 1
             continue
@@ -93,6 +139,7 @@ def markdown_to_html_body(text: str) -> str:
                 html_parts.append(f"</{list_type}>")
                 in_list = False
                 list_type = None
+            in_closing = False
             html_parts.append(f'<h1 class="center">{format_inline_html(stripped[2:])}</h1>')
             i += 1
             continue
@@ -138,6 +185,13 @@ def markdown_to_html_body(text: str) -> str:
             html_parts.append(f"</{list_type}>")
             in_list = False
             list_type = None
+
+        # 此致 特殊处理 — 加间距
+        if stripped in ("此致", "此致：", "此致:"):
+            html_parts.append(f'<p class="no-indent" style="margin-top:12pt">{format_inline_html(stripped)}</p>')
+            i += 1
+            continue
+
         html_parts.append(f"<p>{format_inline_html(stripped)}</p>")
         i += 1
 

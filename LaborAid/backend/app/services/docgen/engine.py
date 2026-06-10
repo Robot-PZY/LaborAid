@@ -41,6 +41,7 @@ from app.services.docgen.prompts import (
     DOC_TYPE_SPECIFIC_INSTRUCTIONS,
     DOC_TYPE_REQUIRED_ELEMENTS,
     BUNDLE_PRESETS,
+    get_case_type_example,
 )
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ class DocumentGenerationEngine:
         self.model = llm_model or settings.LLM_MODEL
 
     # Maximum word count for generated content to prevent runaway generation
-    MAX_CONTENT_WORDS = 8000
+    MAX_CONTENT_WORDS = 15000
 
     # Maximum input length for case facts
     MAX_CASE_FACTS_LENGTH = 200000  # 200K chars
@@ -387,6 +388,12 @@ class DocumentGenerationEngine:
                 },
             }
 
+        # 根据案由选择对应的范文示例，注入 prompt 引导 LLM 输出更丰富的内容
+        cause_of_action = parsed_case.get("cause_of_action", "") or parsed_case.get("sub_type", "")
+        case_type_example = get_case_type_example(cause_of_action)
+        if not case_type_example:
+            case_type_example = ""
+
         content = await self._call_claude(
             system=SYSTEM_DOCUMENT_GENERATION,
             user=DOCUMENT_GENERATION_PROMPT.format(
@@ -398,6 +405,7 @@ class DocumentGenerationEngine:
                 template_structure=template_structure,
                 extra_instructions=extra_instructions or "无",
                 doc_type_specific=doc_type_specific,
+                case_type_example=case_type_example,
             ),
             max_tokens=self._settings.CLAUDE_MAX_TOKENS,
         )

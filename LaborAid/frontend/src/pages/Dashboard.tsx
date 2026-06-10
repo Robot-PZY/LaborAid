@@ -12,8 +12,6 @@ import {
   Upload,
 } from 'lucide-react';
 import CaseJourneyPanel from '@/components/cases/CaseJourneyPanel';
-import CaseAgentCoach from '@/components/cases/CaseAgentCoach';
-import { useCaseAgentStep } from '@/hooks/useCaseAgentStep';
 import DashboardHeroBanner from '@/components/dashboard/DashboardHeroBanner';
 import ServiceStrip from '@/components/service/ServiceStrip';
 import { caseApi, userPortalApi, type CaseReadinessSummary } from '@/lib/api';
@@ -29,7 +27,7 @@ import CalculatorToolRow from '@/components/dashboard/CalculatorToolRow';
 import GuidanceHubPanel from '@/components/guidance/GuidanceHubPanel';
 import { formatBytes } from '@/lib/format';
 import IntakeDesk from '@/components/intake/IntakeDesk';
-import EntryGate from '@/components/intake/EntryGate';
+import { ChatIntake } from '@/components/intake/ChatIntake';
 import PageSkeleton from '@/components/ui/PageSkeleton';
 import { Button, SectionTitle, Surface } from '@/components/ui/primitives';
 import { CHART_COLORS, MiniBarCompare } from '@/components/charts/SimpleCharts';
@@ -146,13 +144,6 @@ function Dashboard() {
   const [activeFlowStep, setActiveFlowStep] = useState(0);
   const [activeCaseReadiness, setActiveCaseReadiness] = useState<CaseReadinessSummary | null>(null);
   const [readinessLoading, setReadinessLoading] = useState(false);
-  const [activeCaseId, setActiveCaseId] = useState<number | null>(() => getActiveCaseId());
-  const {
-    step: agentStep,
-    loading: agentLoading,
-    error: agentError,
-    refresh: refreshAgent,
-  } = useCaseAgentStep(activeCaseId);
 
   const hubAgents = useMemo(() => getHubAgents(), []);
   const recentAgents = useMemo(() => {
@@ -170,12 +161,6 @@ function Dashboard() {
     } catch {
       // ignore
     }
-  }, []);
-
-  useEffect(() => {
-    setActiveCaseId(getActiveCaseId());
-    const unsub = subscribeActiveCase(() => setActiveCaseId(getActiveCaseId()));
-    return unsub;
   }, []);
 
   useEffect(() => {
@@ -326,7 +311,18 @@ function Dashboard() {
         </div>
       </section>
 
-      <EntryGate />
+      <section id="chat-intake">
+        <SectionTitle
+          title="💬 智能维权顾问"
+          description="选择身份和纠纷类型，快速生成维权方案；或选择「其他」与 AI 对话获取个性化分析。"
+        />
+        <ChatIntake
+          className="max-w-4xl mx-auto"
+          onComplete={(caseId) => {
+            navigate(`/cases/${caseId}`);
+          }}
+        />
+      </section>
 
       {error && (
         <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
@@ -335,54 +331,45 @@ function Dashboard() {
         </div>
       )}
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_auto]">
+      <section className="space-y-4">
         <CaseJourneyPanel />
-        <div className="min-w-[260px] space-y-4">
-          <CaseAgentCoach
-            step={agentStep}
-            caseId={activeCaseId}
-            loading={agentLoading}
-            error={agentError}
-            onRefresh={activeCaseId ? refreshAgent : undefined}
-            compact
-          />
-          <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
-            <h2 className="text-sm font-semibold">材料完整度</h2>
-            {readinessLoading ? (
-              <p className="mt-2 text-xs text-muted-foreground">正在计算…</p>
-            ) : !activeCaseReadiness ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                请选择一个案件作为当前案件，即可显示评估。
-              </p>
-            ) : (
-              <>
-                <div className="mt-3 h-2.5 rounded-full bg-muted">
-                  <div
-                    className={cn(
-                      'h-full rounded-full transition-all duration-300',
-                      activeCaseReadiness.readiness_level === 'high'
-                        ? 'bg-emerald-500'
-                        : activeCaseReadiness.readiness_level === 'medium'
-                          ? 'bg-amber-500'
-                          : 'bg-rose-500',
-                    )}
-                    style={{
-                      width: `${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          activeCaseReadiness.combined_score ??
-                            activeCaseReadiness.readiness_score,
-                        ),
-                      )}%`,
-                    }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">{activeCaseReadiness.summary}</p>
-              </>
-            )}
-          </div>
-          <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
+        <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
+          <h2 className="text-sm font-semibold">材料完整度</h2>
+          {readinessLoading ? (
+            <p className="mt-2 text-xs text-muted-foreground">正在计算…</p>
+          ) : !activeCaseReadiness ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              请选择一个案件作为当前案件，即可显示评估。
+            </p>
+          ) : (
+            <>
+              <div className="mt-3 h-2.5 rounded-full bg-muted">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all duration-300',
+                    activeCaseReadiness.readiness_level === 'high'
+                      ? 'bg-emerald-500'
+                      : activeCaseReadiness.readiness_level === 'medium'
+                        ? 'bg-amber-500'
+                        : 'bg-rose-500',
+                  )}
+                  style={{
+                    width: `${Math.max(
+                      0,
+                      Math.min(
+                        100,
+                        activeCaseReadiness.combined_score ??
+                          activeCaseReadiness.readiness_score,
+                      ),
+                    )}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">{activeCaseReadiness.summary}</p>
+            </>
+          )}
+        </div>
+        <div className="rounded-xl border border-border/70 bg-card p-5 shadow-card">
           <h2 className="text-sm font-semibold">材料与产出概况</h2>
           <p className="mt-1 text-xs text-muted-foreground">当前账号维权资产一览</p>
           <div className="mt-3">
@@ -396,7 +383,6 @@ function Dashboard() {
             <span>材料库 {stats.vault_files} 份</span>
             <span className="text-muted-foreground">{formatBytes(stats.vault_bytes)}</span>
           </button>
-        </div>
         </div>
       </section>
 

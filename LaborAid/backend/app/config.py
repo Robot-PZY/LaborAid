@@ -57,8 +57,8 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "deepseek-v4-pro"
     LLM_MAX_TOKENS: int = 8192
 
-    # Word 导出：court=法院仿宋/黑体精细排版（与预览一致）；native=Word内置标题样式
-    WORD_EXPORT_MODE: str = "court"
+    # Word 导出：html=HTML中间格式（预览和导出一致，推荐）；court=法院仿宋/黑体；native=Word内置标题样式
+    WORD_EXPORT_MODE: str = "html"
 
     # Vision / OCR LLM（默认阿里百炼 qwen-vl-ocr，与文本 LLM 分离）
     VISION_LLM_API_KEY: str = ""

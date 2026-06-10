@@ -93,10 +93,19 @@ def _fallback_answer(ctx: CaseWorkContext, question: str, base_step: dict) -> di
         else:
             answer_parts.append(f"已上传 {ctx.evidence_count} 份证据，可运行证据链分析查漏。")
     elif "文书" in q or "申请" in q:
-        if r.docgen_ready:
-            answer_parts.append("材料基础可支撑文书生成，请进入文书模块并人工核对。")
+        rec = r.docgen_recommendation
+        if rec == "ready":
+            answer_parts.append("材料充分，可以生成文书，请进入文书模块并人工核对。")
+        elif rec == "caution":
+            answer_parts.append(
+                f"综合评分 {r.combined_score or r.readiness_score} 分，可生成文书但材料可能不够完整，"
+                "建议先补齐关键证据再定稿。"
+            )
         else:
-            answer_parts.append("文书条件尚未满足：" + "；".join(r.docgen_blockers[:2] or ["先补证据与案情"]))
+            answer_parts.append(
+                f"综合评分 {r.combined_score or r.readiness_score} 分，低于 50 分门槛，"
+                + "；".join(r.docgen_blockers[:2] or ["请先补充证据与案情描述"])
+            )
     else:
         answer_parts.append(r.summary)
         answer_parts.append(f"当前建议：{base_step['explanation']}")

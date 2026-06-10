@@ -35,3 +35,4 @@ python-dotenv==1.0.1
 sse-starlette==2.2.1
 weasyprint==62.3
 xhtml2pdf==0.2.17; sys_platform == "win32"
+beautifulsoup4>=4.12.0

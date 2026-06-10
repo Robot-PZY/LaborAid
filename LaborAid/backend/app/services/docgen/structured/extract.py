@@ -16,13 +16,16 @@ from app.services.docgen.template_structure import build_extraction_schema, merg
 
 logger = logging.getLogger(__name__)
 
-STRUCTURED_EXTRACTION_SYSTEM = """你是法律文书信息抽取助手。根据案情与结构化案件信息，填充 JSON 各字段。
+STRUCTURED_EXTRACTION_SYSTEM = """你是法律文书变量提取助手。请根据用户提供的案情描述，提取模板所需的变量值，输出 JSON。
+
 规则：
 1. 仅输出一个合法 JSON 对象，不要 markdown 代码块，不要解释。
 2. 信息缺失用空字符串 ""，不要编造与案情矛盾的姓名、金额、日期。
-3. 请求/诉求类字段用完整句子，多项可换行分隔。
+3. 请求/诉求类字段用完整句子，每项须包含：请求事项 + 具体金额（精确到元）+ 计算方式或法律依据。金额须同时使用中文大写和阿拉伯数字。
 4. 日期格式：XXXX年XX月XX日。
-5. 不要输出问候语、助手自我介绍。"""
+5. dispute_details 字段须按时间顺序详细叙述争议经过，包含时间、地点、人物、经过、结果，不少于200字。不得原样复制用户输入的原始证据数据（如银行流水、微信聊天记录原文），须提取关键信息后改写为法律语言。
+6. legal_analysis_expansion 字段须采用三段论：法条→事实→结论，不少于150字。
+7. 不要输出问候语、助手自我介绍。"""
 
 
 def _schema_prompt_block(doc_type: str, template: Any = None) -> str:
@@ -59,9 +62,43 @@ def build_extraction_user_prompt(
     research_block = ""
     if research_context and research_context.strip():
         research_block = f"\n## 研究报告摘要\n{research_context.strip()[:4000]}\n"
+
+    # 注入模板上下文：告诉 LLM 文书的事实与理由部分将用预定义模板渲染
+    template_context_block = ""
+    try:
+        from app.services.docgen.templates.legal_templates import (
+            get_facts_template, get_variable_descriptions,
+        )
+        facts_tpl = get_facts_template(doc_type)
+        var_descs = get_variable_descriptions(doc_type)
+        if facts_tpl and var_descs:
+            var_desc_lines = "\n".join(
+                f'  "{k}": "{v}"' for k, v in var_descs.items()
+            )
+            template_context_block = f"""
+## 模板上下文（重要）
+本文书的「事实与理由」部分将使用预定义法律文本模板渲染，你只需提取以下变量值填入模板：
+
+需要提取的模板变量：
+{{
+{var_desc_lines}
+}}
+
+模板结构预览：
+{facts_tpl[:1500]}...
+
+⚠️ 注意：
+- 你只需要输出上述变量的 JSON 值，不需要输出完整文书
+- dispute_details 须按时间线改写为正式法律语言，不得原样复制用户输入的原始数据（如银行流水、微信记录）
+- 如果案情中无法提取某个变量，留空字符串 ""
+"""
+    except ImportError:
+        pass
+
     return f"""请为《{doc_type_name}》抽取字段，输出 JSON（键名必须与下列一致）：
 
 {schema}
+{template_context_block}
 {preseed_block}
 {tpl_hint}
 {research_block}

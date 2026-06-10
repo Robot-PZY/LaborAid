@@ -35,27 +35,45 @@ class DocgenAgent(CaseAgent):
                 pipeline_stage="documents",
             )
 
-        if ctx.evidence_count == 0 or required_missing(ctx):
-            return self._eval(
-                status="blocked",
-                summary="需先由证据智能体补齐关键材料",
-                blockers=blockers,
-                route=route,
-                pipeline_stage="documents",
-            )
+        rec = r.docgen_recommendation
 
-        if not r.docgen_ready:
+        if rec == "not_ready":
             return self._eval(
                 status="blocked",
-                summary="材料完整度不足，暂不满足文书生成条件",
+                summary=f"综合评分 {score} 分，低于 50 分门槛，请先补充材料",
                 blockers=r.docgen_blockers or blockers,
                 route=route,
                 pipeline_stage="documents",
             )
 
+        if rec == "caution":
+            cause_lbl = cause_label(ctx)
+            explanation = (
+                f"「{cause_lbl}」综合评分 {score} 分（50-70 区间），可生成文书但材料可能不够完整，"
+                "生成后请务必人工核对事实与请求事项。"
+            )
+            alts = [alt_step("evidence", "先补齐关键证据", "提升文书质量后再定稿", ctx)]
+            next_step = ProposedStep(
+                label="生成维权文书（材料不完整）",
+                reason="综合分未达 70，文书可能不够完整",
+                explanation=explanation,
+                pipeline_stage="documents",
+                blockers=blockers,
+                prefill=doc_prefill,
+                alternatives=alts,
+            )
+            return self._eval(
+                status="active",
+                summary=explanation[:120],
+                blockers=blockers,
+                route=route,
+                pipeline_stage="documents",
+                next_step=next_step,
+            )
+
         cause_lbl = cause_label(ctx)
         explanation = (
-            f"「{cause_lbl}」材料完整度约 {score}%，可生成仲裁申请书、证据清单等文书，"
+            f"「{cause_lbl}」材料充分（综合 {score} 分），可生成仲裁申请书、证据清单等文书，"
             "生成后请人工核对事实与请求事项。"
         )
         alts = [alt_step("research", "先做案情分析", "汇总现有材料形成阶段报告", ctx)]
@@ -64,7 +82,7 @@ class DocgenAgent(CaseAgent):
 
         next_step = ProposedStep(
             label="生成维权文书",
-            reason="材料基础已具备，可起草申请书或证据清单",
+            reason="材料充分，可起草申请书或证据清单",
             explanation=explanation,
             pipeline_stage="documents",
             blockers=blockers,

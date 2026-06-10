@@ -88,30 +88,25 @@ def build_action_plan(
 
     # 专区匹配仅通过 channel_id 返回前端「专项入口」卡片展示，不纳入主线步骤。
 
-    # 2. 欠薪类：监察/线索举报优先于文书（用户确认）
-    wants_report = any(
-        kw in text
-        for kw in ["举报", "监察", "投诉", "12333", "人社", "欠薪线索"]
-    )
+    # 2. 欠薪类：提供内部指引（不跳转外部网站）
     if cause_type == "wage_arrears" and (
-        channel_id == "migrant-worker" or wants_report or any(k in text for k in ["包工头", "工地", "农民工"])
+        channel_id == "migrant-worker" or any(k in text for k in ["包工头", "工地", "农民工"])
     ):
-        platform = "wage_clue" if channel_id == "migrant-worker" else "labor_inspection"
         add(
-            "official_external",
-            "向有关部门反映欠薪",
-            "工程建设领域欠薪可优先通过国务院客户端线索反映；亦可向属地劳动监察投诉",
-            action="external",
-            platform_category=platform,
+            "guidance",
+            "了解欠薪维权途径",
+            "工程建设领域欠薪可通过劳动监察、仲裁等途径维权，系统将提供详细指引",
+            agent_id="guidance",
+            action="navigate",
         )
 
     if channel_id == "female-worker" and any(k in text for k in ["怀孕", "产假", "三期", "生育", "哺乳"]):
         add(
-            "official_external",
-            "妇联 / 工会维权咨询",
-            "女职工权益问题可咨询妇联或工会职工维权热线",
-            action="external",
-            platform_category="women_federation",
+            "guidance",
+            "女职工权益咨询",
+            "女职工权益问题可咨询妇联或工会职工维权热线，系统提供相关指引",
+            agent_id="guidance",
+            action="navigate",
             optional=True,
         )
 
@@ -135,14 +130,14 @@ def build_action_plan(
             optional=True,
         )
 
-    # 工伤：向人社局申请工伤认定（可选，视情况而定）
+    # 工伤：提供工伤认定指引（不跳转外部网站）
     if channel_id == "work-injury" and any(k in text for k in ["工伤", "受伤", "职业病", "认定"]):
         add(
-            "official_external",
-            "向人社局申请工伤认定（可选）",
-            "工作中受伤可申请工伤认定；单位不配合时劳动者可自行申请",
-            action="external",
-            platform_category="labor_inspection",
+            "guidance",
+            "了解工伤认定流程",
+            "工作中受伤可申请工伤认定；单位不配合时劳动者可自行申请，系统提供详细流程指引",
+            agent_id="guidance",
+            action="navigate",
             optional=True,
         )
 

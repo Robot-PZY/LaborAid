@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from app.services.docgen.prompts import DOC_TYPE_NAMES
+from app.services.docgen.legal_citation_normalize import normalize_markdown_citations
 
 # doc_type -> [(pattern, replacement_section_header), ...]
 _SECTION_ALIASES: dict[str, list[tuple[str, str]]] = {
@@ -60,5 +61,8 @@ def normalize_freeform_markdown(content: str, doc_type: str) -> str:
     # 确保仲裁类有「此致」
     if doc_type == "application" and "此致" not in text:
         text = text.rstrip() + "\n\n## 落款\n\n此致\n××劳动人事争议仲裁委员会\n\n申请人：[签名]\n"
+
+    # 法条引用规范化：统一法律名称、条文号格式
+    text = normalize_markdown_citations(text)
 
     return text.strip() + "\n"

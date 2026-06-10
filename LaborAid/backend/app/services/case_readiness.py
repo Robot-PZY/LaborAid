@@ -10,6 +10,11 @@ from app.schemas.case import CaseReadinessAction, CaseReadinessOut, CaseEvidence
 from app.services.intake.analyzer import _match_cause, _cause_label
 from app.services.intake.config_loader import get_evidence_checklists
 
+# 文书生成推荐阈值
+DOCGEN_SCORE_READY = 70       # 综合分 >= 70 → 直接推荐生成
+DOCGEN_SCORE_CAUTION = 50     # 综合分 >= 50 → 可生成但带风险提示
+# 综合分 < 50 → 不推荐生成
+
 # 清单项 -> 在标题/OCR/案情中匹配的关键词
 _CHECKLIST_KEYWORDS: dict[str, list[str]] = {
     "劳动关系证明": ["劳动合同", "劳动", "入职", "工牌", "社保", "工作证", "聘用", "派遣"],
@@ -203,9 +208,6 @@ def build_case_readiness(
         docgen_blockers.append("尚无证据材料，建议先上传工资流水、合同或沟通记录")
     if required_missing:
         docgen_blockers.append(f"仍缺 {len(required_missing)} 项关键证据：{required_missing[0]}")
-    docgen_ready = len(docgen_blockers) == 0 or (
-        bool((case.description or "").strip()) and evidence_count > 0
-    )
 
     if not actions and evidence_count == 0:
         actions.append(
@@ -232,25 +234,6 @@ def build_case_readiness(
                 reason="完善案情描述有助于文书与报告生成",
             )
         )
-
-    if documents_count == 0 and docgen_ready:
-        actions.append(
-            CaseReadinessAction(
-                label="生成维权文书",
-                route="/documents?worker=1",
-                reason="材料基础已具备，可生成申请书或证据清单",
-            )
-        )
-
-    if score >= 70:
-        readiness_level = "high"
-        summary = f"「{cause_label}」材料较完整，可生成总结报告。"
-    elif score >= 45:
-        readiness_level = "medium"
-        summary = f"「{cause_label}」基础已具备，建议先补齐关键证据再定稿。"
-    else:
-        readiness_level = "low"
-        summary = f"「{cause_label}」材料偏少，建议先补充描述与核心证据。"
 
     if score >= 50:
         actions.append(
@@ -282,19 +265,61 @@ def build_case_readiness(
             min(100, round(readiness_score * 0.65 + chain_score * 0.35)),
         )
         if chain_score < 50 and readiness_score >= 50:
-            missing_items.insert(
+            deduped_missing.insert(
                 0,
                 f"证据链完整度 {chain_score} 分偏低，建议按时间线补强关键证据",
             )
         elif chain_score >= 70 and readiness_score < 70:
             strengths.append(f"证据链分析 {chain_score} 分，链条较完整")
 
+    # 综合分等级
     if combined_score >= 70:
         readiness_level = "high"
     elif combined_score >= 45:
         readiness_level = "medium"
     else:
         readiness_level = "low"
+
+    # 三档文书生成推荐
+    has_description = bool((case.description or "").strip())
+    has_evidence_text = _has_evidence_text(evidences)
+    hard_block = evidence_count == 0 or (not has_description and not has_evidence_text)
+
+    if hard_block or combined_score < DOCGEN_SCORE_CAUTION:
+        docgen_recommendation = "not_ready"
+    elif combined_score >= DOCGEN_SCORE_READY:
+        docgen_recommendation = "ready"
+    else:
+        docgen_recommendation = "caution"
+
+    docgen_ready = docgen_recommendation in ("ready", "caution")
+
+    # 按档位生成 summary
+    if docgen_recommendation == "ready":
+        summary = f"「{cause_label}」材料充分（综合 {combined_score} 分），可生成文书。"
+    elif docgen_recommendation == "caution":
+        summary = f"「{cause_label}」基础已具备（综合 {combined_score} 分），建议先补齐关键证据再定稿。"
+    else:
+        summary = f"「{cause_label}」材料不足（综合 {combined_score} 分），请先补充描述与核心证据。"
+
+    # 按档位生成文书 action
+    if documents_count == 0:
+        if docgen_recommendation == "ready":
+            actions.append(
+                CaseReadinessAction(
+                    label="生成维权文书",
+                    route="/documents?worker=1",
+                    reason="材料充分，可直接生成申请书或证据清单",
+                )
+            )
+        elif docgen_recommendation == "caution":
+            actions.append(
+                CaseReadinessAction(
+                    label="生成维权文书（材料不完整）",
+                    route="/documents?worker=1",
+                    reason="综合分未达 70，生成文书可能不够完整",
+                )
+            )
 
     return CaseReadinessOut(
         case_id=case.id,
@@ -308,6 +333,7 @@ def build_case_readiness(
         cause_label=cause_label,
         evidence_suggestions=suggestions,
         docgen_ready=docgen_ready,
+        docgen_recommendation=docgen_recommendation,
         docgen_blockers=docgen_blockers[:4],
         chain_completeness_score=chain_score,
         combined_score=combined_score,

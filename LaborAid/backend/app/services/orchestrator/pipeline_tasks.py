@@ -55,7 +55,14 @@ def build_pipeline_tasks(ctx: CaseWorkContext, pipeline_stage: str) -> list[dict
             {
                 "id": "docgen",
                 "label": "生成仲裁申请书等",
-                "status": "done" if ctx.documents_count > 0 else ("active" if r.docgen_ready else "pending"),
+                "status": "done" if ctx.documents_count > 0 else (
+                    "active" if r.docgen_ready else "pending"
+                ),
+                "hint": (
+                    "综合分未达 70，文书可能不够完整"
+                    if r.docgen_recommendation == "caution" and ctx.documents_count == 0
+                    else None
+                ),
                 "route": _build_route(
                     "docgen",
                     cid,

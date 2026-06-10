@@ -20,6 +20,8 @@ import asyncio
 import re
 import logging
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 from pathlib import Path
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor, Emu
@@ -66,13 +68,14 @@ _XML_UNSAFE_RE = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f]')
 _MAX_PARAGRAPH_CHARS = 8000
 
 # Major section markers that should trigger a page break before them
-_MAJOR_SECTION_MARKERS = (
-    "## 一、", "## 二、", "## 三、", "## 四、", "## 五、",
-    "## 六、", "## 七、", "## 八、", "## 九、", "## 十、",
-    "## 当事人信息", "## 诉讼请求", "## 事实与理由",
-    "## 法律依据", "## 答辩意见", "## 上诉请求", "## 上诉理由",
-    "## 反诉请求", "## 代理意见", "## 辩护意见",
-)
+# 已禁用：强制分页导致大量留白，法律文书不需要每个章节都分页
+# _MAJOR_SECTION_MARKERS = (
+#     "## 一、", "## 二、", "## 三、", "## 四、", "## 五、",
+#     "## 六、", "## 七、", "## 八、", "## 九、", "## 十、",
+#     "## 当事人信息", "## 诉讼请求", "## 事实与理由",
+#     "## 法律依据", "## 答辩意见", "## 上诉请求", "## 上诉理由",
+#     "## 反诉请求", "## 代理意见", "## 辩护意见",
+# )
 
 
 def _sanitize_xml_text(text: str) -> str:
@@ -353,10 +356,7 @@ def _add_page_break(doc: Document):
 
 
 def _should_page_break_before(stripped: str) -> bool:
-    """Check if a heading line should trigger a page break before it."""
-    for marker in _MAJOR_SECTION_MARKERS:
-        if stripped.startswith(marker):
-            return True
+    """已禁用：强制分页导致大量留白，法律文书不需要每个章节都分页。"""
     return False
 
 
@@ -611,8 +611,10 @@ def _add_markdown_paragraphs(doc: Document, content: str, first_line_indent: boo
 async def export_to_docx(doc_record, output_dir: Path, watermark: str | None = None) -> str:
     """将文书导出为 Word 文档。
 
-    WORD_EXPORT_MODE=native（默认）：Word 内置标题样式，版式稳定（参考 LegalDocGen）。
-    WORD_EXPORT_MODE=court：法院仿宋/黑体精细排版（需本机字体齐全）。
+    三种导出路径（按优先级）：
+    1. direct：直接填充 .docx 模板（需 ai_metadata 中有结构化变量）
+    2. html：Markdown → HTML → DOCX（统一渲染源，预览和导出一致）
+    3. court/native：旧模式，向后兼容
     """
     from app.config import get_settings
 
@@ -620,9 +622,38 @@ async def export_to_docx(doc_record, output_dir: Path, watermark: str | None = N
     if not content.strip():
         content = "（文档内容为空）"
 
-    mode = (get_settings().WORD_EXPORT_MODE or "native").strip().lower()
+    mode = (get_settings().WORD_EXPORT_MODE or "html").strip().lower()
+    doc_type = getattr(doc_record, "type", "") or ""
+
+    # 优先尝试直接填充模式（需结构化变量）
+    ai_metadata = getattr(doc_record, "ai_metadata", None) or {}
+    structured_vars = ai_metadata.get("structured_payload") if isinstance(ai_metadata, dict) else None
+
+    if structured_vars and isinstance(structured_vars, dict) and get_template_path(doc_type):
+        # 直接填充模式：用结构化变量填充 .docx 模板
+        from app.services.docgen.direct_docx_engine import DirectDocxFillEngine
+
+        engine = DirectDocxFillEngine()
+        evidence_text = ai_metadata.get("evidence_text", "") if isinstance(ai_metadata, dict) else ""
+
+        try:
+            docx_bytes = await asyncio.to_thread(
+                engine.fill_from_markdown, doc_type, structured_vars, evidence_text=evidence_text
+            )
+            from app.services.docgen.word_export_native import safe_docx_filename
+
+            filename = safe_docx_filename(doc_record.id, doc_record.title)
+            filepath = output_dir / filename
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            with open(filepath, "wb") as f:
+                f.write(docx_bytes)
+            return str(filepath)
+        except Exception as e:
+            logger.warning("Direct fill failed for %s: %s, falling back to html mode", doc_type, e)
 
     if mode == "court":
+        # 旧 court 模式：直接解析 Markdown
         doc = Document()
         _setup_page(doc)
         _set_document_properties(doc, doc_record.title)
@@ -631,7 +662,26 @@ async def export_to_docx(doc_record, output_dir: Path, watermark: str | None = N
         if not content.lstrip().startswith("#"):
             _add_title(doc, doc_record.title)
         _add_markdown_paragraphs(doc, content, first_line_indent=True)
+    elif mode == "html":
+        # 新模式：Markdown → HTML → DOCX（统一渲染源）
+        from app.services.docgen.court_markdown import build_preview_html
+        from app.services.docgen.html_to_docx import html_to_docx_bytes
+
+        title = getattr(doc_record, "title", None)
+        html_content = build_preview_html(content, title=title)
+        docx_bytes = await asyncio.to_thread(html_to_docx_bytes, html_content, title=title)
+
+        from app.services.docgen.word_export_native import safe_docx_filename
+
+        filename = safe_docx_filename(doc_record.id, doc_record.title)
+        filepath = output_dir / filename
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        with open(filepath, "wb") as f:
+            f.write(docx_bytes)
+        return str(filepath)
     else:
+        # 旧 native 模式：向后兼容
         from app.services.docgen.word_export_native import build_document_from_markdown
 
         doc = build_document_from_markdown(

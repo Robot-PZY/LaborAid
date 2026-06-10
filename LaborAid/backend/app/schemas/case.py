@@ -130,6 +130,7 @@ class CaseReadinessOut(BaseModel):
     cause_label: str | None = None
     evidence_suggestions: list[CaseEvidenceSuggestion] = []
     docgen_ready: bool = False
+    docgen_recommendation: str = "not_ready"  # ready | caution | not_ready
     docgen_blockers: list[str] = []
     chain_completeness_score: int | None = None
     combined_score: int | None = None

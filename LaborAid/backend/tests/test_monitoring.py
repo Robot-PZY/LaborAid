@@ -337,7 +337,7 @@ class TestLLMTimer:
 
     def test_elapsed_ms_set_after_exit(self):
         with LLMTimer("glm-5.1") as t:
-            time.sleep(0.01)
+            time.sleep(0.05)
         assert t.elapsed_ms > 0
 
     def test_set_tokens_and_cost(self):

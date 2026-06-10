@@ -32,6 +32,7 @@ def _readiness(**kwargs) -> CaseReadinessOut:
         cause_label="拖欠工资",
         evidence_suggestions=[],
         docgen_ready=False,
+        docgen_recommendation="not_ready",
         docgen_blockers=["尚无证据材料"],
     )
     defaults.update(kwargs)
@@ -87,11 +88,61 @@ def test_next_step_docgen_when_ready():
         has_intake_plan=True,
         readiness=_readiness(
             readiness_score=55,
+            combined_score=75,
             docgen_ready=True,
+            docgen_recommendation="ready",
             docgen_blockers=[],
         ),
     )
     out = compute_case_next_step(ctx)
+    assert out["agent_id"] == "docgen"
+    assert out["pipeline_stage"] == "documents"
+
+
+def test_next_step_docgen_blocked_when_low_score():
+    ctx = CaseWorkContext(
+        case=_minimal_case(description="拖欠工资三个月"),
+        documents_count=0,
+        evidence_count=1,
+        research_reports_count=0,
+        intake_cause_type="wage_arrears",
+        channel_id=None,
+        scenario_id=None,
+        intake_summary=None,
+        has_intake_plan=True,
+        readiness=_readiness(
+            readiness_score=35,
+            combined_score=35,
+            docgen_ready=False,
+            docgen_recommendation="not_ready",
+            docgen_blockers=["仍缺 2 项关键证据"],
+        ),
+    )
+    out = compute_case_next_step(ctx)
+    assert out["agent_id"] != "docgen"
+
+
+def test_next_step_docgen_caution_mid_score():
+    ctx = CaseWorkContext(
+        case=_minimal_case(description="拖欠工资三个月，有聊天记录"),
+        documents_count=0,
+        evidence_count=1,
+        research_reports_count=0,
+        intake_cause_type="wage_arrears",
+        channel_id=None,
+        scenario_id=None,
+        intake_summary=None,
+        has_intake_plan=True,
+        readiness=_readiness(
+            readiness_score=55,
+            combined_score=59,
+            docgen_ready=True,
+            docgen_recommendation="caution",
+            docgen_blockers=["仍缺 1 项关键证据"],
+        ),
+    )
+    out = compute_case_next_step(ctx)
+    # caution 档 docgen 仍然可以 active
     assert out["agent_id"] == "docgen"
     assert out["pipeline_stage"] == "documents"
 

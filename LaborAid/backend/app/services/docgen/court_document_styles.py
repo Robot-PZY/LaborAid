@@ -1,4 +1,4 @@
-"""法院文书排版 CSS — 与 word_export.COURT_FONT_SETTINGS 参数一致。"""
+"""法院文书排版 CSS — 与 word_export_native.py 参数完全一致。"""
 
 COURT_DOCUMENT_CSS = """
 .court-document {
@@ -8,9 +8,11 @@ COURT_DOCUMENT_CSS = """
   color: #000;
   max-width: 210mm;
   margin: 0 auto;
-  padding: 1.25rem 2rem 1.5rem;
+  padding: 3.7cm 2.6cm 3.5cm 2.8cm;
   background: #fff;
   box-sizing: border-box;
+  min-height: 297mm;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .court-document h1,
 .court-document h1.center {
@@ -19,7 +21,7 @@ COURT_DOCUMENT_CSS = """
   text-align: center;
   line-height: 28.8pt;
   margin: 0 0 18pt 0;
-  font-weight: bold;
+  font-weight: normal;
   text-indent: 0;
   color: #000;
 }
@@ -43,7 +45,7 @@ COURT_DOCUMENT_CSS = """
 }
 .court-document h4 {
   font-family: "FangSong_GB2312", "仿宋_GB2312", "FangSong", "仿宋", serif;
-  font-size: 16pt;
+  font-size: 14pt;
   font-weight: bold;
   margin: 6pt 0 2pt 0;
   line-height: 28.8pt;
@@ -63,6 +65,10 @@ COURT_DOCUMENT_CSS = """
 }
 .court-document .center {
   text-align: center;
+  text-indent: 0;
+}
+.court-document .right-align {
+  text-align: right;
   text-indent: 0;
 }
 .court-document strong,
@@ -92,11 +98,11 @@ COURT_DOCUMENT_CSS = """
   text-align: left;
   vertical-align: top;
   text-indent: 0;
-  line-height: 22pt;
+  line-height: 24pt;
 }
 .court-document th {
   font-weight: bold;
-  background-color: #fafafa;
+  background-color: #D9E2F3;
   text-align: center;
 }
 .court-document ol.legal-list {
@@ -133,5 +139,13 @@ COURT_DOCUMENT_CSS = """
   margin-bottom: 0;
   text-indent: 0;
   line-height: 28.8pt;
+}
+/* 模板变量缺失提示高亮 */
+.court-document .template-hint {
+  color: #cc0000;
+  font-weight: bold;
+  background-color: #fff3cd;
+  padding: 0 2pt;
+  border-radius: 2pt;
 }
 """

@@ -25,6 +25,7 @@ type Props = {
   initialChannelId?: string | null;
   initialScenarioId?: string | null;
   resumeSession?: IntakeSession | null;
+  onCaseCreated?: (caseId: number) => void;
 };
 
 function resolveStructuredCaseFacts(
@@ -48,6 +49,7 @@ export default function ChannelIntakeWizard({
   initialChannelId,
   initialScenarioId,
   resumeSession,
+  onCaseCreated,
 }: Props) {
   const [channelId, setChannelId] = useState<string | null>(initialChannelId ?? null);
   const [scenarioId, setScenarioId] = useState<string | null>(initialScenarioId ?? null);
@@ -94,6 +96,14 @@ export default function ChannelIntakeWizard({
   const channel = channelId ? getChannel(channelId) : undefined;
   const scenarios = channel ? listIntakeScenarios(channel) : [];
   const scenario = scenarios.find((s) => s.id === scenarioId);
+
+  // 自动 fallback：如果 initialScenarioId 无效，自动选择第一个有效场景
+  useEffect(() => {
+    if (channelId && scenarioId && !scenario && scenarios.length > 0) {
+      setScenarioId(scenarios[0].id);
+    }
+  }, [channelId, scenarioId, scenario, scenarios]);
+
   const fields = useMemo(
     () => (channelId && scenarioId ? getScenarioFormFields(channelId, scenarioId) : []),
     [channelId, scenarioId],
@@ -150,6 +160,7 @@ export default function ChannelIntakeWizard({
         inputText={planInputText || result.summary}
         onReset={handleReset}
         onBack={onBack}
+        onCaseCreated={onCaseCreated}
       />
     );
   }

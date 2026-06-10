@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable
 
 from app.services.docgen.structured.helpers import (
@@ -25,16 +26,149 @@ from app.services.docgen.structured.helpers import (
     val,
 )
 
+logger = logging.getLogger(__name__)
 
-def _facts_with_legal_basis(d: dict[str, Any]) -> str:
-    facts = md_body_paragraphs(val(d, "facts"))
-    basis = val(d, "legal_basis")
-    if basis and basis != val(d, "facts") and basis not in ("", "—", "[待填写]"):
-        return facts + md_sub_heading("法律依据") + md_body_paragraphs(basis)
-    return facts
+
+# 模板变量缺失时的友好提示映射
+_TEMPLATE_VAR_HINTS: dict[str, str] = {
+    "hire_year": "【入职年份待补充】",
+    "hire_month": "【入职月份待补充】",
+    "job_position": "【工作岗位待补充】",
+    "monthly_salary": "【月工资待补充】",
+    "monthly_salary_cn": "【月工资大写待补充】",
+    "contract_info": "【合同签订情况待补充】",
+    "work_location": "【工作地点待补充】",
+    "social_insurance_info": "【社保缴纳情况待补充】",
+    "dispute_start": "【争议起始时间待补充】",
+    "dispute_end": "【争议结束时间待补充】",
+    "arrears_amount": "【欠薪金额待补充】",
+    "arrears_amount_cn": "【欠薪金额大写待补充】",
+    "dispute_details": "【争议经过待补充】",
+    "legal_analysis_expansion": "【法律分析待补充】",
+}
+
+
+def _render_facts_from_template(doc_type: str, d: dict[str, Any]) -> str:
+    """用预定义法律文本模板渲染事实与理由部分。
+
+    优先使用模板变量（hire_year, job_position 等），
+    如果模板变量未填充，回退到旧字段（facts_employment, facts_dispute 等）。
+    如果旧字段也为空，回退到 facts 整体字段。
+    """
+    try:
+        from app.services.docgen.templates.legal_templates import (
+            render_facts_from_template as _render,
+            get_facts_template,
+            get_template_variables,
+        )
+    except ImportError:
+        return ""
+
+    template = get_facts_template(doc_type)
+    if not template:
+        return ""
+
+    # 收集模板变量
+    variables = get_template_variables(doc_type)
+    kwargs: dict[str, str] = {}
+    all_empty = True
+    for var in variables:
+        v = val(d, var, "")
+        if v and v != PLACEHOLDER:
+            kwargs[var] = v.strip()
+            all_empty = False
+        else:
+            # 使用友好提示而非通用占位符
+            kwargs[var] = _TEMPLATE_VAR_HINTS.get(var, PLACEHOLDER)
+
+    if all_empty:
+        # 所有模板变量都为空 → 回退到旧字段
+        return _fallback_facts_render(doc_type, d)
+
+    try:
+        return template.format(**kwargs)
+    except KeyError:
+        logger.warning("Template render failed for %s, falling back", doc_type)
+        return _fallback_facts_render(doc_type, d)
+
+
+def _fallback_facts_render(doc_type: str, d: dict[str, Any]) -> str:
+    """旧字段回退渲染：兼容未使用模板变量的情况。"""
+    parts: list[str] = []
+
+    if doc_type == "application":
+        employment = val(d, "facts_employment", "")
+        dispute = val(d, "facts_dispute", "")
+        employment_info = val(d, "employment_info", "")
+
+        if employment_info and employment_info != PLACEHOLDER:
+            parts.append(md_sub_heading("劳动关系基本情况") + md_body_paragraphs(employment_info))
+        elif employment and employment != PLACEHOLDER:
+            parts.append(md_sub_heading("劳动关系基本情况") + md_body_paragraphs(employment))
+
+        if dispute and dispute != PLACEHOLDER:
+            parts.append(md_sub_heading("争议事实经过") + md_body_paragraphs(dispute))
+        elif employment and employment != PLACEHOLDER and not employment_info:
+            parts.append(md_sub_heading("争议事实经过") + md_body_paragraphs(employment))
+
+        social_ins = val(d, "social_insurance", "")
+        if social_ins and social_ins != PLACEHOLDER:
+            parts.append(md_sub_heading("社会保险缴纳情况") + md_body_paragraphs(social_ins))
+
+        legal_analysis = val(d, "legal_analysis", "")
+        if legal_analysis and legal_analysis != PLACEHOLDER:
+            parts.append(md_sub_heading("法律分析") + md_body_paragraphs(legal_analysis))
+
+        basis = val(d, "legal_basis", "")
+        if basis and basis != PLACEHOLDER and basis != val(d, "facts"):
+            parts.append(md_sub_heading("法律依据") + md_body_paragraphs(basis))
+
+    elif doc_type == "complaint":
+        emp_bg = val(d, "employment_background", "")
+        if emp_bg and emp_bg != PLACEHOLDER:
+            parts.append(md_sub_heading("劳动关系背景") + md_body_paragraphs(emp_bg))
+        arb_facts = val(d, "facts_arbitration", "")
+        if arb_facts and arb_facts != PLACEHOLDER:
+            parts.append(md_sub_heading("仲裁阶段经过") + md_body_paragraphs(arb_facts))
+        dispute = val(d, "facts_dispute", "")
+        if dispute and dispute != PLACEHOLDER:
+            parts.append(md_sub_heading("争议事实经过") + md_body_paragraphs(dispute))
+        legal_analysis = val(d, "legal_analysis", "")
+        if legal_analysis and legal_analysis != PLACEHOLDER:
+            parts.append(md_sub_heading("法律分析") + md_body_paragraphs(legal_analysis))
+
+    elif doc_type == "labor_supervision":
+        employment_info = val(d, "employment_info", "")
+        facts_text = val(d, "facts", "")
+        if employment_info and employment_info != PLACEHOLDER:
+            parts.append(md_sub_heading("劳动关系基本情况") + md_body_paragraphs(employment_info))
+            if facts_text and facts_text != PLACEHOLDER:
+                parts.append(md_sub_heading("投诉事实经过") + md_body_paragraphs(facts_text))
+        else:
+            parts.append(md_body_paragraphs(facts_text))
+
+    # 最终回退：facts 整体字段
+    if not parts:
+        facts = val(d, "facts", "")
+        if facts and facts != PLACEHOLDER:
+            parts.append(md_body_paragraphs(facts))
+
+    return "".join(parts) if parts else f"{PLACEHOLDER}\n"
 
 
 def render_application(d: dict[str, Any]) -> str:
+    respondent_fields = [
+        ("名称", val(d, "respondent_name")),
+        ("住所地", val(d, "respondent_address")),
+        ("法定代表人", val(d, "respondent_legal_rep", "—")),
+    ]
+    usci = val(d, "respondent_usci", "")
+    if usci and usci != PLACEHOLDER:
+        respondent_fields.append(("统一社会信用代码", usci))
+
+    # 事实与理由：优先模板渲染，回退旧字段
+    facts_content = _render_facts_from_template("application", d)
+
     parts = [
         md_title("劳动仲裁申请书"),
         md_party_line("申请人", [
@@ -43,13 +177,9 @@ def render_application(d: dict[str, Any]) -> str:
             ("住址", val(d, "applicant_address")),
             ("联系电话", val(d, "applicant_phone")),
         ]),
-        md_party_line("被申请人", [
-            ("名称", val(d, "respondent_name")),
-            ("住所地", val(d, "respondent_address")),
-            ("法定代表人", val(d, "respondent_legal_rep", "—")),
-        ]),
+        md_party_line("被申请人", respondent_fields),
         md_cn_section("一", "仲裁请求", md_numbered_list(d.get("requests"))),
-        md_cn_section("二", "事实与理由", _facts_with_legal_basis(d)),
+        md_cn_section("二", "事实与理由", facts_content),
         md_cn_section("三", "证据目录", md_evidence_table(d.get("evidence"))),
         md_sign_arbitration(val(d, "arbitration_commission"), date=val(d, "sign_date")),
     ]
@@ -57,6 +187,9 @@ def render_application(d: dict[str, Any]) -> str:
 
 
 def render_labor_supervision(d: dict[str, Any]) -> str:
+    # 事实经过：优先模板渲染，回退旧字段
+    facts_content = _render_facts_from_template("labor_supervision", d)
+
     return (
         md_title("劳动监察投诉书")
         + md_party_line("投诉人", [
@@ -68,10 +201,10 @@ def render_labor_supervision(d: dict[str, Any]) -> str:
         + md_party_line("被投诉用人单位", [
             ("名称", val(d, "employer_name")),
             ("地址", val(d, "employer_address")),
-            ("法定代表人", val(d, "employer_rep", "—")),
+            ("法定代表人", val(d, "employer_legal_rep", val(d, "employer_rep", "—"))),
         ])
         + md_cn_section("一", "投诉事项", md_body_paragraphs(val(d, "items")))
-        + md_cn_section("二", "事实经过", md_body_paragraphs(val(d, "facts")))
+        + md_cn_section("二", "事实经过", facts_content)
         + md_cn_section("三", "证据材料", md_evidence_table(d.get("evidence")))
         + md_cn_section("四", "请求事项", md_body_paragraphs(
             val(d, "relief") if val(d, "relief") not in ("", "—", "[待填写]")
@@ -159,6 +292,18 @@ def render_evidence_list(d: dict[str, Any]) -> str:
 
 
 def render_complaint(d: dict[str, Any]) -> str:
+    defendant_fields = [
+        ("名称", val(d, "defendant_name")),
+        ("住所地", val(d, "defendant_address")),
+        ("法定代表人", val(d, "defendant_legal_rep", "—")),
+    ]
+    usci = val(d, "defendant_usci", "")
+    if usci and usci != PLACEHOLDER:
+        defendant_fields.append(("统一社会信用代码", usci))
+
+    # 事实与理由：优先模板渲染，回退旧字段
+    facts_content = _render_facts_from_template("complaint", d)
+
     parts = [
         md_title("民事起诉状"),
         md_party_line("原告", [
@@ -167,14 +312,10 @@ def render_complaint(d: dict[str, Any]) -> str:
             ("住所地", val(d, "plaintiff_address")),
             ("联系电话", val(d, "plaintiff_phone", "—")),
         ]),
-        md_party_line("被告", [
-            ("名称", val(d, "defendant_name")),
-            ("住所地", val(d, "defendant_address")),
-            ("法定代表人", val(d, "defendant_legal_rep", "—")),
-        ]),
+        md_party_line("被告", defendant_fields),
         md_cn_section("一", "劳动仲裁前置程序", md_body_paragraphs(val(d, "arbitration_info"))),
         md_cn_section("二", "诉讼请求", md_numbered_list(d.get("claims"))),
-        md_cn_section("三", "事实与理由", md_body_paragraphs(val(d, "facts"))),
+        md_cn_section("三", "事实与理由", facts_content),
         md_cn_section("四", "证据目录", md_evidence_table(d.get("evidence"))),
     ]
     med = val(d, "mediation_willing", "")

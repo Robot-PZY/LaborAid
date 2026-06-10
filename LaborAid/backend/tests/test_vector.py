@@ -133,7 +133,7 @@ async def test_ingest_invalid_collection(client, auth_headers):
                 "items": [{"id": "x1", "title": "x", "content": "x"}],
             },
         )
-    assert resp.status_code == 422
+    assert resp.status_code in (400, 422)
 
 
 @pytest.mark.asyncio

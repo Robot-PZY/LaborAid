@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Upload, FileText, Trash2, Download, Loader2, Sparkles, ChevronDown, ChevronRight, Link2, MessageSquare, AlertCircle, X, Plus, Image, Mic, Volume2, Scale, Camera, Monitor, FileSpreadsheet, Clock, Eye } from 'lucide-react';
+import { Upload, FileText, Trash2, Download, Loader2, Sparkles, ChevronDown, ChevronRight, Link2, MessageSquare, AlertCircle, X, Plus, Image, Mic, Volume2, Scale, Camera, Monitor, FileSpreadsheet, Clock, Eye, RefreshCw } from 'lucide-react';
 import { AxiosError } from 'axios';
 import {
   caseApi,
   evidenceApi,
   evidenceChainApi,
+  healthApi,
   type Case as CaseType,
   type CaseReadinessSummary,
   type EvidenceItem,
@@ -634,8 +635,13 @@ export default function Evidence() {
       });
       toast({ type: 'success', title: 'AI分析完成' });
     } catch (e) {
-      setError('分析失败');
-      toast({ type: 'error', title: 'AI分析失败' });
+      // Backend returns the analysis result with error message in the analysis field.
+      // If the API call itself fails (network error), show a generic message.
+      const msg = e instanceof AxiosError
+        ? (e.response?.data?.detail || '分析失败，请检查网络后重试')
+        : '分析失败，请检查网络后重试';
+      setError(msg);
+      toast({ type: 'error', title: 'AI分析失败', description: msg });
     }
     finally { setAnalyzing(null); }
   }, [loadEvidence, toast, evidenceList]);
@@ -676,6 +682,17 @@ export default function Evidence() {
       toast({ type: 'error', title: '证据链分析失败', description: msg });
     } finally { setAnalyzingChain(false); }
   }, [selectedCase, loadReadiness, toast]);
+
+  /** Retry the last failed analysis action */
+  const handleRetryAnalysis = useCallback(async () => {
+    setError('');
+    // If chain analysis was the last action, retry it
+    if (selectedCase && chainResult?.chain_status === '分析失败') {
+      await handleChainAnalysis();
+    } else {
+      toast({ type: 'info', title: '请重新点击分析按钮' });
+    }
+  }, [selectedCase, chainResult, handleChainAnalysis, toast]);
 
   /** Export evidence list as CSV */
   const handleExportEvidenceList = useCallback(() => {
@@ -768,8 +785,15 @@ export default function Evidence() {
         {error && (
           <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 max-w-md">
             <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
-            <button onClick={() => setError('')} className="ml-auto"><X className="h-4 w-4" /></button>
+            <span className="flex-1">{error}</span>
+            <button
+              onClick={handleRetryAnalysis}
+              className="flex items-center gap-1 rounded-md bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-200 transition-colors"
+            >
+              <RefreshCw className="h-3 w-3" />
+              重试
+            </button>
+            <button onClick={() => setError('')} className="ml-1"><X className="h-4 w-4" /></button>
           </div>
         )}
         {selectedCase && (

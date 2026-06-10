@@ -21,4 +21,5 @@ export * from './user-portal';
 export * from './vault';
 export * from './intake';
 export * from './enterprise';
+export * from './health';
 export { default } from './client';

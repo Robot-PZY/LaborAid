@@ -45,6 +45,23 @@ export function getScenarioCauseType(channelId: string, scenarioId: string): str
   return cfg.scenarios?.[scenarioKey(channelId, scenarioId)]?.cause_type;
 }
 
+/**
+ * 根据 cause_type 在 channel 的可填表场景中查找最佳匹配；
+ * 找不到则回退到第一个有 form_fields 的场景。
+ */
+export function findBestScenarioForCause(
+  channelId: string,
+  causeType: string,
+  scenarios: ChannelScenario[],
+): ChannelScenario | undefined {
+  const matched = scenarios.find((s) => {
+    const key = scenarioKey(channelId, s.id);
+    return cfg.scenarios?.[key]?.cause_type === causeType;
+  });
+  if (matched) return matched;
+  return scenarios[0];
+}
+
 /** 可填表的场景：配置中有 form_fields 且非 quick_action 类场景 */
 export function listIntakeScenarios(channel: ChannelConfig): ChannelScenario[] {
   const scenarios = channel.scenarios ?? [];

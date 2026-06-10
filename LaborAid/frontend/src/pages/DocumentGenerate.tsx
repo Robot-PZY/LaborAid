@@ -36,6 +36,7 @@ import {
   type DocPipelineProgressEvent,
 } from '@/lib/api';
 import CaseReadinessHint from '@/components/cases/CaseReadinessHint';
+import { FillRateBanner } from '@/components/FillRateBanner';
 import { useToast } from '@/lib/toast';
 import type { Document, Case, CaseCreate, ResearchReport, Template } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -737,13 +738,24 @@ export default function DocumentGenerate() {
 
       if (
         caseReadiness &&
-        caseReadiness.readiness_score < 45 &&
+        caseReadiness.docgen_recommendation === 'not_ready' &&
         (caseReadiness.docgen_blockers?.length ?? 0) > 0
       ) {
         toast({
           type: 'warning',
-          title: '材料完整度偏低',
+          title: '材料完整度不足',
           description: caseReadiness.docgen_blockers?.[0] || '建议先补充证据与案情描述',
+        });
+      }
+
+      if (
+        caseReadiness &&
+        caseReadiness.docgen_recommendation === 'caution'
+      ) {
+        toast({
+          type: 'info',
+          title: '材料可能不够完整',
+          description: `综合评分 ${caseReadiness.combined_score ?? caseReadiness.readiness_score} 分，生成后请仔细核对。`,
         });
       }
 
@@ -1890,6 +1902,7 @@ export default function DocumentGenerate() {
                   </div>
 
                   <div className="px-4 sm:px-6 py-5">
+                    <FillRateBanner aiMetadata={generatedDoc.ai_metadata as any} />
                     {editMode ? (
                       <div className="space-y-4">
                         <textarea

@@ -42,12 +42,12 @@ class EvidenceAgent(CaseAgent):
             alts = []
             if not (case.description or "").strip():
                 alts.append(alt_step("cases", "完善案情描述", "便于 OCR 与文书引用事实", ctx))
-            if r.docgen_ready:
+            if r.docgen_recommendation == "caution":
                 alts.append(
                     alt_step(
                         "docgen",
                         "先生成文书草稿",
-                        "材料基础尚可，可先起草再补证",
+                        "综合分 50-70，可先起草再补证，但文书可能不够完整",
                         ctx,
                         prefill_doc(ctx),
                     )
@@ -76,13 +76,13 @@ class EvidenceAgent(CaseAgent):
                 next_step=next_step,
             )
 
-        if ctx.documents_count == 0 and not r.docgen_ready:
+        if ctx.documents_count == 0 and r.docgen_recommendation == "not_ready":
             alts = [alt_step("cases", "完善案件信息", "补充案情描述", ctx)]
             next_step = ProposedStep(
                 label="补齐后再生成文书",
                 reason="文书生成条件尚未满足",
                 explanation=(
-                    f"尚未生成文书。请先补齐：{'；'.join(r.docgen_blockers[:2]) or '案情与核心证据'}，"
+                    f"综合评分不足，请先补齐：{'；'.join(r.docgen_blockers[:2]) or '案情与核心证据'}，"
                     "再进入文书生成。"
                 ),
                 pipeline_stage="evidence",

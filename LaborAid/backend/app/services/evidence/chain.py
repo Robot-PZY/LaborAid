@@ -158,6 +158,17 @@ async def analyze_evidence_chain(
             "suggested_order": [],
             "summary": "证据链分析结果解析失败，请稍后重试。",
         }
+    except (ConnectionError, OSError) as e:
+        logger.warning(f"Evidence chain analysis connection failed: {e}")
+        result = {
+            "completeness_score": None,
+            "chain_status": "分析失败",
+            "facts_to_prove": [],
+            "contradictions": [],
+            "missing_evidence": [],
+            "suggested_order": [],
+            "summary": "证据链分析服务连接失败，请检查网络配置或联系管理员。",
+        }
     except Exception as e:
         logger.warning(f"Evidence chain analysis failed: {e}")
         result = {
@@ -256,6 +267,9 @@ async def generate_cross_examination(
     except asyncio.TimeoutError:
         logger.warning("Cross-examination generation timed out")
         return "质证意见生成超时，请稍后重试。"
+    except (ConnectionError, OSError) as e:
+        logger.warning(f"Cross-examination generation connection failed: {e}")
+        return "质证意见生成失败：无法连接到 AI 服务，请检查网络配置或联系管理员。"
     except Exception as e:
         logger.warning(f"Cross-examination generation failed: {e}")
         return "质证意见生成失败，请稍后重试。"

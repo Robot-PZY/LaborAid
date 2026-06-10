@@ -82,9 +82,9 @@
       },
       "legal_aid": {
         "label": "北京市法律援助",
-        "url": "https://www.12348.gov.cn/#/publicies/lag/legalAid",
+        "url": "https://bj.12348.gov.cn/",
         "phone": "12348",
-        "hint": "12348 网选择「北京」→ 法律援助申请；或到区司法局法援中心现场咨询"
+        "hint": "12348 北京法律服务网；或到区司法局法援中心现场咨询"
       },
       "hrss_portal": {
         "label": "北京市人力资源和社会保障局",
@@ -107,9 +107,9 @@
       },
       "legal_aid": {
         "label": "上海市法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://sh.12348.gov.cn/",
         "phone": "12348",
-        "hint": "12348 选择上海属地；或到区法律援助中心申请"
+        "hint": "12348 上海法网；或到区法律援助中心申请"
       },
       "hrss_portal": {
         "label": "上海市人力资源和社会保障局",
@@ -132,9 +132,9 @@
       },
       "legal_aid": {
         "label": "广东省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://gd.12348.gov.cn/",
         "phone": "12348",
-        "hint": "12348 选择广东省及具体地市；或到区县司法局法援中心"
+        "hint": "12348 广东法律服务网；或到区县司法局法援中心"
       },
       "hrss_portal": {
         "label": "广东省人力资源和社会保障厅",
@@ -157,8 +157,9 @@
       },
       "legal_aid": {
         "label": "浙江省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "https://12348.sft.zj.gov.cn/main/index/",
+        "phone": "12348",
+        "hint": "12348 浙江法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "浙江省人力资源和社会保障厅",
@@ -181,8 +182,9 @@
       },
       "legal_aid": {
         "label": "四川省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "https://sc.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "12348 四川法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "四川省人力资源和社会保障厅",
@@ -205,8 +207,9 @@
       },
       "legal_aid": {
         "label": "江苏省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://js.12348.gov.cn/#/homepage/homepage",
+        "phone": "12348",
+        "hint": "12348 江苏法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "江苏省人力资源和社会保障厅",
@@ -228,8 +231,9 @@
       },
       "legal_aid": {
         "label": "山东省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://12348.shandong.gov.cn/",
+        "phone": "12348",
+        "hint": "12348 山东法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "山东省人力资源和社会保障厅",
@@ -251,8 +255,9 @@
       },
       "legal_aid": {
         "label": "河南省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "https://ha.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "12348 河南法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "河南省人力资源和社会保障厅",
@@ -274,8 +279,9 @@
       },
       "legal_aid": {
         "label": "湖北省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://hb.12348.gov.cn/#/home/home",
+        "phone": "12348",
+        "hint": "12348 湖北法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "湖北省人力资源和社会保障厅",
@@ -297,8 +303,9 @@
       },
       "legal_aid": {
         "label": "湖南省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://hn.12348.gov.cn/#/",
+        "phone": "12348",
+        "hint": "12348 湖南法网·如法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "湖南省人力资源和社会保障厅",
@@ -320,8 +327,9 @@
       },
       "legal_aid": {
         "label": "福建省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://fj.12348.gov.cn/#/home/home",
+        "phone": "12348",
+        "hint": "12348 福建法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "福建省人力资源和社会保障厅",
@@ -343,8 +351,9 @@
       },
       "legal_aid": {
         "label": "重庆市法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://cq.12348.gov.cn/#/home/home",
+        "phone": "12348",
+        "hint": "12348 重庆公共法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "重庆市人力资源和社会保障局",
@@ -365,8 +374,9 @@
       },
       "legal_aid": {
         "label": "陕西省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://sn.12348.gov.cn/sxflfw/#/",
+        "phone": "12348",
+        "hint": "12348 陕西法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "陕西省人力资源和社会保障厅",
@@ -387,8 +397,9 @@
       },
       "legal_aid": {
         "label": "天津市法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "https://tj.12348.gov.cn/#/",
+        "phone": "12348",
+        "hint": "12348 天津法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "天津市人力资源和社会保障局",
@@ -410,8 +421,9 @@
       },
       "legal_aid": {
         "label": "安徽省法律援助",
-        "url": "https://www.12348.gov.cn/",
-        "phone": "12348"
+        "url": "http://ah.12348.gov.cn/",
+        "phone": "12348",
+        "hint": "12348 安徽法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "安徽省人力资源和社会保障厅",
@@ -434,9 +446,9 @@
       },
       "legal_aid": {
         "label": "河北省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://he.12348.gov.cn/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「河北」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 河北法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "河北省人力资源和社会保障厅",
@@ -459,9 +471,9 @@
       },
       "legal_aid": {
         "label": "山西省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://sx.12348.gov.cn/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「山西」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 山西法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "山西省人力资源和社会保障厅",
@@ -484,9 +496,9 @@
       },
       "legal_aid": {
         "label": "辽宁省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://ln.12348.gov.cn/#/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「辽宁」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 辽宁法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "辽宁省人力资源和社会保障厅",
@@ -509,9 +521,9 @@
       },
       "legal_aid": {
         "label": "吉林省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://jl.12348.gov.cn/legal/front/index.action",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「吉林」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 吉林法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "吉林省人力资源和社会保障厅",
@@ -534,9 +546,9 @@
       },
       "legal_aid": {
         "label": "黑龙江省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://hl.12348.gov.cn/ggflfwhlj/#/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「黑龙江」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 黑龙江法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "黑龙江省人力资源和社会保障厅",
@@ -559,9 +571,9 @@
       },
       "legal_aid": {
         "label": "江西省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://jx.12348.gov.cn/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「江西」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 江西法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "江西省人力资源和社会保障厅",
@@ -584,9 +596,9 @@
       },
       "legal_aid": {
         "label": "海南省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://hi.12348.gov.cn/#/home/homeNew",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「海南」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 海南法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "海南省人力资源和社会保障厅",
@@ -609,9 +621,9 @@
       },
       "legal_aid": {
         "label": "贵州省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://12348.guizhou.gov.cn/website/gzpc/181119BFCPH9HN7C/index.html",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「贵州」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 贵州法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "贵州省人力资源和社会保障厅",
@@ -634,9 +646,9 @@
       },
       "legal_aid": {
         "label": "云南省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://yn.12348.gov.cn/home/index",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「云南」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 云南法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "云南省人力资源和社会保障厅",
@@ -659,9 +671,9 @@
       },
       "legal_aid": {
         "label": "甘肃省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://gs.12348.gov.cn/#/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「甘肃」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 甘肃公共法律服务网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "甘肃省人力资源和社会保障厅",
@@ -684,9 +696,9 @@
       },
       "legal_aid": {
         "label": "青海省法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://qh.12348.gov.cn/#/home/home",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「青海」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 青海法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "青海省人力资源和社会保障厅",
@@ -709,9 +721,9 @@
       },
       "legal_aid": {
         "label": "内蒙古自治区法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://nm.12348.gov.cn/homepage/homepage",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「内蒙古」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 内蒙古法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "内蒙古自治区人力资源和社会保障厅",
@@ -734,9 +746,9 @@
       },
       "legal_aid": {
         "label": "广西壮族自治区法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://gx.12348.gov.cn/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「广西」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 广西法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "广西壮族自治区人力资源和社会保障厅",
@@ -759,9 +771,9 @@
       },
       "legal_aid": {
         "label": "西藏自治区法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://xz.12348.gov.cn/index.html#/homepage/homepage",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「西藏」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 中国西藏法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "西藏自治区人力资源和社会保障厅",
@@ -784,9 +796,9 @@
       },
       "legal_aid": {
         "label": "宁夏回族自治区法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "https://nx.12348.gov.cn/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「宁夏」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 宁夏法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "宁夏回族自治区人力资源和社会保障厅",
@@ -809,9 +821,9 @@
       },
       "legal_aid": {
         "label": "新疆维吾尔自治区法律援助",
-        "url": "https://www.12348.gov.cn/",
+        "url": "http://xj.12348.gov.cn/",
         "phone": "12348",
-        "hint": "打开 12348 法律服务网，选择「新疆」属地；或到当地司法局法律援助中心现场咨询"
+        "hint": "12348 新疆法网；或到当地司法局法律援助中心现场咨询"
       },
       "hrss_portal": {
         "label": "新疆维吾尔自治区人力资源和社会保障厅",

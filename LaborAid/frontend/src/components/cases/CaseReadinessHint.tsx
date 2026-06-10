@@ -121,10 +121,24 @@ export default function CaseReadinessHint({
         </ul>
       )}
 
-      {variant === 'docgen' && readiness.docgen_ready && (
+      {variant === 'docgen' && readiness.docgen_recommendation === 'ready' && (
         <p className="mt-2 flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-300">
           <CheckCircle2 className="h-3.5 w-3.5" />
-          材料基础可支撑文书生成，建议核对案情描述后再提交。
+          材料充分，可直接生成文书。
+        </p>
+      )}
+
+      {variant === 'docgen' && readiness.docgen_recommendation === 'caution' && (
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300">
+          <CircleAlert className="h-3.5 w-3.5 shrink-0" />
+          综合评分 {readiness.combined_score ?? readiness.readiness_score} 分，可生成文书但材料可能不够完整。
+        </p>
+      )}
+
+      {variant === 'docgen' && readiness.docgen_recommendation === 'not_ready' && (
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-rose-700 dark:text-rose-300">
+          <CircleAlert className="h-3.5 w-3.5 shrink-0" />
+          综合评分 {readiness.combined_score ?? readiness.readiness_score} 分，请先补充材料再生成文书。
         </p>
       )}
 

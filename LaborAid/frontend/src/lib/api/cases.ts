@@ -436,6 +436,7 @@ export interface CaseReadinessSummary {
   cause_label?: string | null;
   evidence_suggestions?: CaseEvidenceSuggestion[];
   docgen_ready?: boolean;
+  docgen_recommendation?: 'ready' | 'caution' | 'not_ready';
   docgen_blockers?: string[];
   chain_completeness_score?: number | null;
   combined_score?: number | null;

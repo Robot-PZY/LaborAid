@@ -82,11 +82,14 @@ export default function CourtDocumentPreview({ content, title, className = '' }:
 
   return (
     <div className={className}>
-      <div
-        ref={hostRef}
-        className="min-h-[12rem] rounded-lg border bg-white shadow-sm"
-        aria-label="法院标准文书预览"
-      />
+      <div className="overflow-auto rounded-lg bg-gray-100 p-4">
+        <div
+          ref={hostRef}
+          className="min-h-[12rem] mx-auto bg-white shadow-md"
+          style={{ maxWidth: '210mm', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+          aria-label="法院标准文书预览"
+        />
+      </div>
       <p className="mt-2 text-xs text-muted-foreground">
         预览版式与下载的 Word 文书一致（仿宋正文、黑体/楷体标题、首行缩进 2 字、全黑墨色）。
       </p>

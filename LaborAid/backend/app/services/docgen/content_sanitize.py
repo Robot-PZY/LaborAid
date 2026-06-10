@@ -107,6 +107,10 @@ def sanitize_legal_document_content(content: str, doc_type_name: str = "") -> st
     text = _PREAMBLE_BLOCK_RE.sub("", text)
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
 
+    # 过滤 LLM 生成的"分页符"标记文字（不应出现在正文中）
+    text = re.sub(r"^[—\-]+\s*分页符\s*[—\-]+\s*$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\s*分页符\s*$", "", text, flags=re.MULTILINE)
+
     # 确保有居中标题（Word 导出与预览用 #）
     if doc_type_name and not re.search(r"^#\s+", text, re.MULTILINE):
         if not text.startswith(f"# {doc_type_name}"):
