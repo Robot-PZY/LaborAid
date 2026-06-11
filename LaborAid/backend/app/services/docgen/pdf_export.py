@@ -17,9 +17,13 @@ async def export_to_pdf(doc, output_dir: Path) -> str:
     """
     from app.services.docgen.html_export import export_to_html
 
-    # 先生成HTML
-    html_path = await export_to_html(doc, output_dir)
-    html_content = await asyncio.to_thread(Path(html_path).read_text, "utf-8")
+    try:
+        # 先生成HTML
+        html_path = await export_to_html(doc, output_dir)
+        html_content = await asyncio.to_thread(Path(html_path).read_text, "utf-8")
+    except Exception as exc:
+        logger.exception("PDF export: HTML generation failed for doc %s: %s", getattr(doc, "id", "?"), exc)
+        raise RuntimeError(f"PDF 导出失败：HTML 生成错误 - {exc}") from exc
 
     title = doc.title or "法律文书"
     filename = f"{doc.id}_{_safe_filename(title)}.pdf"
@@ -33,7 +37,7 @@ async def export_to_pdf(doc, output_dir: Path) -> str:
     except ImportError:
         logger.warning("weasyprint not installed, trying alternative")
     except Exception as e:
-        logger.warning(f"weasyprint failed: {e}")
+        logger.warning("weasyprint failed: %s", e)
 
     # 备选：使用 pdfkit (需要 wkhtmltopdf)
     try:
@@ -58,7 +62,7 @@ async def export_to_pdf(doc, output_dir: Path) -> str:
     except ImportError:
         logger.warning("pdfkit not installed either")
     except Exception as e:
-        logger.warning(f"pdfkit failed: {e}")
+        logger.warning("pdfkit failed: %s", e)
 
     # 备选：使用 xhtml2pdf（纯 Python，Windows 无需额外系统库）
     try:
@@ -103,10 +107,10 @@ body {{
     except ImportError:
         logger.warning("xhtml2pdf not installed")
     except Exception as e:
-        logger.warning(f"xhtml2pdf failed: {e}")
+        logger.warning("xhtml2pdf failed: %s", e)
 
     # 最终备选
-    logger.warning("No PDF converter available, returning HTML instead")
+    logger.error("No PDF converter available for doc %s", getattr(doc, "id", "?"))
     raise RuntimeError(
         "PDF导出失败：请安装可用转换器。推荐先执行 `pip install xhtml2pdf`，"
         "或安装 weasyprint 所需系统库（Windows 需 GTK）。"

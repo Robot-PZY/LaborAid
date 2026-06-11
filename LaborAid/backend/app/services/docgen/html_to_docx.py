@@ -307,65 +307,88 @@ def html_to_docx_bytes(html_content: str, *, title: str | None = None) -> bytes:
 
     Returns:
         DOCX 文件的 bytes
+
+    Raises:
+        ValueError: 当 html_content 为空或无效时
+        RuntimeError: 当 DOCX 生成过程失败时
     """
-    doc = Document()
-    _setup_page(doc)
-    _setup_styles(doc)
+    import logging
+    logger = logging.getLogger(__name__)
+
+    if not html_content or not html_content.strip():
+        raise ValueError("html_content 不能为空")
+
+    try:
+        doc = Document()
+        _setup_page(doc)
+        _setup_styles(doc)
+    except Exception as exc:
+        logger.exception("Failed to initialize DOCX document: %s", exc)
+        raise RuntimeError(f"DOCX 文档初始化失败: {exc}") from exc
 
     # 设置文档属性
     core = doc.core_properties
     core.title = title or "法律文书"
     core.author = "劳权智助"
 
-    # 解析 HTML
-    soup = BeautifulSoup(html_content, "html.parser")
+    try:
+        # 解析 HTML
+        soup = BeautifulSoup(html_content, "html.parser")
 
-    # 找到主容器
-    container = soup.find("div", class_="court-document")
-    if not container:
-        container = soup
+        # 找到主容器
+        container = soup.find("div", class_="court-document")
+        if not container:
+            container = soup
 
-    # 遍历所有子元素
-    for element in container.children:
-        if not isinstance(element, Tag):
-            continue
+        # 遍历所有子元素
+        for element in container.children:
+            if not isinstance(element, Tag):
+                continue
 
-        tag = element.name
+            tag = element.name
 
-        if tag in ("h1", "h2", "h3", "h4"):
-            _add_heading_from_element(doc, element)
-        elif tag == "p":
-            _add_paragraph_from_element(doc, element)
-        elif tag == "table":
-            _add_table_from_element(doc, element)
-        elif tag == "ol":
-            _add_list_from_element(doc, element, ordered=True)
-        elif tag == "ul":
-            _add_list_from_element(doc, element, ordered=False)
-        elif tag == "br":
-            p = doc.add_paragraph()
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-        elif tag == "hr":
-            p = doc.add_paragraph()
-            p.paragraph_format.space_before = Pt(6)
-            p.paragraph_format.space_after = Pt(6)
-            run = p.add_run("─" * 40)
-            _set_run_font(run, _BODY_FONT, _BODY_SIZE)
+            if tag in ("h1", "h2", "h3", "h4"):
+                _add_heading_from_element(doc, element)
+            elif tag == "p":
+                _add_paragraph_from_element(doc, element)
+            elif tag == "table":
+                _add_table_from_element(doc, element)
+            elif tag == "ol":
+                _add_list_from_element(doc, element, ordered=True)
+            elif tag == "ul":
+                _add_list_from_element(doc, element, ordered=False)
+            elif tag == "br":
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(0)
+                p.paragraph_format.space_after = Pt(0)
+            elif tag == "hr":
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(6)
+                p.paragraph_format.space_after = Pt(6)
+                run = p.add_run("─" * 40)
+                _set_run_font(run, _BODY_FONT, _BODY_SIZE)
+                run.font.color.rgb = RGBColor(128, 128, 128)
+
+        # 添加页码
+        _add_page_number(doc)
+
+        # 底部声明
+        footer_p = doc.add_paragraph("本文书由劳权智助辅助生成，提交前请核对事实与法律依据。")
+        footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for run in footer_p.runs:
+            run.font.size = Pt(9)
             run.font.color.rgb = RGBColor(128, 128, 128)
 
-    # 添加页码
-    _add_page_number(doc)
-
-    # 底部声明
-    footer_p = doc.add_paragraph("本文书由劳权智助辅助生成，提交前请核对事实与法律依据。")
-    footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    for run in footer_p.runs:
-        run.font.size = Pt(9)
-        run.font.color.rgb = RGBColor(128, 128, 128)
+    except Exception as exc:
+        logger.exception("Failed to parse HTML and build DOCX content: %s", exc)
+        raise RuntimeError(f"HTML→DOCX 转换失败: {exc}") from exc
 
     # 保存为 bytes
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer.getvalue()
+    try:
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        return buffer.getvalue()
+    except Exception as exc:
+        logger.exception("Failed to save DOCX to bytes: %s", exc)
+        raise RuntimeError(f"DOCX 保存失败: {exc}") from exc

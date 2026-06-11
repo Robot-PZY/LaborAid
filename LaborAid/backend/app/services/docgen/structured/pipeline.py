@@ -11,6 +11,7 @@ from app.services.docgen.content_quality_check import run_quality_checks
 from app.services.docgen.structured.enrich import (
     enrich_structured_payload,
     extract_shared_bundle_fields,
+    is_empty_value,
     list_missing_required,
     list_weak_long_fields,
 )

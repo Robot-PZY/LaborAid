@@ -6,6 +6,7 @@
 3. 劳动保障监察投诉书 — 依据各地人社局标准格式
 
 所有模板使用法院标准排版参数。
+占位符与 schemas.py 中的 STRUCTURED_FIELD_SCHEMAS 完全对齐。
 """
 
 from __future__ import annotations
@@ -136,14 +137,13 @@ def _add_no_indent_paragraph(doc: Document, text: str, align: WD_ALIGN_PARAGRAPH
     _set_run_font(run, _BODY_FONT, _BODY_SIZE)
 
 
-def _add_party_table(doc: Document, role: str, fields: list[tuple[str, str]]) -> None:
+def _add_party_table(doc: Document, fields: list[tuple[str, str]]) -> None:
     """添加当事人信息表格（两列：标签 + 值）。"""
     table = doc.add_table(rows=len(fields), cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.LEFT
     table.autofit = True
 
     for ri, (label, placeholder) in enumerate(fields):
-        # 标签列
         cell0 = table.cell(ri, 0)
         cell0.text = ""
         p0 = cell0.paragraphs[0]
@@ -151,10 +151,9 @@ def _add_party_table(doc: Document, role: str, fields: list[tuple[str, str]]) ->
         p0.paragraph_format.space_after = Pt(2)
         p0.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
         p0.paragraph_format.line_spacing = Pt(24)
-        run0 = p0.add_run(f"{role}{label}：")
+        run0 = p0.add_run(label)
         _set_run_font(run0, _BODY_FONT, _BODY_SIZE, bold=True)
 
-        # 值列
         cell1 = table.cell(ri, 1)
         cell1.text = ""
         p1 = cell1.paragraphs[0]
@@ -165,54 +164,15 @@ def _add_party_table(doc: Document, role: str, fields: list[tuple[str, str]]) ->
         run1 = p1.add_run(placeholder)
         _set_run_font(run1, _BODY_FONT, _BODY_SIZE)
 
-    # 添加空行
     doc.add_paragraph()
 
 
-def _add_evidence_table(doc: Document) -> None:
-    """添加证据清单表格（四列）。"""
-    table = doc.add_table(rows=2, cols=4)
-    table.style = "Table Grid"
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table.autofit = True
-
-    # 表头
-    headers = ["序号", "证据名称", "证明目的", "页数"]
-    for ci, header in enumerate(headers):
-        cell = table.cell(0, ci)
-        cell.text = ""
-        p = cell.paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.space_before = Pt(2)
-        p.paragraph_format.space_after = Pt(2)
-        p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
-        p.paragraph_format.line_spacing = Pt(24)
-        run = p.add_run(header)
-        _set_run_font(run, _BODY_FONT, Pt(14), bold=True)
-        shading = OxmlElement("w:shd")
-        shading.set(qn("w:fill"), "D9E2F3")
-        shading.set(qn("w:val"), "clear")
-        cell._element.get_or_add_tcPr().append(shading)
-
-    # 示例行
-    for ci, text in enumerate(["1", "{evidence_name}", "{evidence_purpose}", ""]):
-        cell = table.cell(1, ci)
-        cell.text = ""
-        p = cell.paragraphs[0]
-        p.paragraph_format.space_before = Pt(2)
-        p.paragraph_format.space_after = Pt(2)
-        p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
-        p.paragraph_format.line_spacing = Pt(24)
-        run = p.add_run(text)
-        _set_run_font(run, _BODY_FONT, Pt(14))
-
-
-def _add_closing(doc: Document, addressee: str, date: str = "{sign_date}") -> None:
+def _add_closing(doc: Document, addressee: str, signer_label: str = "申请人", date: str = "{sign_date}") -> None:
     """添加落款（此致 + 机构 + 签名 + 日期）。"""
     _add_no_indent_paragraph(doc, "此致")
     _add_no_indent_paragraph(doc, addressee)
     doc.add_paragraph()
-    _add_no_indent_paragraph(doc, "申请人：（签名）", align=WD_ALIGN_PARAGRAPH.RIGHT)
+    _add_no_indent_paragraph(doc, f"{signer_label}：（签名）", align=WD_ALIGN_PARAGRAPH.RIGHT)
     _add_no_indent_paragraph(doc, date, align=WD_ALIGN_PARAGRAPH.RIGHT)
 
 
@@ -225,32 +185,25 @@ def create_application_template(output_dir: Path) -> Path:
 
     _add_title(doc, "劳动人事争议仲裁申请书")
 
-    _add_party_table(doc, "", [
-        ("姓名", "{applicant_name}"),
-        ("性别", "{applicant_gender}"),
-        ("出生日期", "{applicant_birth}"),
-        ("身份证号", "{applicant_id}"),
-        ("住所", "{applicant_address}"),
-        ("联系电话", "{applicant_phone}"),
-        ("职业", "{applicant_job}"),
+    _add_party_table(doc, [
+        ("申请人姓名：", "{applicant_name}"),
+        ("身份证号：", "{applicant_id}"),
+        ("住所：", "{applicant_address}"),
+        ("联系电话：", "{applicant_phone}"),
     ])
 
-    _add_party_table(doc, "", [
-        ("被申请人名称", "{respondent_name}"),
-        ("统一社会信用代码", "{respondent_usci}"),
-        ("住所", "{respondent_address}"),
-        ("法定代表人", "{respondent_legal_rep}"),
-        ("职务", "{respondent_position}"),
+    _add_party_table(doc, [
+        ("被申请人名称：", "{respondent_name}"),
+        ("统一社会信用代码：", "{respondent_usci}"),
+        ("住所：", "{respondent_address}"),
+        ("法定代表人：", "{respondent_legal_rep}"),
     ])
 
     _add_section_heading(doc, "一、仲裁请求")
     _add_body_paragraph(doc, "{requests}")
 
     _add_section_heading(doc, "二、事实与理由")
-    _add_body_paragraph(doc, "{facts_and_reasons}")
-
-    _add_section_heading(doc, "三、证据目录")
-    _add_evidence_table(doc)
+    _add_body_paragraph(doc, "{facts_content}")
 
     _add_closing(doc, "{arbitration_commission}")
 
@@ -268,42 +221,25 @@ def create_complaint_template(output_dir: Path) -> Path:
 
     _add_title(doc, "民事起诉状")
 
-    _add_party_table(doc, "原告", [
-        ("姓名", "{plaintiff_name}"),
-        ("性别", "{plaintiff_gender}"),
-        ("出生日期", "{plaintiff_birth}"),
-        ("身份证号", "{plaintiff_id}"),
-        ("住所", "{plaintiff_address}"),
-        ("联系电话", "{plaintiff_phone}"),
+    _add_party_table(doc, [
+        ("原告姓名：", "{plaintiff_name}"),
+        ("身份证号：", "{plaintiff_id}"),
+        ("住所：", "{plaintiff_address}"),
+        ("联系电话：", "{plaintiff_phone}"),
     ])
 
-    _add_party_table(doc, "被告", [
-        ("名称", "{defendant_name}"),
-        ("统一社会信用代码", "{defendant_usci}"),
-        ("住所", "{defendant_address}"),
-        ("法定代表人", "{defendant_legal_rep}"),
-        ("职务", "{defendant_position}"),
+    _add_party_table(doc, [
+        ("被告名称：", "{defendant_name}"),
+        ("统一社会信用代码：", "{defendant_usci}"),
+        ("住所：", "{defendant_address}"),
+        ("法定代表人：", "{defendant_legal_rep}"),
     ])
 
     _add_section_heading(doc, "一、诉讼请求")
     _add_body_paragraph(doc, "{claims}")
 
     _add_section_heading(doc, "二、事实和理由")
-
-    _add_section_heading(doc, "（一）劳动合同签订情况", level=3)
-    _add_body_paragraph(doc, "{contract_info}")
-
-    _add_section_heading(doc, "（二）劳动合同履行情况", level=3)
-    _add_body_paragraph(doc, "{employment_facts}")
-
-    _add_section_heading(doc, "（三）解除或终止劳动关系情况", level=3)
-    _add_body_paragraph(doc, "{termination_facts}")
-
-    _add_section_heading(doc, "（四）劳动仲裁情况", level=3)
-    _add_body_paragraph(doc, "{arbitration_info}")
-
-    _add_section_heading(doc, "三、证据清单")
-    _add_evidence_table(doc)
+    _add_body_paragraph(doc, "{facts_content}")
 
     _add_no_indent_paragraph(doc, "此致")
     _add_no_indent_paragraph(doc, "{court_name}")
@@ -325,30 +261,30 @@ def create_labor_supervision_template(output_dir: Path) -> Path:
 
     _add_title(doc, "劳动保障监察投诉书")
 
-    _add_party_table(doc, "投诉人", [
-        ("姓名", "{complainant_name}"),
-        ("性别", "{complainant_gender}"),
-        ("年龄", "{complainant_age}"),
-        ("职业", "{complainant_job}"),
-        ("工作单位", "{complainant_workplace}"),
-        ("住所和联系方式", "{complainant_address}"),
+    _add_party_table(doc, [
+        ("投诉人姓名：", "{complainant_name}"),
+        ("身份证号：", "{complainant_id}"),
+        ("联系电话：", "{complainant_phone}"),
+        ("住所：", "{complainant_address}"),
     ])
 
-    _add_party_table(doc, "被投诉人", [
-        ("名称（用人单位）", "{employer_name}"),
-        ("单位地址", "{employer_address}"),
-        ("法定代表人或负责人姓名", "{employer_rep}"),
-        ("联系电话", "{employer_phone}"),
+    _add_party_table(doc, [
+        ("被投诉单位名称：", "{employer_name}"),
+        ("单位地址：", "{employer_address}"),
+        ("法定代表人：", "{employer_legal_rep}"),
     ])
 
-    _add_section_heading(doc, "投诉人劳动保障合法权益受到侵害的事实")
-    _add_body_paragraph(doc, "{facts}")
-
-    _add_section_heading(doc, "请求事项")
+    _add_section_heading(doc, "一、投诉事项")
     _add_body_paragraph(doc, "{items}")
 
+    _add_section_heading(doc, "二、事实经过")
+    _add_body_paragraph(doc, "{facts_content}")
+
+    _add_section_heading(doc, "三、请求事项")
+    _add_body_paragraph(doc, "{relief}")
+
     doc.add_paragraph()
-    _add_no_indent_paragraph(doc, "投诉人签名：", align=WD_ALIGN_PARAGRAPH.RIGHT)
+    _add_no_indent_paragraph(doc, "投诉人：（签名）", align=WD_ALIGN_PARAGRAPH.RIGHT)
     _add_no_indent_paragraph(doc, "{sign_date}", align=WD_ALIGN_PARAGRAPH.RIGHT)
 
     filepath = output_dir / "labor_supervision_template.docx"

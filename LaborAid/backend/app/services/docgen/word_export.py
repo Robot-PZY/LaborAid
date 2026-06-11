@@ -629,16 +629,28 @@ async def export_to_docx(doc_record, output_dir: Path, watermark: str | None = N
     ai_metadata = getattr(doc_record, "ai_metadata", None) or {}
     structured_vars = ai_metadata.get("structured_payload") if isinstance(ai_metadata, dict) else None
 
+    from app.services.docgen.direct_docx_engine import get_template_path
+
     if structured_vars and isinstance(structured_vars, dict) and get_template_path(doc_type):
         # 直接填充模式：用结构化变量填充 .docx 模板
         from app.services.docgen.direct_docx_engine import DirectDocxFillEngine
+        from app.services.docgen.structured.renderers import _render_facts_from_template
 
         engine = DirectDocxFillEngine()
-        evidence_text = ai_metadata.get("evidence_text", "") if isinstance(ai_metadata, dict) else ""
+        # 证据文本仅用于 evidence_list 类型文书，其他文书不传递证据
+        evidence_text = ""
+        if doc_type == "evidence_list":
+            evidence_text = ai_metadata.get("evidence_text", "") if isinstance(ai_metadata, dict) else ""
+
+        # 预渲染事实与理由部分（模板使用 {facts_content} 占位符）
+        fill_vars = dict(structured_vars)  # 复制一份，避免修改原始数据
+        if doc_type in ("application", "complaint", "labor_supervision"):
+            facts_content = _render_facts_from_template(doc_type, structured_vars)
+            fill_vars["facts_content"] = facts_content
 
         try:
             docx_bytes = await asyncio.to_thread(
-                engine.fill_from_markdown, doc_type, structured_vars, evidence_text=evidence_text
+                engine.fill_from_markdown, doc_type, fill_vars, evidence_text=evidence_text
             )
             from app.services.docgen.word_export_native import safe_docx_filename
 
@@ -652,51 +664,55 @@ async def export_to_docx(doc_record, output_dir: Path, watermark: str | None = N
         except Exception as e:
             logger.warning("Direct fill failed for %s: %s, falling back to html mode", doc_type, e)
 
-    if mode == "court":
-        # 旧 court 模式：直接解析 Markdown
-        doc = Document()
-        _setup_page(doc)
-        _set_document_properties(doc, doc_record.title)
-        if watermark:
-            _add_watermark(doc, watermark)
-        if not content.lstrip().startswith("#"):
-            _add_title(doc, doc_record.title)
-        _add_markdown_paragraphs(doc, content, first_line_indent=True)
-    elif mode == "html":
-        # 新模式：Markdown → HTML → DOCX（统一渲染源）
-        from app.services.docgen.court_markdown import build_preview_html
-        from app.services.docgen.html_to_docx import html_to_docx_bytes
+    try:
+        if mode == "court":
+            # 旧 court 模式：直接解析 Markdown
+            doc = Document()
+            _setup_page(doc)
+            _set_document_properties(doc, doc_record.title)
+            if watermark:
+                _add_watermark(doc, watermark)
+            if not content.lstrip().startswith("#"):
+                _add_title(doc, doc_record.title)
+            _add_markdown_paragraphs(doc, content, first_line_indent=True)
+        elif mode == "html":
+            # 新模式：Markdown → HTML → DOCX（统一渲染源）
+            from app.services.docgen.court_markdown import build_preview_html
+            from app.services.docgen.html_to_docx import html_to_docx_bytes
 
-        title = getattr(doc_record, "title", None)
-        html_content = build_preview_html(content, title=title)
-        docx_bytes = await asyncio.to_thread(html_to_docx_bytes, html_content, title=title)
+            title = getattr(doc_record, "title", None)
+            html_content = build_preview_html(content, title=title)
+            docx_bytes = await asyncio.to_thread(html_to_docx_bytes, html_content, title=title)
+
+            from app.services.docgen.word_export_native import safe_docx_filename
+
+            filename = safe_docx_filename(doc_record.id, doc_record.title)
+            filepath = output_dir / filename
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            with open(filepath, "wb") as f:
+                f.write(docx_bytes)
+            return str(filepath)
+        else:
+            # 旧 native 模式：向后兼容
+            from app.services.docgen.word_export_native import build_document_from_markdown
+
+            doc = build_document_from_markdown(
+                content,
+                title=getattr(doc_record, "title", None),
+            )
 
         from app.services.docgen.word_export_native import safe_docx_filename
 
         filename = safe_docx_filename(doc_record.id, doc_record.title)
         filepath = output_dir / filename
+
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        with open(filepath, "wb") as f:
-            f.write(docx_bytes)
+        await asyncio.to_thread(doc.save, str(filepath))
         return str(filepath)
-    else:
-        # 旧 native 模式：向后兼容
-        from app.services.docgen.word_export_native import build_document_from_markdown
-
-        doc = build_document_from_markdown(
-            content,
-            title=getattr(doc_record, "title", None),
-        )
-
-    from app.services.docgen.word_export_native import safe_docx_filename
-
-    filename = safe_docx_filename(doc_record.id, doc_record.title)
-    filepath = output_dir / filename
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    await asyncio.to_thread(doc.save, str(filepath))
-    return str(filepath)
+    except Exception as exc:
+        logger.exception("export_to_docx failed (mode=%s) for doc %s: %s", mode, getattr(doc_record, "id", "?"), exc)
+        raise
 
 
 async def export_research_to_docx(report_record, output_dir: Path, watermark: str | None = None) -> str:

@@ -280,16 +280,22 @@ def enrich_structured_payload(
         if doc_type == "complaint" and is_empty_value(out.get("legal_analysis")):
             out["legal_analysis"] = snippet[:1500]
 
-    # 证据：从 parsed_case 合并
-    ev = parsed_case.get("evidence_summary")
-    if ev and is_empty_value(out.get("evidence")):
-        out["evidence"] = "\n".join(ev) if isinstance(ev, list) else str(ev)
-    if ev and doc_type == "evidence_list" and is_empty_value(out.get("items")):
-        out["items"] = out.get("evidence") or (
-            "\n".join(ev) if isinstance(ev, list) else str(ev)
-        )
-    if doc_type in ("application", "complaint", "forced_termination_notice") and is_empty_value(out.get("evidence")):
-        out["evidence"] = _default_labor_evidence_items(case_facts)
+    # 证据隔离：证据仅用于 evidence_list 文书类型，不填充到其他文书
+    # 证据是辅助 AI 认定事实的材料，不应出现在仲裁申请书/起诉状正文中
+    if doc_type == "evidence_list":
+        ev = parsed_case.get("evidence_summary")
+        if ev and is_empty_value(out.get("items")):
+            out["items"] = "\n".join(ev) if isinstance(ev, list) else str(ev)
+        # evidence_list 类型也需要 submitter 和 case_ref
+        if is_empty_value(out.get("submitter")):
+            parties = parsed_case.get("parties", {})
+            plaintiff = parties.get("plaintiff", {})
+            if plaintiff.get("name"):
+                out["submitter"] = plaintiff["name"]
+    # 非证据类文书：清除证据相关字段，防止泄露到正文
+    else:
+        out.pop("evidence", None)
+        out.pop("evidence_text", None)
 
     return out
 

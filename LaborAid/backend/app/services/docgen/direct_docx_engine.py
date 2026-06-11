@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import copy
 import re
 from io import BytesIO
 from pathlib import Path
@@ -111,8 +112,9 @@ class DirectDocxFillEngine:
         # 2. 替换表格中的占位符
         self._replace_in_tables(doc, variables)
 
-        # 3. 填充证据表格（如果有）
-        if evidence_list:
+        # 3. 填充证据表格（仅 evidence_list 类型文书）
+        # 证据是辅助认定事实的材料，不应出现在仲裁申请书/起诉状等文书中
+        if evidence_list and doc_type == "evidence_list":
             self._fill_evidence_table(doc, evidence_list)
 
         # 4. 保存为 bytes
@@ -160,11 +162,54 @@ class DirectDocxFillEngine:
             replaced = False
             for run in runs:
                 if placeholder in run.text:
-                    run.text = run.text.replace(placeholder, str_value)
-                    # 确保字体正确
+                    # 空值：替换为"[待填写]"
                     if not str_value:
-                        # 空值：保持占位符样式但标记为待填写
-                        run.text = run.text.replace("", "[待填写]")
+                        run.text = run.text.replace(placeholder, "[待填写]")
+                    else:
+                        # 检查值是否包含多段落分隔符
+                        if "\n\n" in str_value:
+                            # 多段落内容：在当前段落替换为第一段，后续段落插入到后面
+                            paragraphs_parts = str_value.split("\n\n")
+                            run.text = run.text.replace(placeholder, paragraphs_parts[0])
+                            _set_run_font(run, _BODY_FONT, _BODY_SIZE, bold=run.bold)
+                            
+                            # 在当前段落之后插入后续段落
+                            parent = paragraph._element.getparent()
+                            insert_after = paragraph._element
+                            for part in paragraphs_parts[1:]:
+                                if part.strip():  # 跳过空段落
+                                    new_p = OxmlElement("w:p")
+                                    # 复制段落格式
+                                    pPr = paragraph._element.find(qn("w:pPr"))
+                                    if pPr is not None:
+                                        new_pPr = copy.deepcopy(pPr)
+                                        new_p.insert(0, new_pPr)
+                                    # 添加 run
+                                    new_r = OxmlElement("w:r")
+                                    rPr = OxmlElement("w:rPr")
+                                    # 设置字体
+                                    rFonts = OxmlElement("w:rFonts")
+                                    rFonts.set(qn("w:ascii"), _EN_FONT)
+                                    rFonts.set(qn("w:hAnsi"), _EN_FONT)
+                                    rFonts.set(qn("w:eastAsia"), _BODY_FONT)
+                                    rPr.append(rFonts)
+                                    sz = OxmlElement("w:sz")
+                                    sz.set(qn("w:val"), str(int(_BODY_SIZE.pt * 2)))
+                                    rPr.append(sz)
+                                    szCs = OxmlElement("w:szCs")
+                                    szCs.set(qn("w:val"), str(int(_BODY_SIZE.pt * 2)))
+                                    rPr.append(szCs)
+                                    new_r.append(rPr)
+                                    new_t = OxmlElement("w:t")
+                                    new_t.set(qn("xml:space"), "preserve")
+                                    new_t.text = part.strip()
+                                    new_r.append(new_t)
+                                    new_p.append(new_r)
+                                    # 插入到当前段落之后
+                                    insert_after.addnext(new_p)
+                                    insert_after = new_p
+                        else:
+                            run.text = run.text.replace(placeholder, str_value)
                     _set_run_font(run, _BODY_FONT, _BODY_SIZE, bold=run.bold)
                     replaced = True
                     break

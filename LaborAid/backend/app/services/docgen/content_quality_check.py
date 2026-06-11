@@ -3,6 +3,8 @@
 import re
 from typing import Any
 
+from app.services.docgen.structured.helpers import PLACEHOLDER
+
 # 各文书类型的最低字数要求
 MIN_CONTENT_LENGTH = {
     "application": 800,          # 仲裁申请书

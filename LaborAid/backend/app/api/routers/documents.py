@@ -228,8 +228,7 @@ async def generate_document_stream(
                 template_id=data.template_id,
                 owner_id=current_user.id,
             )
-            if template:
-                resolved_type = template.type
+            # 始终使用用户选择的文书类型，不应用模板的 type 覆盖
 
             if not template:
                 yield f"data: {json.dumps({'step': 'error', 'label': '未找到模板', 'error': '未找到对应文书模板，请先在模板库同步'}, ensure_ascii=False)}\n\n"
@@ -525,33 +524,43 @@ async def export_document(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if data.format == "docx":
-        from app.services.docgen.export_archive import export_docx_and_archive
+        try:
+            from app.services.docgen.export_archive import export_docx_and_archive
 
-        archived = await export_docx_and_archive(db, doc, user_id=current_user.id)
-        await db.refresh(doc)
-        if doc.exported_path:
-            filepath = settings.upload_path / doc.exported_path
-        else:
-            from app.services.docgen.word_export import export_to_docx
+            archived = await export_docx_and_archive(db, doc, user_id=current_user.id)
+            await db.refresh(doc)
+            if doc.exported_path:
+                filepath = settings.upload_path / doc.exported_path
+            else:
+                from app.services.docgen.word_export import export_to_docx
 
-            filepath = Path(await export_to_docx(doc, output_dir))
-        if not filepath.is_file():
-            raise HTTPException(500, "Word 导出失败")
-        download_name = Path(filepath).name
-        return FileResponse(
-            str(filepath),
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename=download_name,
-            headers={"X-Vault-Archived": "1" if archived else "0"},
-        )
+                filepath = Path(await export_to_docx(doc, output_dir))
+            if not filepath.is_file():
+                raise HTTPException(500, "Word 导出失败：生成文件不存在")
+            download_name = Path(filepath).name
+            return FileResponse(
+                str(filepath),
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                filename=download_name,
+                headers={"X-Vault-Archived": "1" if archived else "0"},
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("DOCX export failed for doc %s: %s", doc_id, exc)
+            raise HTTPException(500, f"Word 导出失败：{exc}") from exc
     elif data.format == "html":
-        from app.services.docgen.html_export import export_to_html
-        filepath = await export_to_html(doc, output_dir)
-        return FileResponse(
-            filepath,
-            media_type="text/html",
-            filename=Path(filepath).name,
-        )
+        try:
+            from app.services.docgen.html_export import export_to_html
+            filepath = await export_to_html(doc, output_dir)
+            return FileResponse(
+                filepath,
+                media_type="text/html",
+                filename=Path(filepath).name,
+            )
+        except Exception as exc:
+            logger.exception("HTML export failed for doc %s: %s", doc_id, exc)
+            raise HTTPException(500, f"HTML 导出失败：{exc}") from exc
     elif data.format == "pdf":
         try:
             from app.services.docgen.pdf_export import export_to_pdf
@@ -563,14 +572,21 @@ async def export_document(
             )
         except RuntimeError as e:
             raise HTTPException(400, str(e))
+        except Exception as exc:
+            logger.exception("PDF export failed for doc %s: %s", doc_id, exc)
+            raise HTTPException(500, f"PDF 导出失败：{exc}") from exc
     elif data.format == "markdown":
-        filepath = output_dir / f"{doc.id}_{doc.title}.md"
-        await asyncio.to_thread(filepath.write_text, doc.content, "utf-8")
-        return FileResponse(
-            filepath,
-            media_type="text/markdown",
-            filename=filepath.name,
-        )
+        try:
+            filepath = output_dir / f"{doc.id}_{doc.title}.md"
+            await asyncio.to_thread(filepath.write_text, doc.content, "utf-8")
+            return FileResponse(
+                filepath,
+                media_type="text/markdown",
+                filename=filepath.name,
+            )
+        except Exception as exc:
+            logger.exception("Markdown export failed for doc %s: %s", doc_id, exc)
+            raise HTTPException(500, f"Markdown 导出失败：{exc}") from exc
     else:
         raise HTTPException(400, f"不支持的导出格式: {data.format}")
 

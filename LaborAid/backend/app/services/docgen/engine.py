@@ -946,6 +946,12 @@ class DocumentGenerationEngine:
                     bundle_meta["structured_payload"] = payload
                     bundle_meta["structured_debug"] = struct_debug
                 else:
+                    # 根据案由选择对应的范文示例
+                    cause_of_action = parsed_case.get("cause_of_action", "") or parsed_case.get("sub_type", "")
+                    case_type_example = get_case_type_example(cause_of_action)
+                    if not case_type_example:
+                        case_type_example = ""
+                    
                     content = await self._call_claude(
                         system=SYSTEM_DOCUMENT_GENERATION,
                         user=DOCUMENT_GENERATION_PROMPT.format(
@@ -957,6 +963,7 @@ class DocumentGenerationEngine:
                             template_structure="无特定模板结构要求",
                             extra_instructions=extra_instructions or "无",
                             doc_type_specific=doc_type_specific,
+                            case_type_example=case_type_example,
                         ),
                         max_tokens=self._settings.CLAUDE_MAX_TOKENS,
                     )

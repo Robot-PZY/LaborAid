@@ -74,7 +74,8 @@ def _render_facts_from_template(doc_type: str, d: dict[str, Any]) -> str:
     all_empty = True
     for var in variables:
         v = val(d, var, "")
-        if v and v != PLACEHOLDER:
+        # 将 PLACEHOLDER 和包含 [待填写] 的值都视为空值
+        if v and v != PLACEHOLDER and "[待填写]" not in v:
             kwargs[var] = v.strip()
             all_empty = False
         else:

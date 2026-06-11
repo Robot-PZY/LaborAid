@@ -90,8 +90,9 @@ async def _prepare_generation(
         if case_row and case_row.owner_id == current_user.id:
             case_title = case_row.title
 
+    # 始终使用用户选择的文书类型，不应用模板的 type 覆盖
     return GenerationPrepared(
-        canonical_type=template.type,
+        canonical_type=canonical_type,
         template_id=template.id,
         research_context=research_context,
         llm_base_url=llm.base_url,
